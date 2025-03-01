@@ -6,18 +6,18 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-  }
-  
-  /* Global Styles */
-  body {
+}
+
+/* Global Styles */
+body {
     font-family: Helvetica, Arial, sans-serif;
     font-size: 14px;
     line-height: 1.6;
     color: #202122;
-  }
-  
-  /* Container Positioning */
-  #dice-roller-container {
+}
+
+/* Container Positioning */
+#dice-roller-container {
     position: fixed;
     top: 0;
     left: 0;
@@ -25,140 +25,173 @@
     height: 100%;
     z-index: 999;
     pointer-events: none;
-  }
-  
-  /* Base styling */
-  #dice-applet {
+}
+
+/* Base styling */
+#dice-applet {
     position: fixed;
     width: 224px;
     height: auto;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #f9f9f9;
+    background-color: #ffffff; /* Set background to white */
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    display: none;
+    display: flex;
     flex-direction: column;
+    justify-content: space-between; /* Distribute space evenly */
     z-index: 1000;
     pointer-events: auto;
     border-radius: 4px;
     overflow: hidden;
-  }
-  
-  /* Header styling */
-  .header {
+    border: 1px solid #ccc; /* Add thin gray outline */
+    /* Safari support */
+    -webkit-transform: translate(-50%, -50%);
+}
+
+/* Header styling */
+.header {
     display: flex;
     justify-content: flex-end;
     padding: 5px;
     cursor: move;
-    background-color: #f0f0f0;
-  }
-  
-  #close-applet {
+    background-color: #ffffff;
+}
+
+#close-applet {
     background: none;
     border: none;
     font-size: 20px;
     cursor: pointer;
     color: #666;
     padding: 0 5px;
-  }
-  
-  /* Input field styling */
-  .input-row {
+}
+
+/* Input field styling */
+.input-row {
     width: 100%;
-    padding: 10px;
+    padding: 0px 0px 5px 0px; /* Add 5px padding under the input row */
     position: relative;
-  }
-  
-  /* Using a contenteditable div for formatted output */
-  #dice-input {
-    width: 100%;
+}
+
+#dice-input {
+    width: 100%; /* Full width */
     height: 30px;
-    border: 1px solid #ccc;
-    background-color: #ffffff;
+    border: none; /* Remove border */
+    background-color: #f0f0f0; /* Set background to light gray */
+    color: #9ca3af; /* Set text color to medium gray */
     padding: 5px;
     font-size: 14px;
-    outline: none;
+    outline: none; /* Remove outline */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  
-  /* Show placeholder when empty */
-  #dice-input:empty:before {
+    border-radius: 0; /* Sharp corners */
+}
+
+/* Show placeholder when empty */
+#dice-input:empty:before {
     content: attr(placeholder);
-    color: #999;
-  }
-  
-  /* Modifier output in red and bold */
-  .modifier-display {
-    color: #ff0000;
-    font-weight: bold;
-    display: inline;
-  }
-  
-  /* Dice buttons layout */
-  .dice-buttons {
+    color: #D1D5DB;
+}
+
+/* Dice buttons layout */
+.dice-buttons {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
-    justify-content: center;
+    justify-items: center;
     padding: 10px;
-  }
-  
-  .die-button {
+    margin-bottom: 10px; /* Adjusted margin to spread out rows evenly */
+}
+
+.die-button {
     width: 40px;
     height: 40px;
     padding: 0;
     border: none;
-    background: none;
+    background: #ffffff; /* Set background to white */
     cursor: pointer;
-  }
-  
-  .die-button img {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.die-button img {
     width: 100%;
     height: 100%;
     object-fit: contain;
     transform-origin: center;
-  }
-  
-  /* Control row styling */
-  .control-row {
+}
+
+/* Animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Control row styling using grid */
+.control-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
-    justify-content: center;
+    justify-items: center;
     padding: 10px;
-  }
-  
-  #clear-button,
-  #roll-button,
-  #modify-button-increase,
-  #modify-button-decrease {
-    width: 40px;
-    height: 40px;
+    margin-bottom: 20px; /* Adjusted margin to spread out rows evenly */
+}
+
+#clear-button,
+#roll-button,
+#modify-button-increase,
+#modify-button-decrease {
+    width: 50px;
+    height: 50px;
     padding: 5px;
     border: none;
     background: none;
     cursor: pointer;
-  }
-  
-  #clear-button img,
-  #roll-button img,
-  #modify-button-increase img,
-  #modify-button-decrease img {
+}
+
+#clear-button img,
+#roll-button img,
+#modify-button-increase img,
+#modify-button-decrease img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-  }
-  
-  .modify-button-container {
+}
+
+/* Modifier container using grid layout for control row */
+.modify-button-container {
     position: relative;
-    width: 40px;
-    height: 40px;
-  }
-  
-  #modifier-overlay {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+}
+
+/* Modifier buttons – now 25px high with no padding */
+#modify-button-increase,
+#modify-button-decrease {
+    width: 50px;
+    height: 25px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+/* Modifier display for inline usage in results */
+.modifier-display {
+    color: #000000; /* Keep color black */
+    font-weight: bold;
+    display: inline;
+}
+
+/* Modifier overlay element inside the container */
+#modifier-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -168,12 +201,48 @@
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    color: #ff0000;
+    color: #000000; /* Keep color black */
     pointer-events: none;
-  }
-  
-  /* Animation */
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+    z-index: 1; /* Ensure it hovers above the buttons */
+    user-select: none; /* Make it unselectable */
+}
+
+/* Results field styling */
+.results-field {
+    height: 80px;
+    background-color: #f0f0f0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: none;
+    display: flex;
+}
+
+.results-left {
+    width: 40%; /* Swap width with results-right */
+    text-align: center; /* Center align text */
+    vertical-align: top;
+    padding: 10px;
+}
+
+.results-right {
+    width: 60%; /* Swap width with results-left */
+    text-align: left; /* Left align text */
+    word-wrap: break-word;
+    white-space: normal;
+    padding: 10px;
+}
+
+/* Override modifier display for results */
+.results-right .modifier-display {
+    position: static;
+    transform: none;
+    display: inline;
+    margin-left: 4px;
+    color: #ff0000; /* Change color to red */
+}
+
+/* Red text for modifiers in input field */
+#dice-input .modifier-display {
+    color: #ff0000; /* Change color to red */
+}

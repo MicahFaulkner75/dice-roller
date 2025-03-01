@@ -1,139 +1,106 @@
-import { state, addDie, clearDice, setModifier, clearResults } from './state';
-import { rollAllDice, computeTotal, parseDiceNotation } from './dice-logic';
-import { updateDisplay, animateResults } from './ui-updates';
+import { setupDiceInput, setupDiceButtons, updateDisplay, animateResults } from './ui-updates';
+import { state, setModifier, clearDice, clearResults, addDie } from './state';
+import { parseDiceNotation, rollAllDice, computeTotal } from './dice-logic';
+import { animateDiceIcons } from './animations/dice-animations';
 
-function minimizeAndReset(container) {
-    container.style.display = 'none';
-    container.style.top = '50%';
-    container.style.left = '50%';
-    container.style.transform = 'translate(-50%, -50%)';
+export function setupEventListeners() {
+  console.log('Setting up event listeners');
+
+  // Add event listeners for dice input, buttons, etc.
+  const diceInput = document.getElementById('dice-input');
+  diceInput.addEventListener('keydown', handleKeyDown);
+  console.log('Added keydown event listener to dice input');
+
+  const clearButton = document.getElementById('clear-button');
+  clearButton.addEventListener('click', () => {
+    console.log('Clear button clicked');
     clearDice();
     clearResults();
     setModifier(0);
     updateDisplay();
+  });
+  console.log('Added click event listener to clear button');
+
+  const rollButton = document.getElementById('roll-button');
+  rollButton.addEventListener('click', () => {
+    console.log('Roll button clicked');
+    rollAllDice();
+    const durationMs = animateDiceIcons(state.currentRolls);
+    animateResults(state.currentRolls, computeTotal(), durationMs);
+    updateDisplay();
+  });
+  console.log('Added click event listener to roll button');
+
+  const increaseButton = document.getElementById('modify-button-increase');
+  increaseButton.addEventListener('click', () => {
+    console.log('Increase button clicked');
+    setModifier(state.modifier + 1);
+    updateDisplay();
+  });
+  console.log('Added click event listener to increase button');
+
+  const decreaseButton = document.getElementById('modify-button-decrease');
+  decreaseButton.addEventListener('click', () => {
+    console.log('Decrease button clicked');
+    setModifier(state.modifier - 1);
+    updateDisplay();
+  });
+  console.log('Added click event listener to decrease button');
+
+  // Add event listener for closing the applet
+  const closeButton = document.getElementById('close-applet');
+  closeButton.addEventListener('click', () => {
+    console.log('Close button clicked');
+    document.getElementById('dice-applet').style.display = 'none';
+  });
+  console.log('Added click event listener to close button');
+
+  // Add event listener for clicking outside the applet
+  document.addEventListener('click', (event) => {
+    const applet = document.getElementById('dice-applet');
+    if (!applet.contains(event.target) && event.target.id !== 'dice-roller-button') {
+      console.log('Clicked outside the applet');
+      applet.style.display = 'none';
+    }
+  });
+  console.log('Added click event listener for clicking outside the applet');
+
+  // Add event listener for pressing ESC key
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      console.log('ESC key pressed');
+      document.getElementById('dice-applet').style.display = 'none';
+    }
+  });
+  console.log('Added keydown event listener for ESC key');
 }
 
-export function setupEventListeners() {
-    const rollButton = document.getElementById('roll-button');
-    const clearButton = document.getElementById('clear-button');
-    const addModifierBtn = document.getElementById('add-modifier');
-    const subtractModifierBtn = document.getElementById('subtract-modifier');
-    const dieButtons = document.querySelectorAll('.die-button');
-    const diceInput = document.getElementById('dice-input');
-    const toggleAppletBtn = document.getElementById('dice-roller-button');
-    const closeAppletBtn = document.getElementById('close-applet');
-    const diceContainer = document.getElementById('dice-applet');
+function handleKeyDown(e) {
+  if (e.key !== 'Enter') return;
 
-    // Handle clicking outside
-    document.addEventListener('click', (e) => {
-        if (diceContainer && 
-            !diceContainer.contains(e.target) && 
-            e.target !== toggleAppletBtn) {
-            minimizeAndReset(diceContainer);
-        }
-    });
+  e.preventDefault();
+  const input = e.target.textContent.trim();
+  if (!input) {
+    clearDice();
+    clearResults();
+    setModifier(0);
+    updateDisplay();
+    return;
+  }
 
-    // Global keyboard events
-    document.addEventListener('keydown', (e) => {
-        if (!diceContainer || diceContainer.style.display === 'none') return;
+  const parsed = parseDiceNotation(input);
+  if (parsed) {
+    processValidInput(parsed);
+  }
+}
 
-        switch (e.key) {
-            case 'Enter':
-                e.preventDefault();
-                rollAllDice();
-                animateResults(state.currentRolls, computeTotal(), 500);
-                updateDisplay();
-                break;
-            case 'Backspace':
-            case 'Delete':
-                e.preventDefault();
-                clearDice();
-                clearResults();
-                setModifier(0);
-                updateDisplay();
-                break;
-            case 'Escape':
-                e.preventDefault();
-                minimizeAndReset(diceContainer);
-                break;
-        }
-    });
+function processValidInput(parsed) {
+  clearDice();
+  parsed.dice.forEach(die => addDie(die));
+  setModifier(parsed.modifier);
+  rollAllDice();
 
-    if (toggleAppletBtn) {
-        toggleAppletBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            if (diceContainer) {
-                if (diceContainer.style.display === 'none' || diceContainer.style.display === '') {
-                    diceContainer.style.display = 'flex';
-                } else {
-                    minimizeAndReset(diceContainer);
-                }
-            }
-        });
-    }
-
-    if (closeAppletBtn) {
-        closeAppletBtn.addEventListener('click', () => {
-            minimizeAndReset(diceContainer);
-        });
-    }
-
-    if (rollButton) {
-        rollButton.addEventListener('click', () => {
-            rollAllDice();
-            animateResults(state.currentRolls, computeTotal(), 500);
-            updateDisplay();
-        });
-    }
-
-    if (clearButton) {
-        clearButton.addEventListener('click', () => {
-            clearDice();
-            clearResults();
-            setModifier(0);
-            updateDisplay();
-        });
-    }
-
-    if (addModifierBtn) {
-        addModifierBtn.addEventListener('click', () => {
-            setModifier(state.modifier + 1);
-            updateDisplay();
-        });
-    }
-
-    if (subtractModifierBtn) {
-        subtractModifierBtn.addEventListener('click', () => {
-            setModifier(state.modifier - 1);
-            updateDisplay();
-        });
-    }
-
-    dieButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const die = button.dataset.die;
-            addDie(die);
-            rollAllDice();
-            animateResults(state.currentRolls, computeTotal(), 500);
-            updateDisplay();
-        });
-    });
-
-    // Handle dice notation input
-    diceInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const parsed = parseDiceNotation(diceInput.value);
-            if (parsed) {
-                clearDice();
-                parsed.dice.forEach(die => addDie(die));
-                setModifier(parsed.modifier);
-                rollAllDice();
-                animateResults(state.currentRolls, computeTotal(), 500);
-                updateDisplay();
-            }
-        }
-    });
+  const durationMs = animateDiceIcons(parsed.dice);
+  animateResults(state.currentRolls, computeTotal(), durationMs);
+  updateDisplay();
 }

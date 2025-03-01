@@ -24,29 +24,36 @@
             <div class="input-row">
                 <div id="dice-input" contenteditable="true" placeholder="Enter dice notation"></div>
             </div>
-            <div class="dice-buttons">
-                <button class="die-button" data-die="d4"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d4.png" alt="d4"></button>
-                <button class="die-button" data-die="d6"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d6.png" alt="d6"></button>
-                <button class="die-button" data-die="d8"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d8.png" alt="d8"></button>
-                <button class="die-button" data-die="d10"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d10.png" alt="d10"></button>
-                <button class="die-button" data-die="d12"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d12.png" alt="d12"></button>
-                <button class="die-button" data-die="d20"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d20.png" alt="d20"></button>
-            </div>
-            <div class="control-row">
-                <button id="clear-button"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/ban.png" alt="Clear"></button>
-                <button id="roll-button"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/recycle.png" alt="Roll"></button>
-                <div class="modify-button-container">
-                    <button id="modify-button-increase"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/up2.png" alt="Increase"></button>
-                    <button id="modify-button-decrease"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/down2.png" alt="Decrease"></button>
-                    <div id="modifier-overlay" class="modifier-display">0</div>
-                </div>
-            </div>
+            <table class="dice-control-table">
+                <tr class="dice-buttons">
+                    <td><button class="die-button" data-die="d4"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d4.png" alt="d4"></button></td>
+                    <td><button class="die-button" data-die="d6"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d6.png" alt="d6"></button></td>
+                    <td><button class="die-button" data-die="d8"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d8.png" alt="d8"></button></td>
+                </tr>
+                <tr class="dice-buttons">
+                    <td><button class="die-button" data-die="d10"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d10.png" alt="d10"></button></td>
+                    <td><button class="die-button" data-die="d12"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d12.png" alt="d12"></button></td>
+                    <td><button class="die-button" data-die="d20"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d20.png" alt="d20"></button></td>
+                </tr>
+                <tr class="control-row">
+                    <td><button id="clear-button"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/ban.png" alt="Clear"></button></td>
+                    <td><button id="roll-button"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/recycle.png" alt="Roll"></button></td>
+                    <td class="modify-button-container">
+                        <button id="modify-button-increase"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/up2.png" alt="Increase"></button>
+                        <button id="modify-button-decrease"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/down2.png" alt="Decrease"></button>
+                        <div id="modifier-overlay" class="modifier-display">0</div>
+                    </td>
+                </tr>
+            </table>
             <div class="results-field">
                 <div class="results-left">
-                    <div id="results-rolls"></div>
+                    <div id="results-total">
+                        <div style="font-weight:bold; font-size:16px; text-align:center;">TOTAL</div>
+                        <div style="font-weight:bold; font-size:18px; text-align:center; margin-top:2px;">0</div>
+                    </div>
                 </div>
                 <div class="results-right">
-                    <div id="results-total"></div>
+                    <div id="results-rolls"></div>
                 </div>
             </div>
         </div>

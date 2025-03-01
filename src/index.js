@@ -5,21 +5,26 @@ import { makeDraggable } from './make-draggable';
 
 // Initialize all UI components when the document is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Set up core UI event listeners
+    // Initial setup
     setupEventListeners();
     setupDiceInput();
     setupDiceButtons();
     
-    // Initialize draggable functionality
+    // Get the launch button and applet
+    const launchButton = document.getElementById('dice-roller-button');
     const applet = document.getElementById('dice-applet');
-    if (applet) {
-        makeDraggable(applet);
-        // Set initial state of applet to hidden
-        applet.style.display = 'none';
-    }
+    
+    // Set initial state explicitly
+    applet.style.display = 'none';
+    
+    // Add click handler for launch button
+    launchButton.addEventListener('click', () => {
+        const isHidden = applet.style.display === 'none';
+        applet.style.display = isHidden ? 'flex' : 'none';
+    });
 
-    // Initialize the display
-    updateDisplay();
+    // Make the applet draggable
+    makeDraggable(applet);
 });
 
 // Export UI functions for potential use in other modules
