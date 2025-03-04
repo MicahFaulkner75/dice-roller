@@ -43,7 +43,11 @@ export function rollAllDice() {
   state.selectedDice.forEach(die => {
     const dieButtons = document.querySelectorAll(`.die-button[data-die="${die}"] img`);
     dieButtons.forEach(button => {
+<<<<<<< HEAD
       const finalAngle = 360 * 3; // 3 full spins to end right-side up
+=======
+      const finalAngle = 900; // Final angle after 2 seconds (720 degrees fast + 180 degrees slow)
+>>>>>>> 186fdb4 (Dice spin deceleration added)
       const duration = 2000; // Total duration in milliseconds
       animateSpin(button, duration, finalAngle);
     });

@@ -27,7 +27,7 @@ body {
 /* Base styling */
 #dice-applet {
     position: fixed;
-    width: 224px;
+    width: 274px; /* Total width: 224px for existing applet + 50px for number buttons */
     height: auto;
     top: 50%;
     left: 50%;
@@ -49,7 +49,7 @@ body {
 /* Header styling */
 .header {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-end; /* Align close button to the right */
     padding: 5px;
     cursor: move;
     background-color: #ffffff;
@@ -62,6 +62,39 @@ body {
     cursor: pointer;
     color: #666;
     padding: 0 5px;
+}
+
+/* Container for number buttons and applet */
+#applet-container {
+    display: flex;
+    align-items: stretch;
+}
+
+/* Style for the number buttons sidebar */
+#number-buttons {
+    width: 50px;
+    background-color: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Style for the number buttons */
+.number-btn {
+    width: 40px;
+    height: 10%;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Ensure the existing applet takes up the remaining space */
+#existing-applet {
+    width: 224px; /* Fixed width for the existing applet content */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center contents vertically */
+    align-items: center; /* Center contents horizontally */
 }
 
 /* Input field styling */
@@ -96,15 +129,27 @@ body {
 .dice-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
+    gap: 20px;
     justify-items: center;
     padding: 10px;
     margin-bottom: 10px; /* Adjusted margin to spread out rows evenly */
+    width: 100%; /* Ensure full width */
+}
+
+/* Control row styling using grid */
+.control-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    justify-items: center;
+    padding: 10px;
+    margin-bottom: 20px; /* Adjusted margin to spread out rows evenly */
+    width: 100%; /* Ensure full width */
 }
 
 .die-button {
-    width: 40px;
-    height: 40px;
+    width: 50px; /* Increased width */
+    height: 50px; /* Increased height */
     padding: 0;
     border: none;
     background: #ffffff; /* Set background to white */
@@ -127,18 +172,6 @@ body {
 #modify-button-increase:focus,
 #modify-button-decrease:focus {
   outline: none;
-}
-
-
-
-/* Control row styling using grid */
-.control-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-    justify-items: center;
-    padding: 10px;
-    margin-bottom: 20px; /* Adjusted margin to spread out rows evenly */
 }
 
 #clear-button,
@@ -217,6 +250,7 @@ body {
     overflow: hidden;
     border: none;
     display: flex;
+    width: 100%; /* Ensure full width */
 }
 
 .results-left {
@@ -247,4 +281,3 @@ body {
 #dice-input .modifier-display {
     color: #ff0000; /* Change color to red */
 }
-
