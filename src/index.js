@@ -31,3 +31,4 @@ document.addEventListener('DOMContentLoaded', () => {
 export { setupDiceInput, setupDiceButtons, updateDisplay } from './ui-updates';
 export { animateDiceIcons, animateResults } from './animations/dice-animations';
 export { formatModifier, formatDiceInput } from './utils/formatting';
+

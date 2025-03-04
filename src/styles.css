@@ -129,27 +129,7 @@ body {
   outline: none;
 }
 
-/* Dice Animation */
-.die-button img.spin {
-    animation: spin 0.5s linear;
-  }
-  
-  .animating {
-    animation: pulse 0.5s ease;
-  }
-  
-  @keyframes pulse {
-    0% { opacity: 0.5; }
-    50% { opacity: 1; }
-    100% { opacity: 0.5; }
-  }
 
-
-/* Animation */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
 
 /* Control row styling using grid */
 .control-row {
@@ -267,3 +247,4 @@ body {
 #dice-input .modifier-display {
     color: #ff0000; /* Change color to red */
 }
+

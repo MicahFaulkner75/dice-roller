@@ -5,12 +5,48 @@ function rollDie(sides) {
   return Math.floor(Math.random() * sides) + 1;
 }
 
+// Deceleration function
+function decelerate(t, p_f, A, tau) {
+  return p_f - A * Math.exp(-t / tau);
+}
+
+// Animate the dice spin with deceleration
+function animateSpin(button, duration, finalAngle) {
+  const startTime = performance.now();
+  const initialAngle = 0;
+  const amplitude = finalAngle - initialAngle;
+  const tau = 325; // Time constant in milliseconds
+
+  function step(currentTime) {
+    const elapsedTime = currentTime - startTime;
+    if (elapsedTime < duration) {
+      const angle = decelerate(elapsedTime, finalAngle, amplitude, tau);
+      button.style.transform = `rotate(${angle}deg)`;
+      requestAnimationFrame(step);
+    } else {
+      button.style.transform = `rotate(${finalAngle}deg)`;
+    }
+  }
+
+  requestAnimationFrame(step);
+}
+
 // Roll all dice currently in state.selectedDice and update state.currentRolls.
 export function rollAllDice() {
   state.currentRolls = state.selectedDice.map(die => {
     // Assumes die is in the form "dX" (e.g., "d6", "d20").
     const sides = parseInt(die.slice(1), 10);
     return rollDie(sides);
+  });
+
+  // Trigger the spin animation for each die
+  state.selectedDice.forEach(die => {
+    const dieButtons = document.querySelectorAll(`.die-button[data-die="${die}"] img`);
+    dieButtons.forEach(button => {
+      const finalAngle = 900; // Final angle after 2 seconds (720 degrees fast + 180 degrees slow)
+      const duration = 2000; // Total duration in milliseconds
+      animateSpin(button, duration, finalAngle);
+    });
   });
 }
 

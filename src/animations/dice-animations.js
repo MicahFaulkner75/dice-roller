@@ -51,3 +51,4 @@ export function animateResults(rolls, total, durationMs) {
     resultsTotalEl.classList.remove('animating');
   }, durationMs);
 }
+
