@@ -4,8 +4,8 @@ import { animateDiceIcons, animateResults } from '../animations/dice-animations'
 import { updateDisplay } from './display';
 
 export function setupDiceButtons() {
-  const dieButtons = document.querySelectorAll('.die-button');
-  dieButtons.forEach(button => {
+  const diceButtons = document.querySelectorAll('.die-button');
+  diceButtons.forEach(button => {
     button.addEventListener('click', handleDieClick);
   });
 }
@@ -25,7 +25,7 @@ function handleDieClick(e) {
       return Math.floor(Math.random() * sides) + 1;
     });
   }
-  
+
   try {
     // Try to use imported function
     rollAllDice();
@@ -34,7 +34,7 @@ function handleDieClick(e) {
     console.error("Error using imported rollAllDice, using fallback", error);
     localRollAllDice();
   }
-  
+
   const durationMs = animateDiceIcons([dieType]);
   
   // Update display after animation completes

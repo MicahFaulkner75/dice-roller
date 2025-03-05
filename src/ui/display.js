@@ -27,11 +27,12 @@ function updateResults() {
   const resultsTotalEl = document.getElementById('results-total');
   
   if (resultsRollsEl) {
-    // Create grid of results
-    const rolls = state.currentRolls;
-    const gridHTML = rolls.map(roll => 
-      `<div class="result-number">${roll}</div>`
-    ).join('');
+    // Create grid of results with die-specific colors
+    // Use the index from selectedDice to maintain order
+    const gridHTML = state.currentRolls.map((roll, index) => {
+      const dieType = state.selectedDice[index];  // Get corresponding die type
+      return `<div class="result-number result-${dieType}">${roll}</div>`;
+    }).join('');
     
     // Always show modifier
     resultsRollsEl.innerHTML = gridHTML + 

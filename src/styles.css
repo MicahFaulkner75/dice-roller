@@ -5,11 +5,6 @@
    box-sizing: border-box;
 }
 
-/* Debugging outlines - remove for production */
-/* * {
-   outline: 1px solid rgba(255, 0, 0, 0.2) !important;
-} */
-
 /* Global Styles */
 :root {
    font-size: 14px;  /* Base size for rem calculations */
@@ -260,9 +255,9 @@ body {
 
 .results-right {
    position: relative;
-   width: 65%;  /* Increased from 60% */
+   width: 65%;
    text-align: left;
-   padding: 0.5rem 0.75rem;
+   padding: 0.7rem 0.75rem 0.5rem 0.75rem;  /* Reduce top padding from 0.75rem to 0.6rem */
    overflow-y: auto;
    background-color: #f0f0f0;
    z-index: 1;
@@ -288,20 +283,47 @@ body {
    background-color: #f0f0f0;  /* Match parent background */
    border-radius: 0.125rem;
    overflow: hidden;  /* Prevent text from expanding cell */
+   font-size: 1.15rem;  /* Increased from default 1rem */
+}
+
+/* Die-specific colors for results */
+.result-d4 {
+   color: #19a34a;
+}
+
+.result-d6 {
+   color: #0985b4;
+}
+
+.result-d8 {
+   color: #7f54a2;
+}
+
+.result-d10 {
+   color: #af206d;
+}
+
+.result-d12 {
+   color: #d42027;
+}
+
+.result-d20 {
+   color: #f05223;
 }
 
 /* Override modifier display for results */
 .results-right .modifier-display {
-   position: absolute;  /* Change to absolute positioning */
-   right: 0.75rem;     /* Align with padding */
-   top: 0.5rem;        /* Match top padding */
-   color: #ff0000;
+   position: absolute;
+   right: 0.75rem;
+   top: 0.6rem;  /* Match new top padding */
+   color: #000000;
    display: flex;
    justify-content: center;
    align-items: center;
    width: 1.25rem;
    height: 1.5rem;
    overflow: hidden;
+   font-size: 1.15rem;  /* Match result-number font size */
 }
 
 /* Red text for modifiers in input field */
@@ -310,7 +332,8 @@ body {
    right: 0.75rem;  /* Match the results area padding */
    top: 50%;
    transform: translateY(-50%);
-   color: #ff0000;
+   color: #000000;
+   font-weight: bold;
 }
 
 /* Resize handle */

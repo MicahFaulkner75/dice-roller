@@ -13,7 +13,7 @@ export function setupEventListeners() {
     if (!input) {
       // If no input, just roll existing dice
       rollAllDice();
-      const durationMs = animateDiceIcons(state.currentRolls);
+      const durationMs = animateDiceIcons(state.selectedDice);
       animateResults(state.currentRolls, computeTotal(), durationMs);
       updateDisplay();
       return;
@@ -22,12 +22,14 @@ export function setupEventListeners() {
     // Parse and process input if present
     const parsed = parseDiceNotation(input);
     if (parsed) {
-      clearDice();
-      parsed.dice.forEach(die => addDie(die));
+      // Don't clear and rebuild on reroll - this preserves order
+      if (state.selectedDice.length === 0) {
+        parsed.dice.forEach(die => addDie(die));
+      }
       setModifier(parsed.modifier);
       rollAllDice();
 
-      const durationMs = animateDiceIcons(state.currentRolls);
+      const durationMs = animateDiceIcons(state.selectedDice);
       animateResults(state.currentRolls, computeTotal(), durationMs);
       updateDisplay();
     }
