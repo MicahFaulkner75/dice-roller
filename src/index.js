@@ -17,10 +17,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set initial state explicitly
     applet.style.display = 'none';
     
+    // Initialize display to show +0 modifier
+    updateDisplay();
+    
     // Add click handler for launch button
     launchButton.addEventListener('click', () => {
         const isHidden = applet.style.display === 'none';
         applet.style.display = isHidden ? 'flex' : 'none';
+        if (isHidden) {
+            updateDisplay(); // Refresh display when showing
+        }
     });
 
     // Make the applet draggable

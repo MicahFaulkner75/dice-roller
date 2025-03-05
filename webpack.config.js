@@ -10,6 +10,14 @@ module.exports = {
         clean: true,
     },
     mode: 'development',
+    devServer: {
+        static: {
+            directory: path.join(__dirname, 'dist'),
+        },
+        hot: true,
+        open: true,
+        port: 8080,
+    },
     module: {
         rules: [
             {

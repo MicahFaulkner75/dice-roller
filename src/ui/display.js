@@ -8,10 +8,15 @@ export function updateDisplay() {
   const modifierOverlay = document.getElementById('modifier-overlay');
   
   if (diceInput) {
-    diceInput.innerHTML = notation ? formatDiceInput(notation, state.modifier) : '';
+    // Always show modifier in input, even when zero
+    const modifierText = state.modifier >= 0 ? `+${state.modifier}` : `${state.modifier}`;
+    diceInput.innerHTML = notation ? `${notation} <span class="modifier-display">${modifierText}</span>` : 
+                                   `<span class="modifier-display">${modifierText}</span>`;
   }
+  
   if (modifierOverlay) {
-    modifierOverlay.textContent = state.modifier > 0 ? `+${state.modifier}` : state.modifier || '0';
+    // Always show + for zero and positive numbers
+    modifierOverlay.textContent = state.modifier >= 0 ? `+${state.modifier}` : `${state.modifier}`;
   }
   
   updateResults();
@@ -22,12 +27,20 @@ function updateResults() {
   const resultsTotalEl = document.getElementById('results-total');
   
   if (resultsRollsEl) {
-    resultsRollsEl.innerHTML = state.currentRolls.join(' + ') + formatModifier(state.modifier);
+    // Create grid of results
+    const rolls = state.currentRolls;
+    const gridHTML = rolls.map(roll => 
+      `<div class="result-number">${roll}</div>`
+    ).join('');
+    
+    // Always show modifier
+    resultsRollsEl.innerHTML = gridHTML + 
+      `<div class="modifier-display">${state.modifier >= 0 ? '+' : ''}${state.modifier}</div>`;
   }
   
   if (resultsTotalEl) {
     resultsTotalEl.innerHTML = `
-      <div style="font-weight:bold; font-size:16px; text-align:center;">TOTAL:</div>
+      <div style="font-weight:bold; font-size:16px; text-align:center;">TOTAL</div>
       <div style="font-weight:bold; font-size:18px; text-align:center; margin-top:2px;">
         ${computeTotal()}
       </div>`;
