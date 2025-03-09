@@ -125,8 +125,10 @@ body {
    border: none;
    background-color: #f0f0f0;
    color: #202122;
-   padding: 5px;
-   font-size: 14px;
+   padding: 2px 5px; /* Reduced top/bottom padding from 5px to 2px */
+   line-height: 26px; /* Added to center text vertically */
+   font-size: 16px;
+   font-weight: bold;
    outline: none;
    overflow-x: auto; /* Enable horizontal scrolling */
    overflow-y: hidden; /* Prevent vertical scrolling */
@@ -145,6 +147,7 @@ body {
    scrollbar-width: none;  /* Firefox */
 }
 
+/* Input modifier display */
 .input-modifier-display {
    position: absolute;
    right: 5px;
@@ -155,10 +158,14 @@ body {
    align-items: center;
    justify-content: center;
    font-weight: bold;
-   color: #ff0000;
+   color: #000000;
    background-color: #f0f0f0;
    user-select: none;
    z-index: 2;
+}
+
+.input-modifier-display:empty::before {
+   content: "+0";
 }
 
 /* Total container styling */
@@ -298,7 +305,7 @@ body {
 /* Modifier container using grid layout for control row */
 .modify-button-container {
    position: relative;
-   width: 50px;
+   width: 45px; /* Reduced from 50px */
    height: 50px;
    display: flex;
    flex-direction: column;
@@ -310,7 +317,7 @@ body {
 /* CRITICAL: Modifier button sizes */
 #modify-button-increase,
 #modify-button-decrease {
-   width: 50px;  /* CRITICAL SIZE - DO NOT CHANGE */
+   width: 45px;  /* CRITICAL SIZE - Reduced from 50px */
    height: 25px; /* CRITICAL SIZE - DO NOT CHANGE */
    padding: 0;
    border: none;
@@ -342,6 +349,10 @@ body {
    pointer-events: none;
    z-index: 1; /* Ensure it hovers above the buttons */
    user-select: none; /* Make it unselectable */
+}
+
+#modifier-overlay:empty::before {
+   content: "+0";
 }
 
 
@@ -388,13 +399,14 @@ body {
 
 .results-grid .roll-box {
    min-width: 16px;
-   height: 20px; /* Reduced from 22px */
+   height: 20px;
    display: flex;
    align-items: center;
    justify-content: center;
-   font-size: 14px;
+   font-size: 16px;
+   font-weight: bold;
    color: #202122;
-   padding-bottom: 1px; /* Reduced from 2px */
+   padding-bottom: 1px;
 }
 
 /* CRITICAL: Results modifier positioning */
@@ -408,10 +420,14 @@ body {
    align-items: center;
    justify-content: center;
    font-weight: bold;
-   color: #ff0000;
+   color: #000000;
    background-color: #f0f0f0;
    z-index: 2;
    user-select: none;
+}
+
+.results-modifier:empty::before {
+   content: "+0";
 }
 
 /* Remove conflicting styles */
@@ -434,4 +450,48 @@ body {
    flex-direction: column;
    justify-content: space-evenly; /* Distribute space evenly */
    padding: 10px 0 15px 0; /* Increased bottom padding to 15px to match top spacing */
+}
+
+/* Color coding for dice results */
+.roll-box[data-die="d4"],
+#dice-input .d4-result {
+   color: #009933;
+}
+
+.roll-box[data-die="d6"],
+#dice-input .d6-result {
+   color: #0099b2; /* Changed from #17b4d6 to #0099b2 */
+}
+
+.roll-box[data-die="d8"],
+#dice-input .d8-result {
+   color: #7f54a2;
+}
+
+.roll-box[data-die="d10"],
+#dice-input .d10-result {
+   color: #e13192;
+}
+
+.roll-box[data-die="d12"],
+#dice-input .d12-result {
+   color: #dc3c41;
+}
+
+.roll-box[data-die="d20"],
+#dice-input .d20-result {
+   color: #f18121;
+}
+
+/* Update modifier colors to black */
+.modifier-display,
+#modifier-overlay,
+.results-modifier,
+.input-modifier-display {
+   color: #000000;
+}
+
+/* Red text for modifiers in input field - Override previous red color */
+#dice-input .modifier-display {
+   color: #000000;
 }
