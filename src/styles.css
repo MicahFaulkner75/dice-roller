@@ -210,16 +210,47 @@ body {
    display: flex;
    justify-content: center;
    align-items: center;
+   position: relative; /* Added for absolute positioning of oversized dice */
+   overflow: visible; /* Allow dice to overflow their containers */
 }
 
-
-.die-button img {
-   width: 100%;
-   height: 100%;
-   object-fit: contain;
-   transform-origin: center;
+/* Individual die image sizes */
+.die-button[data-die="d4"] img {
+   width: 42px;
+   height: 36px;
+   position: absolute; /* Allow oversized dice to extend outside button */
+   transform-origin: center calc(100% - 12px); /* Set rotation point 12px above base */
+   margin-top: -5px; /* Move the d4 up by 5 pixels */
 }
 
+.die-button[data-die="d6"] img {
+   width: 32px;
+   height: 32px;
+}
+
+.die-button[data-die="d8"] img {
+   width: 40px;
+   height: 45px;
+   position: absolute;
+}
+
+.die-button[data-die="d10"] img {
+   width: 44px;
+   height: 40px;
+   position: absolute;
+}
+
+.die-button[data-die="d12"] img {
+   width: 42px;
+   height: 44px;
+   position: absolute;
+}
+
+.die-button[data-die="d20"] img {
+   width: 42px;
+   height: 47px;
+   position: absolute;
+}
 
 .die-button:focus,
 #roll-button:focus,
