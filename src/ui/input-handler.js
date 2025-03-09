@@ -8,29 +8,19 @@ export function setupDiceInput() {
   diceInput.contentEditable = 'true';
   diceInput.draggable = false;
   
-  // Handle input field focus events
-  diceInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      // Delegate to roll button click
-      const rollButton = document.getElementById('roll-button');
-      if (rollButton) {
-        rollButton.dispatchEvent(new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          view: window
-        }));
-      }
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      updateDisplay();
-      e.target.blur();
-    }
+  // Prevent text selection from triggering minimization
+  diceInput.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
   });
   
+  diceInput.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+  
+  diceInput.addEventListener('keydown', handleInputKeyDown);
   diceInput.addEventListener('blur', () => updateDisplay());
 
-  // Global keyboard shortcuts (only when input is not focused)
+  // Global key handling
   document.addEventListener('keydown', (e) => {
     // Skip if we're inside the input field
     if (document.activeElement === diceInput) return;
@@ -40,11 +30,12 @@ export function setupDiceInput() {
       // Trigger roll button
       const rollButton = document.getElementById('roll-button');
       if (rollButton) {
-        rollButton.dispatchEvent(new MouseEvent('click', {
+        const clickEvent = new MouseEvent('click', {
           bubbles: true,
           cancelable: true,
           view: window
-        }));
+        });
+        rollButton.dispatchEvent(clickEvent);
       }
     } 
     else if (e.key === 'Backspace') {
@@ -52,34 +43,52 @@ export function setupDiceInput() {
       // Trigger clear button
       const clearButton = document.getElementById('clear-button');
       if (clearButton) {
-        clearButton.dispatchEvent(new MouseEvent('click', {
+        const clickEvent = new MouseEvent('click', {
           bubbles: true,
           cancelable: true,
           view: window
-        }));
+        });
+        clearButton.dispatchEvent(clickEvent);
       }
     }
     else if (e.key === 'Escape') {
       e.preventDefault();
-      // Trigger clear button first
+      // Clear dice and hide applet
       const clearButton = document.getElementById('clear-button');
       const applet = document.getElementById('dice-applet');
       
       if (clearButton) {
-        clearButton.dispatchEvent(new MouseEvent('click', {
+        // First clear the dice
+        const clickEvent = new MouseEvent('click', {
           bubbles: true,
           cancelable: true,
           view: window
-        }));
+        });
+        clearButton.dispatchEvent(clickEvent);
       }
       
       // Then reset position and hide applet
       if (applet) {
+        // Reset to center position
         applet.style.left = '50%';
         applet.style.top = '50%';
         applet.style.transform = 'translate(-50%, -50%)';
+        // Hide applet
         applet.style.display = 'none';
       }
     }
   });
+}
+
+// Rename the existing handleKeyDown to handleInputKeyDown
+function handleInputKeyDown(e) {
+  // This only runs when the input field has focus
+  if (e.key === 'Enter') {
+    // Existing Enter key handler for input field
+    // ...rest of your existing code...
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    updateDisplay();
+    e.target.blur();
+  }
 }

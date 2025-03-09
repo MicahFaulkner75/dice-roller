@@ -4,7 +4,7 @@ export function makeDraggable(applet) {
     let offsetY = 0;
 
     applet.addEventListener('mousedown', (e) => {
-        if (e.target.closest('button')) return;
+        if (e.target.closest('button') || e.target.closest('.input-row')) return;
         isDragging = true;
         offsetX = e.clientX - applet.offsetLeft;
         offsetY = e.clientY - applet.offsetTop;
@@ -21,7 +21,7 @@ export function makeDraggable(applet) {
     });
 
     applet.addEventListener('touchstart', (e) => {
-        if (e.target.closest('button')) return;
+        if (e.target.closest('button') || e.target.closest('.input-row')) return;
         e.preventDefault();
         isDragging = true;
         const touch = e.touches[0];
