@@ -120,27 +120,27 @@ export function rollAllDice() {
 
 // Compute the current dice notation (e.g., "2d20 + 1d6")
 export function computeNotation() {
-  let notation = '';
-
   // Special case for percentile roll
   if (state.selectedDice.length === 1 && 
       (state.selectedDice[0] === 'd00' || state.selectedDice[0] === 'd100')) {
-    notation = '00';
-  } else if (state.selectedDice.length > 0) {
-    // Normal dice handling
-    const diceCounts = {};
-    // Count occurrences of each die type
-    state.selectedDice.forEach(die => {
-      diceCounts[die] = (diceCounts[die] || 0) + 1;
-    });
-    // Convert to notation format
-    const parts = Object.entries(diceCounts).map(([die, count]) => {
-      return `${count}${die}`;
-    });
-    notation = parts.join(' + ');
+    return '00';
   }
 
-  // Add modifier to notation if it exists
+  // Normal dice handling
+  const diceCounts = {};
+  // Count occurrences of each die type
+  state.selectedDice.forEach(die => {
+    diceCounts[die] = (diceCounts[die] || 0) + 1;
+  });
+  
+  // Convert to notation format
+  const parts = Object.entries(diceCounts).map(([die, count]) => {
+    return `${count}${die}`;
+  });
+  
+  let notation = parts.join(' + ');
+
+  // Add modifier if it exists
   if (state.modifier !== 0) {
     notation += notation ? ` ${state.modifier > 0 ? '+' : '-'} ${Math.abs(state.modifier)}` : 
                          `${state.modifier > 0 ? '+' : '-'}${Math.abs(state.modifier)}`;

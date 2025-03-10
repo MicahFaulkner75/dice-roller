@@ -11,8 +11,12 @@ export function updateDisplay() {
   
   // Update input area
   if (diceInput) {
-    if (state.selectedDice.length > 0) {
-      // Count dice occurrences
+    // Check for percentile roll first
+    if (state.selectedDice.length === 1 && 
+        (state.selectedDice[0] === 'd00' || state.selectedDice[0] === 'd100')) {
+      diceInput.innerHTML = '00';
+    } else if (state.selectedDice.length > 0) {
+      // Handle normal dice display
       const diceCounts = {};
       state.selectedDice.forEach(die => {
         diceCounts[die] = (diceCounts[die] || 0) + 1;

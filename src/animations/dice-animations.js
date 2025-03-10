@@ -7,12 +7,14 @@ export function animateDiceIcons(dice) {
   
   // Apply spin animation to matching dice buttons
   diceToAnimate.forEach(dieType => {
-    const button = document.querySelector(`.die-button[data-die="${dieType}"]`);
-    console.log(`Looking for button with [data-die="${dieType}"]`, button);
+    // Handle both d10 and d00 using the d10 button
+    const buttonSelector = dieType === 'd00' ? 'd10' : dieType;
+    const button = document.querySelector(`.die-button[data-die="${buttonSelector}"]`);
+    console.log(`Looking for button with [data-die="${buttonSelector}"]`, button);
     
     if (button) {
       const img = button.querySelector('img');
-      console.log(`Found image in button:`, img);
+      console.log("Found image in button:", img);
       
       if (img) {
         // Add and remove the spin class to trigger CSS animation

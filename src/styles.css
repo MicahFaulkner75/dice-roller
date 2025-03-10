@@ -496,20 +496,31 @@ body {
    color: #000000;
 }
 
-/* Add these rules with the other dice color rules */
+/* Color coding for d10 percentile results */
 .roll-box[data-die="d10-tens"] {
-   color: #0000FF; /* Websafe blue */
+   color: #4557a7; /* Changed back to original blue */
 }
 
 .roll-box[data-die="d10-ones"] {
-   color: #FF0000; /* Websafe red */
+   color: #dc3c41; /* Red */
 }
 
-/* Add these for the input display */
+/* Input display colors for d10 */
 #dice-input .d10-tens {
-   color: #0000FF;
+   color: #4557a7; /* Changed back to original blue */
 }
 
 #dice-input .d10-ones {
-   color: #FF0000;
+   color: #dc3c41;
+}
+
+/* Basic spin animation */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 500ms ease-in-out;
+  transform-origin: center;
 }
