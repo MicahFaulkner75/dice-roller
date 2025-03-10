@@ -9,27 +9,29 @@ export function updateDisplay() {
   const inputModifierDisplay = document.querySelector('.input-modifier-display');
   const resultsModifier = document.querySelector('.results-modifier');
   
-  // Update input area with colored dice notation
+  // Update input area
   if (diceInput) {
-    if (notation) {
-      // Split notation into parts and color-code each die type
-      const parts = notation.split(' + ');
-      const coloredParts = parts.map(part => {
-        const dieMatch = part.match(/(\d+)(d\d+)/);
-        if (dieMatch) {
-          const [_, count, dieType] = dieMatch;
-          return `<span class="${dieType}-result">${count}${dieType}</span>`;
-        }
-        return part;
+    if (state.selectedDice.length > 0) {
+      // Count dice occurrences
+      const diceCounts = {};
+      state.selectedDice.forEach(die => {
+        diceCounts[die] = (diceCounts[die] || 0) + 1;
       });
-      diceInput.innerHTML = coloredParts.join(' + ');
+      
+      // Create colored spans for each die group
+      const parts = [];
+      Object.entries(diceCounts).forEach(([die, count], index) => {
+        if (index > 0) parts.push(' + ');
+        parts.push(`<span class="${die}-result">${count}${die}</span>`);
+      });
+      diceInput.innerHTML = parts.join('');
     } else {
       diceInput.innerHTML = '';
     }
   }
   
-  // Always show +0 for all modifier displays when modifier is 0
-  const modifierText = state.modifier === 0 ? '+0' : (state.modifier > 0 ? `+${state.modifier}` : state.modifier);
+  // Format modifier text with explicit +0 when modifier is 0
+  const modifierText = state.modifier === 0 ? '+0' : (state.modifier > 0 ? `+${state.modifier}` : `${state.modifier}`);
   
   // Update all modifier displays
   if (modifierOverlay) {
@@ -55,20 +57,41 @@ function updateResults() {
     // Clear existing results
     resultsRollsEl.innerHTML = '';
     
-    // Create boxes for each roll with die type
-    state.currentRolls.forEach((roll, index) => {
-      const rollBox = document.createElement('div');
-      rollBox.className = 'roll-box';
-      rollBox.textContent = roll;
-      rollBox.dataset.die = state.selectedDice[index];
-      resultsRollsEl.appendChild(rollBox);
-    });
+    // Check if this is a percentile roll
+    const isPercentile = state.selectedDice.length === 1 && state.selectedDice[0] === 'd00';
+    
+    if (isPercentile && Array.isArray(state.currentRolls)) {
+      // Handle percentile display
+      state.currentRolls.forEach(roll => {
+        const rollBox = document.createElement('div');
+        rollBox.className = 'roll-box';
+        rollBox.textContent = roll.value;
+        rollBox.dataset.die = roll.type;  // d10-tens or d10-ones
+        resultsRollsEl.appendChild(rollBox);
+      });
+    } else if (state.currentRolls.length > 0) {
+      // Normal dice display
+      state.currentRolls.forEach((roll, index) => {
+        const rollBox = document.createElement('div');
+        rollBox.className = 'roll-box';
+        rollBox.textContent = roll;
+        rollBox.dataset.die = state.selectedDice[index];
+        resultsRollsEl.appendChild(rollBox);
+      });
+    }
   }
   
   if (resultsTotalEl) {
     const totalValue = resultsTotalEl.querySelector('.total-value');
     if (totalValue) {
-      totalValue.textContent = computeTotal();
+      // Always compute total, which will include the modifier
+      const total = computeTotal();
+      totalValue.textContent = total;
+      
+      // Clear lastTotal after use
+      if (state.lastTotal !== undefined) {
+        state.lastTotal = undefined;
+      }
     }
   }
 }

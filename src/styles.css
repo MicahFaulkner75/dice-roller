@@ -495,3 +495,21 @@ body {
 #dice-input .modifier-display {
    color: #000000;
 }
+
+/* Add these rules with the other dice color rules */
+.roll-box[data-die="d10-tens"] {
+   color: #0000FF; /* Websafe blue */
+}
+
+.roll-box[data-die="d10-ones"] {
+   color: #FF0000; /* Websafe red */
+}
+
+/* Add these for the input display */
+#dice-input .d10-tens {
+   color: #0000FF;
+}
+
+#dice-input .d10-ones {
+   color: #FF0000;
+}

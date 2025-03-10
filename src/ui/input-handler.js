@@ -22,73 +22,118 @@ export function setupDiceInput() {
 
   // Global key handling
   document.addEventListener('keydown', (e) => {
-    // Skip if we're inside the input field
-    if (document.activeElement === diceInput) return;
+    // Get the active element once
+    const activeElement = document.activeElement;
+    const isInputFocused = activeElement === diceInput;
     
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      // Trigger roll button
-      const rollButton = document.getElementById('roll-button');
-      if (rollButton) {
-        const clickEvent = new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          view: window
-        });
-        rollButton.dispatchEvent(clickEvent);
-      }
-    } 
-    else if (e.key === 'Backspace') {
-      e.preventDefault();
-      // Trigger clear button
-      const clearButton = document.getElementById('clear-button');
-      if (clearButton) {
-        const clickEvent = new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          view: window
-        });
-        clearButton.dispatchEvent(clickEvent);
-      }
+    // Skip all global handlers if input is focused
+    if (isInputFocused) {
+      return;
     }
-    else if (e.key === 'Escape') {
-      e.preventDefault();
-      // Clear dice and hide applet
-      const clearButton = document.getElementById('clear-button');
-      const applet = document.getElementById('dice-applet');
-      
-      if (clearButton) {
-        // First clear the dice
-        const clickEvent = new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          view: window
-        });
-        clearButton.dispatchEvent(clickEvent);
-      }
-      
-      // Then reset position and hide applet
-      if (applet) {
-        // Reset to center position
-        applet.style.left = '50%';
-        applet.style.top = '50%';
-        applet.style.transform = 'translate(-50%, -50%)';
-        // Hide applet
-        applet.style.display = 'none';
-      }
+    
+    // Only handle global shortcuts when input is not focused
+    switch (e.key) {
+      case 'Enter':
+        e.preventDefault();
+        // Trigger roll button
+        const rollButton = document.getElementById('roll-button');
+        if (rollButton) {
+          rollButton.click();
+        }
+        break;
+        
+      case 'Backspace':
+        e.preventDefault();
+        // Trigger clear button
+        const clearButton = document.getElementById('clear-button');
+        if (clearButton) {
+          clearButton.click();
+        }
+        break;
+        
+      case 'Escape':
+        e.preventDefault();
+        // Only hide applet when input is not focused
+        const applet = document.getElementById('dice-applet');
+        if (applet) {
+          // Reset position and hide
+          applet.style.left = '50%';
+          applet.style.top = '50%';
+          applet.style.transform = 'translate(-50%, -50%)';
+          applet.style.display = 'none';
+          
+          // Clear dice only if we're hiding the applet
+          const clearButton = document.getElementById('clear-button');
+          if (clearButton) {
+            clearButton.click();
+          }
+        }
+        break;
     }
   });
 }
 
-// Rename the existing handleKeyDown to handleInputKeyDown
 function handleInputKeyDown(e) {
-  // This only runs when the input field has focus
-  if (e.key === 'Enter') {
-    // Existing Enter key handler for input field
-    // ...rest of your existing code...
-  } else if (e.key === 'Escape') {
-    e.preventDefault();
+  switch (e.key) {
+    case 'Enter':
+      e.preventDefault();
+      e.stopPropagation(); // Prevent global handler
+      const input = e.target.textContent.trim();
+      
+      if (!input) {
+        clearDice();
+        clearResults();
+        updateDisplay();
+        e.target.blur();
+        return;
+      }
+
+      const parsed = parseDiceNotation(input);
+      if (parsed) {
+        processValidInput(parsed);
+      }
+      e.target.blur();
+      break;
+      
+    case 'Escape':
+      e.preventDefault();
+      e.stopPropagation();
+      e.target.blur();
+      updateDisplay();
+      break;
+  }
+}
+
+function processValidInput(parsedInput) {
+  console.log("Processing input:", parsedInput);
+  
+  // Handle standalone modifier
+  if (parsedInput.type === 'modifier') {
+    // Add the new modifier to the existing one
+    const newModifier = state.modifier + parsedInput.modifier;
+    setModifier(newModifier);
     updateDisplay();
-    e.target.blur();
+    return;
+  }
+  
+  // Handle dice rolls with or without modifiers
+  if (parsedInput.dice.length > 0) {
+    clearDice();
+    clearResults();
+    
+    // Add dice to state
+    parsedInput.dice.forEach(die => addDie(die));
+    
+    // Update modifier by adding the new one to the existing one
+    const newModifier = state.modifier + parsedInput.modifier;
+    setModifier(newModifier);
+    
+    // Roll dice and update display
+    rollAllDice();
+    const durationMs = animateDiceIcons(parsedInput.dice);
+    setTimeout(() => {
+      animateResults(state.currentRolls, computeTotal(), durationMs);
+      updateDisplay();
+    }, 0);
   }
 }
