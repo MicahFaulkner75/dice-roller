@@ -1,0 +1,146 @@
+---
+description: Auto-generated spec for the project
+globs: *.html, *.css, *.js
+alwaysApply: false
+---
+# Dice Roller Application Specification
+
+## Overview
+A web-based dice rolling application that provides an interactive interface for tabletop gaming dice rolls, featuring animated dice and results.
+
+## Core Components
+
+### 1. User Interface
+- **Main Button**
+  - Fixed position (bottom right, 20px margin)
+  - d20 icon as launcher
+  - Opens/closes the dice roller applet
+
+- **Applet Window**
+  - Draggable interface
+  - Size: 224px width
+  - Close button (×) in header
+  - Minimizes when clicking outside
+
+### 2. Input System
+- **Input Bar**
+  - Contenteditable field
+  - Supports standard dice notation (e.g., "2d6+1")
+  - Real-time parsing and validation
+  - Color-coded dice results display
+
+- **Modifier Controls**
+  - Increase/decrease buttons (+/-)
+  - Current modifier display
+  - Updates in real-time
+
+### 3. Dice Buttons
+- **Available Dice Types**
+  - d4, d6, d8, d10, d12, d20
+  - Special handling for d10 (percentile mode)
+  - Each die has custom graphic
+
+- **Button Grid Layout**
+  - 3×2 grid for dice
+  - Control row below (Clear, Roll, Modifier)
+  - Standard button size: 40×40 pixels
+
+### 4. Results Display
+- **Results Area**
+  - Split layout (40% total, 60% individual results)
+  - Scrollable results grid (4 columns)
+  - Color-coded results by die type
+
+- **Total Display**
+  - Prominent "TOTAL" label
+  - Updates after animations complete
+  - Includes modifier in calculation
+
+## Animation System
+
+### 1. Dice Animations
+- **Duration**: 2000ms total
+- **Types**:
+  - Regular spin for single dice
+  - Split animation for percentile mode
+  - CSS-based transforms with cubic-bezier timing
+
+### 2. Number Animations
+- **Duration**: 1000ms (ends 1s before dice)
+- **Features**:
+  - Random number generation at 12 FPS
+  - Die-appropriate ranges (d4: 1-4, d20: 1-20, etc.)
+  - Special formatting for percentile (00-90, 0-9)
+
+### 3. Animation Sequence
+```
+0ms:     Start dice spin + number randomization
+1000ms:  Numbers settle on final values
+2000ms:  Dice complete spin, total updates
+```
+
+## Interaction Modes
+
+### 1. Direct Input
+- Manual dice notation entry
+- Supports multiple dice + modifiers
+- Enter key triggers roll
+
+### 2. Button Controls
+- **Single Click**: Add die to pool
+- **Double Click**: Activate percentile mode (d10 only)
+- **Long Press**: Alternative percentile activation
+- **Roll Button**: Re-roll current dice pool
+
+### 3. Keyboard Shortcuts
+- **Enter**: Roll dice
+- **Backspace**: Clear pool
+- **Escape**: Close applet
+
+## Special Features
+
+### 1. Percentile Mode
+- **Activation Methods**:
+  - Double-click d10
+  - Long-press d10
+  - Enter "d00" or "d100"
+- **Visual Features**:
+  - Split colored dice display
+  - Synchronized spinning
+  - Special number formatting
+
+### 2. State Management
+- Tracks current dice pool
+- Maintains modifier value
+- Preserves roll history
+- Handles mode transitions
+
+### 3. Error Handling
+- Invalid input protection
+- Animation state recovery
+- Graceful mode switching
+
+## Technical Requirements
+
+### 1. Browser Support
+- Modern web browsers
+- Touch device support
+- Responsive design principles
+
+### 2. Performance
+- Smooth animations (60 FPS)
+- Immediate input response
+- Efficient state updates
+
+### 3. Accessibility
+- Keyboard navigation
+- Clear visual feedback
+- Error state indication
+
+## Dependencies
+- No external libraries required
+- Pure JavaScript implementation
+- CSS3 for animations
+- HTML5 standard features
+
+This specification is derived from the current codebase and represents the application's current implementation and intended functionality.
