@@ -514,13 +514,132 @@ body {
    color: #dc3c41;
 }
 
-/* Basic spin animation */
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* Dice layering structure */
+.dice-layers {
+  position: relative;
+  width: 44px;
+  height: 40px;
+  margin: 0 auto;
+  pointer-events: none;
 }
 
-.spin {
-  animation: spin 500ms ease-in-out;
+/* Clickable overlay */
+.click-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  cursor: pointer;
+}
+
+/* Base d10 - always centered */
+.main-die {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  opacity: 1;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+/* Colored dice - initially invisible and centered */
+.colored-die {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
   transform-origin: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(0);
+  will-change: opacity, transform;
+}
+
+/* Percentile mode - immediate opacity changes */
+.percentile-active .main-die {
+  opacity: 0 !important;
+}
+
+.percentile-active .colored-die {
+  opacity: 1 !important;
+}
+
+/* Reset state - immediate changes */
+.die-button[data-die="d10"]:not(.percentile-active) .main-die {
+  opacity: 1 !important;
+}
+
+.die-button[data-die="d10"]:not(.percentile-active) .colored-die {
+  opacity: 0 !important;
+  transform: translateX(0);
+}
+
+/* Split animations - only affect transform, not opacity */
+@keyframes split-left {
+  from {
+    transform: translateX(0) rotate(0deg);
+  }
+  to {
+    transform: translateX(-15px) rotate(1080deg);
+  }
+}
+
+@keyframes split-right {
+  from {
+    transform: translateX(0) rotate(0deg);
+  }
+  to {
+    transform: translateX(15px) rotate(1080deg);
+  }
+}
+
+/* Spin-in-place animations - only affect transform, not opacity */
+@keyframes spin-in-place-left {
+  from {
+    transform: translateX(-15px) rotate(0deg);
+  }
+  to {
+    transform: translateX(-15px) rotate(1080deg);
+  }
+}
+
+@keyframes spin-in-place-right {
+  from {
+    transform: translateX(15px) rotate(0deg);
+  }
+  to {
+    transform: translateX(15px) rotate(1080deg);
+  }
+}
+
+/* Initial split animation */
+.percentile-active.first-animation .colored-die.blue {
+  animation: split-left 2s cubic-bezier(0.2, 0, 0.8, 1);
+  animation-fill-mode: forwards;
+}
+
+.percentile-active.first-animation .colored-die.red {
+  animation: split-right 2s cubic-bezier(0.2, 0, 0.8, 1);
+  animation-fill-mode: forwards;
+}
+
+/* Subsequent spin animations */
+.percentile-active:not(.first-animation) .colored-die.blue.spin {
+  animation: spin-in-place-left 2s cubic-bezier(0.2, 0, 0.8, 1);
+  animation-fill-mode: forwards;
+}
+
+.percentile-active:not(.first-animation) .colored-die.red.spin {
+  animation: spin-in-place-right 2s cubic-bezier(0.2, 0, 0.8, 1);
+  animation-fill-mode: forwards;
+}
+
+/* Regular d10 spin */
+.die-button[data-die="d10"]:not(.percentile-active) .main-die.spin {
+  animation: spin 2s cubic-bezier(0.2, 0, 0.8, 1);
 }

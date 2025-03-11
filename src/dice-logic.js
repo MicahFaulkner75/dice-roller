@@ -94,27 +94,27 @@ export function rollAllDice() {
       runningTotal += total;
     } else {
       // Handle regular die
-      const sides = parseInt(die.slice(1), 10);
+   const sides = parseInt(die.slice(1), 10);
       const roll = rollDie(sides);
       rolls.push(roll);
       runningTotal += roll;
     }
-  });
+ });
 
   state.currentRolls = rolls;
   state.lastTotal = runningTotal;
 
   // Trigger animations for regular dice
-  state.selectedDice.forEach(die => {
+ state.selectedDice.forEach(die => {
     if (die !== 'd00' && die !== 'd100') {
-      const dieButtons = document.querySelectorAll(`.die-button[data-die="${die}"] img`);
-      dieButtons.forEach(button => {
+   const dieButtons = document.querySelectorAll(`.die-button[data-die="${die}"] img`);
+   dieButtons.forEach(button => {
         const finalAngle = 360 * 3;
         const duration = 2000;
-        animateSpin(button, duration, finalAngle);
-      });
+     animateSpin(button, duration, finalAngle);
+   });
     }
-  });
+ });
 }
 
 
@@ -127,16 +127,16 @@ export function computeNotation() {
   }
 
   // Normal dice handling
-  const diceCounts = {};
+ const diceCounts = {};
   // Count occurrences of each die type
-  state.selectedDice.forEach(die => {
-    diceCounts[die] = (diceCounts[die] || 0) + 1;
-  });
+ state.selectedDice.forEach(die => {
+   diceCounts[die] = (diceCounts[die] || 0) + 1;
+ });
   
   // Convert to notation format
-  const parts = Object.entries(diceCounts).map(([die, count]) => {
-    return `${count}${die}`;
-  });
+ const parts = Object.entries(diceCounts).map(([die, count]) => {
+   return `${count}${die}`;
+ });
   
   let notation = parts.join(' + ');
 
@@ -197,7 +197,7 @@ export function parseDiceNotation(input) {
    // Clean up the input - remove spaces around + and -
    const cleanInput = input.replace(/\s*([+-])\s*/g, '$1');
    console.log("Cleaned input:", cleanInput);
-
+  
    // Initialize results
    const results = {
      dice: [],
@@ -231,7 +231,7 @@ export function parseDiceNotation(input) {
    const diceRegex = /([+-]?)(?:(\d*)d(\d+)|00)|([+-]?\d+)(?!\d*d)/g;
    let match;
    let hasPercentile = false;
-
+  
    while ((match = diceRegex.exec(cleanInput)) !== null) {
      console.log("Match found:", match);
      

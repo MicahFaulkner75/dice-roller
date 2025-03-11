@@ -1,6 +1,6 @@
 import { state, setModifier, clearDice, clearResults, addDie } from '../state';
 import { parseDiceNotation, rollAllDice, computeTotal } from '../dice-logic';
-import { animateDiceIcons, animateResults } from '../animations/dice-animations';
+import { animateDiceIcons, animateResults, resetD10State } from '../animations/dice-animations';
 import { updateDisplay } from './display';
 
 export function setupDiceInput() {
@@ -35,16 +35,30 @@ export function setupDiceInput() {
     switch (e.key) {
       case 'Enter':
         e.preventDefault();
-        // Trigger roll button
-        const rollButton = document.getElementById('roll-button');
-        if (rollButton) {
-          rollButton.click();
+        // Check if we're in percentile mode
+        const d10Button = document.querySelector('.die-button[data-die="d10"]');
+        if (d10Button && d10Button.classList.contains('percentile-active')) {
+          // Reroll percentile dice
+          rollAllDice();
+          animateDiceIcons(['d00']);
+          setTimeout(() => {
+            animateResults(state.currentRolls, computeTotal(), 2000);
+            updateDisplay();
+          }, 0);
+        } else {
+          // Normal roll
+          const rollButton = document.getElementById('roll-button');
+          if (rollButton) {
+            rollButton.click();
+          }
         }
         break;
         
       case 'Backspace':
         e.preventDefault();
-        // Trigger clear button
+        // Reset d10 state first to handle graphics
+        resetD10State();
+        // Then trigger clear button for normal cleanup
         const clearButton = document.getElementById('clear-button');
         if (clearButton) {
           clearButton.click();
@@ -62,7 +76,8 @@ export function setupDiceInput() {
           applet.style.transform = 'translate(-50%, -50%)';
           applet.style.display = 'none';
           
-          // Clear dice only if we're hiding the applet
+          // Reset d10 state and clear dice
+          resetD10State();
           const clearButton = document.getElementById('clear-button');
           if (clearButton) {
             clearButton.click();

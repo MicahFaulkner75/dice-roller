@@ -1,7 +1,7 @@
 export function animateDiceIcons(dice) {
   // Get all dice buttons that need to be animated
   const diceToAnimate = dice || [];
-  const durationMs = 500; // Reduced from 1000ms to feel more responsive
+  const durationMs = 2000;
   
   console.log("Animating dice:", diceToAnimate);
   
@@ -13,23 +13,72 @@ export function animateDiceIcons(dice) {
     console.log(`Looking for button with [data-die="${buttonSelector}"]`, button);
     
     if (button) {
-      const img = button.querySelector('img');
-      console.log("Found image in button:", img);
-      
-      if (img) {
-        // Add and remove the spin class to trigger CSS animation
-        img.classList.add('spin');
-        console.log(`Added spin class to ${dieType} image`);
-        
-        setTimeout(() => {
-          img.classList.remove('spin');
-          console.log(`Removed spin class from ${dieType} image`);
-        }, durationMs);
+      if (dieType === 'd00' && button.classList.contains('percentile-active')) {
+        // For percentile mode, animate all visible dice layers
+        const allDice = button.querySelectorAll('.magenta-die, .colored-die');
+        allDice.forEach(die => {
+          // Only animate if the die is visible
+          if (getComputedStyle(die).opacity !== '0') {
+            die.classList.remove('spin');
+            // Force reflow
+            void die.offsetWidth;
+            die.classList.add('spin');
+          }
+        });
+      } else if (dieType === 'd10' && !button.classList.contains('percentile-active')) {
+        // For regular d10 mode, just animate the main die
+        const mainDie = button.querySelector('.main-die');
+        if (mainDie) {
+          mainDie.classList.remove('spin');
+          void mainDie.offsetWidth;
+          mainDie.classList.add('spin');
+        }
       }
     }
   });
   
   return durationMs;
+}
+
+// Add a function to reset the d10 state
+export function resetD10State() {
+  const d10Button = document.querySelector('.die-button[data-die="d10"]');
+  if (d10Button) {
+    // Remove percentile mode and first animation classes
+    d10Button.classList.remove('percentile-active', 'first-animation');
+    
+    // Reset all dice to initial state
+    const allDice = d10Button.querySelectorAll('.magenta-die, .colored-die, .main-die');
+    allDice.forEach(die => {
+      die.classList.remove('spin');
+    });
+
+    // Ensure proper opacity states
+    const mainDie = d10Button.querySelector('.main-die');
+    const coloredDice = d10Button.querySelectorAll('.colored-die');
+    const magentaDice = d10Button.querySelectorAll('.magenta-die');
+    
+    if (mainDie) mainDie.style.opacity = '1';
+    coloredDice.forEach(die => die.style.opacity = '0');
+    magentaDice.forEach(die => die.style.opacity = '0');
+  }
+}
+
+// Add a function to handle percentile roll animation
+export function animatePercentileRoll() {
+  const d10Button = document.querySelector('.die-button[data-die="d10"]');
+  if (d10Button && d10Button.classList.contains('percentile-active')) {
+    const allDice = d10Button.querySelectorAll('.magenta-die, .colored-die');
+    allDice.forEach(die => {
+      if (getComputedStyle(die).opacity !== '0') {
+        die.classList.remove('spin');
+        void die.offsetWidth;
+        die.classList.add('spin');
+      }
+    });
+    return true;
+  }
+  return false;
 }
 
 export function animateResults(rolls, total, durationMs) {

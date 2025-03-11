@@ -35,7 +35,18 @@
                         <td><button class="die-button" data-die="d8"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/d8.svg" alt="d8"></button></td>
                     </tr>
                     <tr class="dice-buttons">
-                        <td><button class="die-button" data-die="d10"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/d10.svg" alt="d10"></button></td>
+                        <td><button class="die-button" data-die="d10">
+                            <!-- Clickable overlay -->
+                            <div class="click-overlay"></div>
+                            <!-- Visual dice layers beneath -->
+                            <div class="dice-layers">
+                                <!-- Base d10 -->
+                                <img class="main-die" src="https://annotatedtoa.com/wp-content/uploads/2025/03/d10.svg" alt="d10">
+                                <!-- Colored dice (initially invisible) -->
+                                <img class="colored-die blue" src="https://annotatedtoa.com/wp-content/uploads/2025/03/d10blue.svg" alt="d10">
+                                <img class="colored-die red" src="https://annotatedtoa.com/wp-content/uploads/2025/03/d10red.svg" alt="d10">
+                            </div>
+                        </button></td>
                         <td><button class="die-button" data-die="d12"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/d12.svg" alt="d12"></button></td>
                         <td><button class="die-button" data-die="d20"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/d20.svg" alt="d20"></button></td>
                     </tr>
