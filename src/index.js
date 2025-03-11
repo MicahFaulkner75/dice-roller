@@ -15,9 +15,14 @@
 */
 
 import './styles.css';
-import { setupEventListeners } from './event-handlers';
-import { setupDiceInput, setupDiceButtons, updateDisplay } from './ui-updates';
+import { setupEventListeners } from './ui/button-handler';
+import { setupDiceInput, setupDiceButtons } from './ui-updates';
 import { makeDraggable } from './make-draggable';
+import { 
+  toggleApplet, 
+  centerApplet, 
+  minimizeApplet 
+} from './core-functions';
 
 // Add debug border toggle functionality
 function setupDebugMode() {
@@ -42,23 +47,49 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Get the launch button and applet
     const launchButton = document.getElementById('dice-roller-button');
-    const applet = document.getElementById('dice-applet');
     
-    // Set initial state explicitly
-    applet.style.display = 'none';
+    // Initialize applet state - hide and center it using core functions
+    minimizeApplet();
+    centerApplet(); // Only center during initial setup
     
     // Add click handler for launch button
     launchButton.addEventListener('click', () => {
-        const isHidden = applet.style.display === 'none';
-        applet.style.display = isHidden ? 'flex' : 'none';
+        // Use core function to toggle applet visibility
+        // Don't center when toggling to preserve position
+        toggleApplet(false);
     });
 
     // Make the applet draggable
+    const applet = document.getElementById('dice-applet');
     makeDraggable(applet);
+    
+    // Log that initialization is complete for testing
+    console.log("Dice roller initialized with new applet state management");
 });
 
-// Export UI functions for potential use in other modules
-export { setupDiceInput, setupDiceButtons, updateDisplay } from './ui-updates';
-export { animateDiceIcons, animateResults } from './animations/dice-animations';
+// Export UI functions from ui-updates.js
+export { setupDiceInput, setupDiceButtons } from './ui-updates';
+
+// Export core functions for potential use in other modules
+export {
+    rollSpecificDie,
+    rollPercentileDie,
+    rollNonStandardDie,
+    rerollAllDice,
+    clearDicePool,
+    resetApplet,
+    adjustModifier,
+    setModifierValue,
+    processNotation,
+    animateDiceRoll,
+    minimizeApplet,
+    toggleApplet,
+    activatePercentileMode,
+    // Additional applet state functions
+    centerApplet,
+    showApplet
+} from './core-functions';
+
+// Other utility exports
 export { formatModifier, formatDiceInput } from './utils/formatting';
 

@@ -19,7 +19,7 @@ import { state } from './state';
 
 
 // Roll a single die given the number of sides.
-function rollDie(sides) {
+export function rollDie(sides) {
  return Math.floor(Math.random() * sides) + 1;
 }
 

@@ -14,13 +14,12 @@ dice_roller/
 │   ├── animations/
 │   │   └── dice-animations.js     # Handles dice animations and result animations
 │   ├── ui/
-│   │   ├── button-handler.js      # Manages dice button interactions
+│   │   ├── button-handler.js      # Manages all UI button interactions and events
 │   │   ├── display.js             # Updates UI display elements
-│   │   └── input-handler.js       # Handles input form processing
+│   │   └── input-handler.js       # Handles input form processing and keyboard events
 │   ├── utils/
 │   │   └── formatting.js          # Text formatting utilities
 │   ├── dice-logic.js              # Core dice rolling functionality
-│   ├── event-handlers.js          # Event listener setup and handlers
 │   ├── index.html                 # Main HTML structure
 │   ├── index.js                   # Application entry point
 │   ├── make-draggable.js          # Adds draggable functionality to the applet
@@ -80,11 +79,32 @@ The current focus is on improving the animation system with the following goals:
    - Proper state updates after animations complete
 
 ## CHANGE HISTORY
-[This section will be updated as changes are made to the project]
+May 22, 2023 - Refactored the application architecture to use a more modular approach:
+1. Created a new core-functions.js file that centralizes all fundamental dice rolling functionality
+2. Refactored UI event handlers to use the core functions instead of implementing their own logic
+3. Standardized animation sequences across different trigger methods
+4. Reduced code duplication and improved consistency between different trigger methods
+5. Implemented a cleaner separation between UI events and core application logic
+
+May 23, 2023 - Enhanced applet state management:
+1. Added comprehensive applet state management functions
+2. Created standardized methods for showing, hiding, toggling, and centering the applet
+3. Enhanced reset functionality with optional parameters
+4. Made applet position management more consistent
+5. Updated all UI files to use the enhanced applet state management functions
+
+May 24, 2023 - Consolidated UI event handlers:
+1. Merged event-handlers.js into ui/button-handler.js to create a unified UI interaction handler
+2. Organized the code into clear sections with logical groupings (dice buttons, control buttons, applet behavior)
+3. Improved comments and documentation within the UI handler files
+4. Reduced redundancy in the codebase by centralizing all button interactions
+5. Maintained clear separation of concerns between keyboard handling and button handling
 
 ## AGENDA ITEMS
-1. Improve animation consistency across all trigger methods
-2. Refine timing for smoother animations
-3. Fix percentile dice animation issues
-4. Ensure proper synchronization between graphics and numbers
-5. Document all changes made to the codebase 
+1. ✓ Refactor application to use centralized core functions
+2. ✓ Enhance applet state management
+3. Improve animation consistency across all trigger methods
+4. Refine timing for smoother animations
+5. Fix percentile dice animation issues
+6. Ensure proper synchronization between graphics and numbers
+7. Document all changes made to the codebase 

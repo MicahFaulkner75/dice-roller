@@ -1,24 +1,67 @@
 /*
 * BUTTON HANDLER
 *
-* This file manages all dice button interactions and their associated behaviors.
-* It is responsible for handling different click types (single, double, long press),
-* managing percentile mode, and triggering appropriate animations.
+* This file manages all UI button interactions and their associated behaviors.
+* It is responsible for handling button clicks, different interaction types 
+* (single, double, long press), and connecting UI actions to core functions.
 *
 * This file:
-* 1. Sets up event listeners for dice buttons (setupDiceButtons)
-* 2. Manages single-click, double-click and long-press detection
-* 3. Handles standard die selection (handleDieClick)
-* 4. Manages percentile mode activation and state (handlePercentileRoll)
-* 5. Provides visual feedback for button interactions
-* 6. Coordinates with animation and state management
+* 1. Sets up dice button interactions (setupDiceButtons)
+* 2. Sets up control button handlers (clear, roll, modifier, close)
+* 3. Manages complex interactions (single-click, double-click, long-press)
+* 4. Handles applet close behavior (click-outside)
+* 5. Maps all button interactions to core functions
 */
 
-import { state, addDie, clearDice } from '../state';
-import { rollAllDice, computeTotal } from '../dice-logic';
-import { animateDiceIcons, animateResults } from '../animations/dice-animations';
-import { updateDisplay } from './display';
+import { 
+  // Dice functions
+  rollSpecificDie, 
+  rollPercentileDie,
+  activatePercentileMode,
+  
+  // Pool management
+  clearDicePool,
+  rerollAllDice,
+  
+  // Modifier management
+  adjustModifier, 
+  setModifierValue,
+  
+  // Notation processing
+  processNotation,
+  
+  // Applet management
+  minimizeApplet,
+  
+  // Animation
+  animateDiceRoll
+} from '../core-functions';
 
+/**
+ * Main setup function called from index.js to initialize all UI event handlers
+ */
+export function setupEventListeners() {
+  // Set up input area event handlers
+  const diceInput = document.getElementById('dice-input');
+  diceInput.addEventListener('keydown', handleInputKeyDown);
+
+  // Set up button click handlers
+  setupControlButtons();
+  
+  // Set up click-outside behavior
+  setupClickOutsideBehavior();
+  
+  console.log("UI button handlers have been set up");
+}
+
+// ============================================================
+// DICE BUTTONS SECTION
+// ============================================================
+
+/**
+ * Sets up all dice button event listeners and interactions
+ * This is exported for use in ui-updates.js
+ */
 export function setupDiceButtons() {
   const dieButtons = document.querySelectorAll('.die-button');
   dieButtons.forEach(button => {
@@ -44,7 +87,13 @@ export function setupDiceButtons() {
         e.preventDefault();
         e.stopPropagation();
         isDoubleClick = true;
-        handlePercentileRoll();
+        
+        // Use core function for percentile mode
+        if (button.dataset.die === 'd10') {
+          const rollInfo = activatePercentileMode();
+          animateDiceRoll(rollInfo);
+        }
+        
         // Reset after a delay longer than single click handling
         setTimeout(() => {
           isDoubleClick = false;
@@ -62,7 +111,13 @@ export function setupDiceButtons() {
     button.addEventListener('mousedown', (e) => {
       pressTimer = setTimeout(() => {
         isLongPress = true;
-        handlePercentileRoll();
+        
+        // Use core function for percentile mode
+        if (button.dataset.die === 'd10') {
+          const rollInfo = activatePercentileMode();
+          animateDiceRoll(rollInfo);
+        }
+        
         // Prevent any click events from firing
         e.preventDefault();
         e.stopPropagation();
@@ -73,7 +128,12 @@ export function setupDiceButtons() {
       e.preventDefault();  // Prevent touch event from triggering click
       pressTimer = setTimeout(() => {
         isLongPress = true;
-        handlePercentileRoll();
+        
+        // Use core function for percentile mode
+        if (button.dataset.die === 'd10') {
+          const rollInfo = activatePercentileMode();
+          animateDiceRoll(rollInfo);
+        }
       }, 500);
     });
     
@@ -95,147 +155,140 @@ export function setupDiceButtons() {
     button.addEventListener('touchend', clearTimer);
     button.addEventListener('touchcancel', clearTimer);
   });
+  
+  console.log("Dice button handlers initialized");
 }
 
+/**
+ * Handle single-click on a die button
+ * @param {HTMLElement} button - The clicked button element
+ */
 function handleDieClick(button) {
   const dieType = button.dataset.die;
   console.log(`${dieType} button clicked`);
   
-  // Remove percentile mode from d10 if we're clicking a different die
-  const d10Button = document.querySelector('.die-button[data-die="d10"]');
-  if (d10Button && dieType !== 'd10') {
-    d10Button.classList.remove('percentile-active');
+  // Use core function to roll the die and get animation info
+  const rollInfo = rollSpecificDie(dieType);
+  
+  // Use core function to animate the roll
+  if (rollInfo) {
+    animateDiceRoll(rollInfo);
   }
-  
-  // Check if we currently have a percentile roll
-  const hasPercentile = state.selectedDice.length === 1 && 
-    (state.selectedDice[0] === 'd00' || state.selectedDice[0] === 'd100');
-  
-  // If there's a percentile roll, clear everything first
-  if (hasPercentile) {
-    console.log("Clearing percentile roll before adding new die");
-    clearDice();
-    state.lastTotal = undefined;
-  }
-  
-  // Add the clicked die to the pool and update input immediately
-  addDie(dieType);
-  updateDisplay(); // Update input display before animation
-  
-  // Roll and animate
-  rollAndAnimate([dieType]);
 }
 
-// Move decelerate function to global scope
-function decelerate(t, p_f, A, tau) {
-  return p_f - A * Math.exp(-t / tau);
-}
+// ============================================================
+// CONTROL BUTTONS SECTION
+// ============================================================
 
-// Add function to handle subsequent percentile rolls
-function spinPercentileDice() {
-  const d10Button = document.querySelector('.die-button[data-die="d10"]');
-  if (!d10Button || !d10Button.classList.contains('percentile-active')) return;
+/**
+ * Sets up all control button click handlers
+ */
+function setupControlButtons() {
+  // Clear button
+  const clearButton = document.getElementById('clear-button');
+  clearButton.addEventListener('click', () => {
+    // Use core function to clear dice pool
+    clearDicePool();
+    // Reset modifier to 0
+    setModifierValue(0);
+  });
 
-  const magentaDice = d10Button.querySelectorAll('.magenta-die');
-  const coloredDice = d10Button.querySelectorAll('.colored-die');
-  
-  // Get current positions
-  const leftOffset = -15;
-  const rightOffset = 15;
-  const startAngle = parseFloat(coloredDice[0].style.transform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || '0');
-  
-  // Animation parameters
-  const duration = 2000;
-  const additionalRotation = 1080; // 3 full rotations
-  const tau = 325;
-  
-  const startTime = performance.now();
-  
-  function spinStep(currentTime) {
-    const elapsed = currentTime - startTime;
-    if (elapsed < duration) {
-      const progress = elapsed / duration;
-      const angle = startAngle + decelerate(progress, additionalRotation, additionalRotation, tau / duration);
-      
-      // Keep dice in their split positions while spinning
-      magentaDice.forEach((die, index) => {
-        const offset = index === 0 ? leftOffset : rightOffset;
-        die.style.transform = `translateX(${offset}px) rotate(${angle}deg)`;
-      });
-      
-      coloredDice.forEach((die, index) => {
-        const offset = index === 0 ? leftOffset : rightOffset;
-        die.style.transform = `translateX(${offset}px) rotate(${angle}deg)`;
-      });
-      
-      requestAnimationFrame(spinStep);
+  // Roll button
+  const rollButton = document.getElementById('roll-button');
+  rollButton.addEventListener('click', () => {
+    // Use core functions to reroll dice and animate
+    const rollInfo = rerollAllDice();
+    if (rollInfo) {
+      animateDiceRoll(rollInfo);
     }
+  });
+
+  // Modifier buttons
+  const increaseButton = document.getElementById('modify-button-increase');
+  increaseButton.addEventListener('click', () => {
+    // Use core function to adjust modifier
+    adjustModifier(1);
+  });
+
+  const decreaseButton = document.getElementById('modify-button-decrease');
+  decreaseButton.addEventListener('click', () => {
+    // Use core function to adjust modifier
+    adjustModifier(-1);
+  });
+  
+  // Close button (X)
+  const closeButton = document.getElementById('close-applet');
+  if (closeButton) {
+    closeButton.addEventListener('click', () => {
+      // Use core function to minimize the applet without resetting state
+      minimizeApplet();
+    });
   }
   
-  requestAnimationFrame(spinStep);
+  console.log("Control button handlers initialized");
 }
 
-// Modify rollAndAnimate to handle percentile mode
-function rollAndAnimate(dice) {
-  try {
-    // Roll the dice first
-    rollAllDice();
-    
-    // Calculate total
-    const total = state.lastTotal !== undefined ? 
-      state.lastTotal : 
-      state.currentRolls.reduce((sum, roll) => {
-        if (typeof roll === 'number') {
-          return sum + roll;
-        } else if (roll && roll.value) {
-          return sum + (parseInt(roll.value, 10) || 0);
-        }
-        return sum;
-      }, 0) + state.modifier;
+// ============================================================
+// APPLET BEHAVIOR SECTION
+// ============================================================
 
-    // Start both animations simultaneously
-    const durationMs = animateDiceIcons(dice);
-    animateResults(state.currentRolls, total, durationMs);
-    
-    // Update display after animations complete
-    setTimeout(() => {
-      updateDisplay();
-    }, durationMs);
-  } catch (error) {
-    console.error("Error in roll and animate:", error);
-  }
-}
+/**
+ * Sets up behavior for clicking outside the applet
+ */
+function setupClickOutsideBehavior() {
+  let mouseDownTarget = null;
+  let mouseDownTime = 0;
+  const CLICK_THRESHOLD_MS = 300; // Threshold for what counts as a "quick click"
 
-// Update handlePercentileRoll to use the global decelerate function
-function handlePercentileRoll() {
-  console.log("Triggering percentile roll");
-  
-  const d10Button = document.querySelector('.die-button[data-die="d10"]');
-  
-  if (d10Button) {
-    // Clear existing dice and set up percentile roll
-    clearDice();
-    state.selectedDice = ['d00'];
-    
-    // Update input display immediately
-    updateDisplay();
-    console.log("Set up percentile roll, state:", state.selectedDice);
-    
-    const isFirstActivation = !d10Button.classList.contains('percentile-active');
-    
-    if (isFirstActivation) {
-      // First activation setup
-      d10Button.classList.remove('percentile-active');
-      void d10Button.offsetWidth;
-      d10Button.classList.add('percentile-active', 'first-animation');
-      
-      if (!d10Button.classList.contains('has-rolled-once')) {
-        d10Button.classList.add('has-rolled-once');
+  document.addEventListener('mousedown', (e) => {
+    mouseDownTarget = e.target;
+    mouseDownTime = Date.now();
+  });
+
+  document.addEventListener('click', (e) => {
+    const applet = document.getElementById('dice-applet');
+    const launchButton = document.getElementById('dice-roller-button');
+    const diceInput = document.getElementById('dice-input');
+     
+    // Only process if applet is visible
+    if (applet && applet.style.display !== 'none') {
+      // Check if this was a quick click (not a text selection)
+      const isQuickClick = Date.now() - mouseDownTime < CLICK_THRESHOLD_MS;
+       
+      // Don't minimize if:
+      // 1. Click is inside applet
+      // 2. Click is on launch button
+      // 3. Click started in input area (text selection)
+      // 4. Click ended in input area (text selection)
+      // 5. Not a quick click (likely text selection)
+      if (!applet.contains(e.target) && 
+          !launchButton.contains(e.target) && 
+          !diceInput.contains(mouseDownTarget) &&
+          !diceInput.contains(e.target) &&
+          isQuickClick) {
+        // Use core function to minimize the applet
+        minimizeApplet();
       }
     }
-    
-    // Roll and animate after input update
-    rollAndAnimate(['d00']);
+  });
+  
+  console.log("Click-outside behavior initialized");
+}
+
+/**
+ * Handles Enter key press in the input field
+ * Processes dice notation and triggers roll animations
+ */
+function handleInputKeyDown(e) {
+  if (e.key !== 'Enter') return;
+
+  e.preventDefault();
+  const input = e.target.textContent.trim();
+  
+  // Use core function to process notation and animate
+  const rollInfo = processNotation(input);
+  if (rollInfo) {
+    animateDiceRoll(rollInfo);
   }
 }
 
