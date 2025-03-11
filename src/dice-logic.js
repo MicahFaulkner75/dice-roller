@@ -1,3 +1,20 @@
+/*
+* DICE LOGIC
+* 
+* This file handles all dice rolling logic, mathematical calculations, and related animations.
+* It is responsible for generating random numbers, computing totals, and managing specialized
+* dice roll behaviors like percentile dice.
+*
+* This file:
+* 1. Provides core dice rolling functionality (rollDie)
+* 2. Implements animation physics for dice spin (decelerate, animateSpin)
+* 3. Handles specialized percentile dice rolls (rollPercentile)
+* 4. Manages rolling multiple dice at once (rollAllDice)
+* 5. Parses dice notation from user input (parseDiceNotation)
+* 6. Calculates total values from dice rolls (computeTotal)
+* 7. Generates formatted notation for display (computeNotation)
+*/
+
 import { state } from './state';
 
 

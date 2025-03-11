@@ -1,3 +1,20 @@
+/*
+* EVENT HANDLERS
+*
+* This file sets up and manages the application's global event listeners.
+* It is responsible for hooking up user interactions with the dice roller's
+* functionality and coordinating actions across different components.
+*
+* This file:
+* 1. Sets up all main event listeners (setupEventListeners)
+* 2. Handles clear button click events
+* 3. Manages roll button interactions
+* 4. Processes modifier button actions
+* 5. Implements applet close functionality
+* 6. Manages click-outside behavior for minimizing the applet
+* 7. Processes keyboard input events (handleKeyDown)
+*/
+
 import { setupDiceInput, setupDiceButtons, updateDisplay, animateResults } from './ui-updates';
 import { state, setModifier, clearDice, clearResults, addDie } from './state';
 import { parseDiceNotation, rollAllDice, computeTotal } from './dice-logic';
@@ -18,10 +35,21 @@ export function setupEventListeners() {
 
   const rollButton = document.getElementById('roll-button');
   rollButton.addEventListener('click', () => {
-    rollAllDice();
-    const durationMs = animateDiceIcons(state.currentRolls);
-    animateResults(state.currentRolls, computeTotal(), durationMs);
-    updateDisplay();
+    if (state.selectedDice.length > 0) {
+      // Check if we're in percentile mode
+      const d10Button = document.querySelector('.die-button[data-die="d10"]');
+      if (d10Button && d10Button.classList.contains('percentile-active')) {
+        // Reroll percentile dice
+        rollAllDice();
+        const durationMs = animateDiceIcons(['d00']);
+        animateResults(state.currentRolls, computeTotal(), durationMs);
+      } else {
+        // Normal roll - use same animation sequence as Enter key
+        rollAllDice();
+        const durationMs = animateDiceIcons(state.selectedDice);
+        animateResults(state.currentRolls, computeTotal(), durationMs);
+      }
+    }
   });
 
   const increaseButton = document.getElementById('modify-button-increase');

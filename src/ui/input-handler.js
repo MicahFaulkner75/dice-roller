@@ -1,3 +1,19 @@
+/*
+* INPUT HANDLER
+*
+* This file manages user text input for dice notation and keyboard interactions.
+* It is responsible for setting up the input field, processing dice notation,
+* handling keyboard shortcuts, and triggering rolls based on user input.
+*
+* This file:
+* 1. Sets up the editable input field (setupDiceInput)
+* 2. Manages keyboard events for the input field (handleInputKeyDown)
+* 3. Processes valid dice notation input (processValidInput)
+* 4. Handles global keyboard shortcuts 
+* 5. Sets up the roll button functionality (setupRollButton)
+* 6. Prevents event propagation for text selection
+*/
+
 import { state, setModifier, clearDice, clearResults, addDie } from '../state';
 import { parseDiceNotation, rollAllDice, computeTotal } from '../dice-logic';
 import { animateDiceIcons, animateResults, resetD10State } from '../animations/dice-animations';
@@ -40,25 +56,19 @@ export function setupDiceInput() {
         if (d10Button && d10Button.classList.contains('percentile-active')) {
           // Reroll percentile dice
           rollAllDice();
-          animateDiceIcons(['d00']);
-          setTimeout(() => {
-            animateResults(state.currentRolls, computeTotal(), 2000);
-            updateDisplay();
-          }, 0);
-        } else {
-          // Normal roll
-          const rollButton = document.getElementById('roll-button');
-          if (rollButton) {
-            rollButton.click();
-          }
+          const durationMs = animateDiceIcons(['d00']);
+          animateResults(state.currentRolls, computeTotal(), durationMs);
+        } else if (state.selectedDice.length > 0) {
+          // Normal roll - use same animation sequence
+          rollAllDice();
+          const durationMs = animateDiceIcons(state.selectedDice);
+          animateResults(state.currentRolls, computeTotal(), durationMs);
         }
         break;
         
       case 'Backspace':
         e.preventDefault();
-        // Reset d10 state first to handle graphics
         resetD10State();
-        // Then trigger clear button for normal cleanup
         const clearButton = document.getElementById('clear-button');
         if (clearButton) {
           clearButton.click();
@@ -67,16 +77,13 @@ export function setupDiceInput() {
         
       case 'Escape':
         e.preventDefault();
-        // Only hide applet when input is not focused
         const applet = document.getElementById('dice-applet');
         if (applet) {
-          // Reset position and hide
           applet.style.left = '50%';
           applet.style.top = '50%';
           applet.style.transform = 'translate(-50%, -50%)';
           applet.style.display = 'none';
           
-          // Reset d10 state and clear dice
           resetD10State();
           const clearButton = document.getElementById('clear-button');
           if (clearButton) {
@@ -92,7 +99,7 @@ function handleInputKeyDown(e) {
   switch (e.key) {
     case 'Enter':
       e.preventDefault();
-      e.stopPropagation(); // Prevent global handler
+      e.stopPropagation();
       const input = e.target.textContent.trim();
       
       if (!input) {
@@ -124,7 +131,6 @@ function processValidInput(parsedInput) {
   
   // Handle standalone modifier
   if (parsedInput.type === 'modifier') {
-    // Add the new modifier to the existing one
     const newModifier = state.modifier + parsedInput.modifier;
     setModifier(newModifier);
     updateDisplay();
@@ -139,16 +145,28 @@ function processValidInput(parsedInput) {
     // Add dice to state
     parsedInput.dice.forEach(die => addDie(die));
     
-    // Update modifier by adding the new one to the existing one
+    // Update modifier
     const newModifier = state.modifier + parsedInput.modifier;
     setModifier(newModifier);
     
-    // Roll dice and update display
+    // Roll dice and start animations simultaneously
     rollAllDice();
     const durationMs = animateDiceIcons(parsedInput.dice);
-    setTimeout(() => {
-      animateResults(state.currentRolls, computeTotal(), durationMs);
-      updateDisplay();
-    }, 0);
+    animateResults(state.currentRolls, computeTotal(), durationMs);
+  }
+}
+
+// Add roll button handler
+export function setupRollButton() {
+  const rollButton = document.getElementById('roll-button');
+  if (rollButton) {
+    rollButton.addEventListener('click', () => {
+      if (state.selectedDice.length > 0) {
+        // Use same animation sequence as other methods
+        rollAllDice();
+        const durationMs = animateDiceIcons(state.selectedDice);
+        animateResults(state.currentRolls, computeTotal(), durationMs);
+      }
+    });
   }
 }

@@ -1,3 +1,19 @@
+/*
+* BUTTON HANDLER
+*
+* This file manages all dice button interactions and their associated behaviors.
+* It is responsible for handling different click types (single, double, long press),
+* managing percentile mode, and triggering appropriate animations.
+*
+* This file:
+* 1. Sets up event listeners for dice buttons (setupDiceButtons)
+* 2. Manages single-click, double-click and long-press detection
+* 3. Handles standard die selection (handleDieClick)
+* 4. Manages percentile mode activation and state (handlePercentileRoll)
+* 5. Provides visual feedback for button interactions
+* 6. Coordinates with animation and state management
+*/
+
 import { state, addDie, clearDice } from '../state';
 import { rollAllDice, computeTotal } from '../dice-logic';
 import { animateDiceIcons, animateResults } from '../animations/dice-animations';
@@ -102,8 +118,9 @@ function handleDieClick(button) {
     state.lastTotal = undefined;
   }
   
-  // Add the clicked die to the pool
+  // Add the clicked die to the pool and update input immediately
   addDie(dieType);
+  updateDisplay(); // Update input display before animation
   
   // Roll and animate
   rollAndAnimate([dieType]);
@@ -161,37 +178,27 @@ function spinPercentileDice() {
 // Modify rollAndAnimate to handle percentile mode
 function rollAndAnimate(dice) {
   try {
-    // Roll the dice
+    // Roll the dice first
     rollAllDice();
     
-    // Check if we're in percentile mode
-    const d10Button = document.querySelector('.die-button[data-die="d10"]');
-    const isPercentile = d10Button && d10Button.classList.contains('percentile-active');
-    
-    if (isPercentile && dice[0] === 'd00') {
-      spinPercentileDice();
-    }
-    
-    // Animate the dice and results
-    const durationMs = animateDiceIcons(dice);
-    setTimeout(() => {
-      try {
-        // For percentile rolls, use lastTotal
-        const total = state.lastTotal !== undefined ? 
-          state.lastTotal : 
-          state.currentRolls.reduce((sum, roll) => {
-            if (typeof roll === 'number') {
-              return sum + roll;
-            } else if (roll && roll.value) {
-              return sum + (parseInt(roll.value, 10) || 0);
-            }
-            return sum;
-          }, 0) + state.modifier;
+    // Calculate total
+    const total = state.lastTotal !== undefined ? 
+      state.lastTotal : 
+      state.currentRolls.reduce((sum, roll) => {
+        if (typeof roll === 'number') {
+          return sum + roll;
+        } else if (roll && roll.value) {
+          return sum + (parseInt(roll.value, 10) || 0);
+        }
+        return sum;
+      }, 0) + state.modifier;
 
-        animateResults(state.currentRolls, total, durationMs);
-      } catch (error) {
-        console.error("Error in total calculation:", error);
-      }
+    // Start both animations simultaneously
+    const durationMs = animateDiceIcons(dice);
+    animateResults(state.currentRolls, total, durationMs);
+    
+    // Update display after animations complete
+    setTimeout(() => {
       updateDisplay();
     }, durationMs);
   } catch (error) {
@@ -209,90 +216,25 @@ function handlePercentileRoll() {
     // Clear existing dice and set up percentile roll
     clearDice();
     state.selectedDice = ['d00'];
+    
+    // Update input display immediately
+    updateDisplay();
     console.log("Set up percentile roll, state:", state.selectedDice);
     
     const isFirstActivation = !d10Button.classList.contains('percentile-active');
     
     if (isFirstActivation) {
-      // First activation - do the split animation
+      // First activation setup
       d10Button.classList.remove('percentile-active');
       void d10Button.offsetWidth;
-      
-      // Hide the main die immediately
-      const mainDie = d10Button.querySelector('.main-die');
-      if (mainDie) {
-        mainDie.style.opacity = '0';
-      }
+      d10Button.classList.add('percentile-active', 'first-animation');
       
       if (!d10Button.classList.contains('has-rolled-once')) {
-        d10Button.classList.add('first-animation');
+        d10Button.classList.add('has-rolled-once');
       }
-      
-      d10Button.classList.add('percentile-active');
-
-      // Get all the dice that need animation
-      const magentaDice = d10Button.querySelectorAll('.magenta-die');
-      const coloredDice = d10Button.querySelectorAll('.colored-die');
-
-      // Split animation parameters
-      const duration = 2000;
-      const finalAngle = 1080;
-      const finalOffset = 15;
-      const tau = 325;
-
-      // Start the split animation
-      const startTime = performance.now();
-
-      function step(currentTime) {
-        const elapsed = currentTime - startTime;
-        if (elapsed < duration) {
-          const progress = elapsed / duration;
-          const angle = decelerate(progress, finalAngle, finalAngle, tau / duration);
-          const offset = decelerate(progress, finalOffset, finalOffset, tau / duration);
-
-          magentaDice.forEach((die, index) => {
-            const direction = index === 0 ? -1 : 1;
-            die.style.transform = `translateX(${direction * offset}px) rotate(${angle}deg)`;
-            die.style.opacity = '1'; // Ensure magenta dice are visible
-          });
-
-          coloredDice.forEach((die, index) => {
-            const direction = index === 0 ? -1 : 1;
-            die.style.transform = `translateX(${direction * offset}px) rotate(${angle}deg)`;
-            
-            if (!d10Button.classList.contains('has-rolled-once')) {
-              die.style.opacity = progress.toString();
-            }
-          });
-
-          requestAnimationFrame(step);
-        } else {
-          // Set final positions
-          magentaDice.forEach((die, index) => {
-            const direction = index === 0 ? -1 : 1;
-            die.style.transform = `translateX(${direction * finalOffset}px) rotate(${finalAngle}deg)`;
-            die.style.opacity = '1';
-          });
-
-          coloredDice.forEach((die, index) => {
-            const direction = index === 0 ? -1 : 1;
-            die.style.transform = `translateX(${direction * finalOffset}px) rotate(${finalAngle}deg)`;
-            die.style.opacity = '1';
-          });
-
-          if (!d10Button.classList.contains('has-rolled-once')) {
-            d10Button.classList.add('has-rolled-once');
-            d10Button.classList.remove('first-animation');
-          }
-        }
-      }
-
-      requestAnimationFrame(step);
-    } else {
-      spinPercentileDice();
     }
     
-    // Roll and animate
+    // Roll and animate after input update
     rollAndAnimate(['d00']);
   }
 }

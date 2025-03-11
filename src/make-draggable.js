@@ -1,3 +1,18 @@
+/*
+* DRAGGABLE FUNCTIONALITY
+*
+* This file provides functionality to make DOM elements draggable by the user.
+* It is responsible for handling mouse and touch events to enable moving the
+* dice roller applet around the screen.
+*
+* This file:
+* 1. Adds mouse and touch event listeners (makeDraggable)
+* 2. Tracks dragging state and offset values
+* 3. Updates element position based on mouse/touch movement
+* 4. Prevents dragging when interacting with buttons or input areas
+* 5. Handles both desktop and mobile touch interactions
+*/
+
 export function makeDraggable(applet) {
     let isDragging = false;
     let offsetX = 0;

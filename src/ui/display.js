@@ -1,3 +1,18 @@
+/*
+* DISPLAY MANAGEMENT
+*
+* This file handles updating all visual displays in the dice roller interface.
+* It is responsible for refreshing the input area, modifier displays, and results
+* based on the current application state.
+*
+* This file:
+* 1. Updates the main input display with current dice selection (updateDisplay)
+* 2. Formats and displays dice groups with proper styling
+* 3. Manages modifier display in both input and results areas
+* 4. Updates the results display with current roll values (updateResults)
+* 5. Handles special display cases like percentile mode
+*/
+
 import { state } from '../state';
 import { computeNotation, computeTotal } from '../dice-logic';
 import { formatModifier, formatDiceInput } from '../utils/formatting';
