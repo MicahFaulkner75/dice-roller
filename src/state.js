@@ -71,6 +71,25 @@ export function hasPercentileDie() {
 }
 
 /**
+ * Check if a die is a standard die (d4, d6, d8, d10, d12, d20)
+ * @param {string} die - Die notation (e.g. 'd6')
+ * @returns {boolean} True if the die is a standard die
+ */
+export function isStandardDie(die) {
+  const standardDice = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'];
+  return standardDice.includes(die.toLowerCase());
+}
+
+/**
+ * Check if a die is a percentile die (d00)
+ * @param {string} die - Die notation (e.g. 'd00')
+ * @returns {boolean} True if the die is a percentile die
+ */
+export function isPercentileDie(die) {
+  return die.toLowerCase() === 'd00';
+}
+
+/**
  * SETTERS
  */
 

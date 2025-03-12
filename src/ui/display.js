@@ -22,7 +22,9 @@ import {
   getLastTotal,
   hasPercentileDie,
   clearLastTotal,
-  getSortedDiceNotation 
+  getSortedDiceNotation,
+  isStandardDie,
+  isPercentileDie
 } from '../state';
 import { computeNotation, computeTotal } from '../dice-logic';
 import { formatModifier, formatDiceInput } from '../utils/formatting';
@@ -77,7 +79,7 @@ export function updateDisplay() {
 }
 
 /**
- * Update the results area with the current roll results
+ * Update the results area with current roll results
  */
 export function updateResults() {
   const resultsRollsEl = document.getElementById('results-rolls');
@@ -95,11 +97,6 @@ export function updateResults() {
   const selectedDice = getSelectedDice();
   const currentRolls = getCurrentRolls();
   const lastTotal = getLastTotal();
-  
-  // Define standard dice types - this must match the list in parseDiceNotation
-  const standardDice = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'];
-  // Percentile dice are handled specially
-  const percentileDice = ['d00'];
   
   // Check if the current rolls contain percentile dice
   const hasPercentile = currentRolls.some(roll => 
@@ -121,6 +118,9 @@ export function updateResults() {
     const nonStandardResults = [];
     const standardResults = [];
     
+    // NEW: Object to store grouped non-standard dice
+    const nonStandardGroups = {};
+    
     // Process dice in their original order
     selectedDice.forEach((dieType, index) => {
       const result = currentRolls[index];
@@ -128,19 +128,37 @@ export function updateResults() {
       // Skip undefined results
       if (result === undefined) return;
       
-      // Check if this is a standard die (d4, d6, d8, d10, d12, d20)
-      if (standardDice.includes(dieType)) {
+      // Use the utility functions to determine die type
+      if (isStandardDie(dieType)) {
         standardResults.push({ dieType, result, originalIndex: index });
-      } else if (percentileDice.includes(dieType) && hasPercentileDie()) {
+      } else if (isPercentileDie(dieType) && hasPercentileDie()) {
         // Only treat as percentile if it's a pure percentile roll
         // This case should be handled by the hasPercentile branch above
         // Skip this die since it's already handled in the percentile case
         return;
       } else {
-        // This is a non-standard die (including d100/d00 in mixed rolls)
+        // This is a non-standard die (including d100 in mixed rolls)
         nonStandardResults.push({ dieType, result, originalIndex: index });
+        
+        // Group non-standard dice by type
+        if (!nonStandardGroups[dieType]) {
+          nonStandardGroups[dieType] = {
+            count: 0,
+            nomenclature: dieType,
+            results: [],
+            subtotal: 0
+          };
+        }
+        
+        // Add this die to its group
+        nonStandardGroups[dieType].count++;
+        nonStandardGroups[dieType].results.push(result);
+        nonStandardGroups[dieType].subtotal += result;
       }
     });
+    
+    // DEBUG: Log the grouped non-standard dice
+    console.log('Non-standard groups:', nonStandardGroups);
     
     // Sort by original index to preserve input order
     nonStandardResults.sort((a, b) => a.originalIndex - b.originalIndex);
@@ -154,6 +172,12 @@ export function updateResults() {
       rollBox.textContent = `${dieType}=${result}`;
       rollBox.dataset.die = dieType;
       resultsRollsEl.appendChild(rollBox);
+      
+      // DEBUG: Add data attribute to show which group this die belongs to
+      if (nonStandardGroups[dieType]) {
+        rollBox.dataset.group = `${nonStandardGroups[dieType].count}${dieType}`;
+        rollBox.title = `Part of group: ${nonStandardGroups[dieType].count}${dieType}, total: ${nonStandardGroups[dieType].subtotal}`;
+      }
     });
     
     // Display standard dice with normal format
