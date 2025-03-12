@@ -1,18 +1,53 @@
 ---
 description: How we should prefer to code
-globs: 
+globs: **/*
 alwaysApply: false
 ---
-#Coding Pattern Preferences
+---
+description: How we should prefer to code
+globs: **/*
 
+---
+# Coding Pattern Preferences
+
+## General Coding Principles
+- ALWAYS ASK IF THE USER WOULD LIKE YOU TO EXECUTE ANY CODE BEFORE ACTUALLY WRITING IT TO ANY FILE
 - Always prefer simple solutions
 - Always think about what other methods or areas of code may be affected by code changes (look again at our tree and code-base before making edits)
-- Avoid duplication of code whenever possible, which means checking for other areas of the codebase that mihgt already have similar code and functionality
-- Always annotate the beginning of any code file with a brief plain-language  statement of the file's responsibilities, followed by a list of the things the page accomplishes in the order they appear in the file
-- Maintain a document called "CURSOR_README.txt" that includes an updated TREE of the project, as well as a unified statement of all chnages made to the project, including agenda items and goals.
+- Avoid duplication of code whenever possible, which means checking for other areas of the codebase that might already have similar code and functionality
+- Keep the codebase very clean and organized. Never add new files without expressed permission from the user
+- You are careful to only make changes that are requested or you are confident are well-understood and related to the change being requested
+- When fixing an issue or bug, do not introduce any new pattern or technology without first exhausting all options for the existing implementation. And if you finally do this, make sure to remove the old implementation afterwards so we don't duplicate logic
 - Write code that takes into account the different environments: dev, test, and prod
-- You are careful to only make changes that are requested or you are confident are well-understood and related to the change being requested.
--When fixing an issue or bug, do not introduce any new pattern or technology wihtout first exhausting all options for the existing implemetnation. And if you finally do this, make sure to remvoe the old implementation afterwards so we don't duplicate logic.
-- Keep the codebase very clean and organized. Never add new files without expressed permission from the user.
-- Avoid writinng scripts in files if possible, especially if the script is likely to be run only once
-- Avoid having files over 200-300 lines long. Refactor at that point, but be sure to get guidance from the user after proposing it.
+- Avoid writing scripts in files if possible, especially if the script is likely to be run only once
+- Avoid having files over 200-300 lines long. Refactor at that point, but be sure to get guidance from the user after proposing it
+
+## Documentation
+- Always annotate the beginning of any code file with a brief plain-language statement of the file's responsibilities, followed by a list of the things the page accomplishes in the order they appear in the file
+- When refactoring or changing a file's purpose, always update its header comment to reflect new responsibilities
+- Add JSDoc comments for function parameters and return values to improve code readability and maintainability
+- Maintain a document called "CURSOR_README.txt" that includes an updated TREE of the project, as well as a unified statement of all changes made to the project, including agenda items and goals
+
+## Architecture Patterns
+- Always use the state API functions (getSelectedDice(), addDie(), etc.) instead of directly manipulating the state object
+- All state modifications should go through the appropriate state API methods
+- Maintain clear separation between business logic, UI updates, animations, and event handling
+- Ensure each file has a single responsibility and communicates with other modules through well-defined interfaces
+
+## Implementation Standards
+- Core functions should return consistent object structures to simplify integration
+- For example, all roll functions should return {results, diceToAnimate, total} objects
+- Add proper validation and error handling for user inputs
+- Provide meaningful error messages and fallbacks for edge cases
+
+## Testing and Quality
+- Add console.log statements in key functions during development
+- Include test functions for key features (like the percentile dice tests)
+- Document test cases for each major feature
+- Verify previous functionality still works after refactoring
+
+## Component Compliance
+- Ensure implementations adhere to the specific component rule sheets we've created
+- Check relevant rule sheets before making significant changes to components
+- When refactoring, update all dependent files in the same change
+- Update documentation with refactoring rationale

@@ -4,6 +4,8 @@
 * This file manages all UI button interactions and their associated behaviors.
 * It is responsible for handling button clicks, different interaction types 
 * (single, double, long press), and connecting UI actions to core functions.
+* All state operations are performed using the core-functions API rather than
+* direct state manipulation.
 *
 * This file:
 * 1. Sets up dice button interactions (setupDiceButtons)
@@ -11,6 +13,7 @@
 * 3. Manages complex interactions (single-click, double-click, long-press)
 * 4. Handles applet close behavior (click-outside)
 * 5. Maps all button interactions to core functions
+* 6. Adheres to state management architecture by using core functions API
 */
 
 import { 
@@ -36,6 +39,8 @@ import {
   // Animation
   animateDiceRoll
 } from '../core-functions';
+
+import { updateDisplay } from '../ui/display';
 
 /**
  * Main setup function called from index.js to initialize all UI event handlers
@@ -102,6 +107,8 @@ export function setupDiceButtons() {
         // Single click - only handle if not in a double-click
         if (!isDoubleClick) {
           handleDieClick(button);
+          // Update the display after die is added
+          updateDisplay();
         }
       }
       lastClickTime = currentTime;
@@ -167,13 +174,25 @@ function handleDieClick(button) {
   const dieType = button.dataset.die;
   console.log(`${dieType} button clicked`);
   
-  // Use core function to roll the die and get animation info
-  const rollInfo = rollSpecificDie(dieType);
+  // Add the die to the pool immediately, regardless of animation state
+  // We use addDie directly to avoid any potentially slow operations
+  // that might make rapid clicking unresponsive
+  const die = button.dataset.die;
   
-  // Use core function to animate the roll
-  if (rollInfo) {
-    animateDiceRoll(rollInfo);
-  }
+  // Import state API functions directly
+  const { addDie } = require('../state');
+  
+  // Add visual feedback
+  button.classList.add('clicked');
+  setTimeout(() => {
+    button.classList.remove('clicked');
+  }, 150);
+  
+  // Add the die to the state pool but don't roll or animate yet
+  addDie(die);
+  
+  // Let the parent function handle animation and display updates
+  // This separation makes rapid clicks more responsive
 }
 
 // ============================================================

@@ -4,12 +4,15 @@
 * This file manages all user input for dice notation and keyboard interactions.
 * It is responsible for setting up the input field, processing text input,
 * handling all keyboard shortcuts, and triggering rolls based on user input.
+* All state operations are performed using the core-functions API rather than
+* direct state manipulation.
 *
 * This file:
 * 1. Sets up the editable input field (setupDiceInput)
 * 2. Manages all keyboard events application-wide
 * 3. Processes text input for dice notation
 * 4. Prevents event propagation for text selection
+* 5. Adheres to state management architecture by using core functions API
 */
 
 import { 

@@ -4,15 +4,18 @@
 * This file manages all visual animations related to dice rolling.
 * It is responsible for coordinating the visual feedback when dice are rolled,
 * including spinning dice icons and transitioning result numbers.
+* It now uses the state API for accessing application state rather than direct manipulation.
 *
 * This file:
 * 1. Animates dice button icons when rolling (animateDiceIcons)
 * 2. Manages d10 percentile mode animations (resetD10State, animatePercentileRoll)
 * 3. Handles number result animations in the results area (animateNumberResult)
 * 4. Coordinates the animation of results and total display (animateResults)
+* 5. Retrieves dice information via state API functions
 */
 
-import { state } from '../state';
+// Update imports to use state API functions
+import { getSelectedDice } from '../state';
 
 export function animateDiceIcons(dice) {
   // Get all dice buttons that need to be animated
@@ -149,6 +152,7 @@ export function animateResults(rolls, total, durationMs) {
   
   // 2. Create result boxes and start animations immediately
   const startTime = performance.now();
+  const selectedDice = getSelectedDice();
   
   rolls.forEach((roll, index) => {
     const rollBox = document.createElement('div');
@@ -160,7 +164,7 @@ export function animateResults(rolls, total, durationMs) {
       animateNumberResult(rollBox, roll.value, roll.type, durationMs);
     } else {
       // Regular roll
-      const dieType = state.selectedDice[index];
+      const dieType = selectedDice[index];
       rollBox.dataset.die = dieType;
       animateNumberResult(rollBox, roll, dieType, durationMs);
     }

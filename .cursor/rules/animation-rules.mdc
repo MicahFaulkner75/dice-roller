@@ -1,0 +1,41 @@
+---
+description: Animation rules
+globs: src/animations/dice-animations.js
+alwaysApply: false
+---
+# Component Rule Sheet: ANIMATIONS
+
+## Basic Information
+- Priority: MEDIUM
+- Applies To: src/animations/dice-animations.js
+- Last Updated: 2023-10-15
+
+## Core Requirements
+- All animations must be smooth and fluid (60fps target)
+- Dice animations must show dice spinning for visual feedback
+- Number animations must randomize before settling on final value
+- Animation timing must be coordinated between dice and results
+
+## Visual Specifications
+- Dice spin animation: 360° × 3 rotations over 2000ms
+- Number randomization: changing at 12fps for 1000ms
+- Results animation: numbers settle 1000ms before dice finish
+- Different animation types for standard dice vs percentile dice
+
+## Behavior Rules
+- Animations must not block UI interaction
+- Animations should be cancelable if new roll is requested
+- Result total should update only after animations complete
+- Percentile dice should animate both dice simultaneously
+
+## Implementation Notes
+- Use requestAnimationFrame for smooth animations
+- Separate animation concerns from business logic
+- Use CSS transitions/classes where possible
+- Calculate random values appropriate for each die type
+
+## Validation Criteria
+- Animations run smoothly without stuttering
+- Multiple dice animate concurrently 
+- Number randomization uses appropriate ranges for each die
+- Animations complete in the specified timeframes

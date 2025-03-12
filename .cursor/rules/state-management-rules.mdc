@@ -1,0 +1,42 @@
+---
+description: State management rules
+globs: src/state.js
+alwaysApply: false
+---
+# Component Rule Sheet: STATE_MANAGEMENT
+
+## Basic Information
+- Priority: CRITICAL
+- Applies To: src/state.js
+- Last Updated: 2023-10-15
+
+## Core Requirements
+- State must be centrally managed with a clean API
+- All state mutations must occur through defined methods
+- State should be immutable from outside the state module
+- State API must provide comprehensive access patterns
+
+## Visual Specifications
+- N/A (State management is not directly responsible for UI)
+
+## Behavior Rules
+- State changes must trigger appropriate UI updates
+- State operations must maintain data consistency
+- Percentile dice state requires special handling
+- Order of dice must be preserved in all state operations
+
+## Implementation Notes
+- Use private state object with public access methods
+- Provide separate methods for:
+  - Getting current state
+  - Adding/removing dice
+  - Setting/adjusting modifiers
+  - Managing roll results
+- Validate all inputs to state-changing functions
+- Use immutable patterns for returning state data
+
+## Validation Criteria
+- No direct state mutations from outside the state module
+- All state operations maintain data integrity
+- State correctly handles all dice types including percentile
+- State API provides all necessary operations for the application

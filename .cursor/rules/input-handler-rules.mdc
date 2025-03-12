@@ -1,0 +1,43 @@
+---
+description: Input handler rules
+globs: src/ui/input-handler.js,src/ui/button-handler.js,src/event-handlers.js
+alwaysApply: false
+---
+# Component Rule Sheet: INPUT_HANDLING
+
+## Basic Information
+- Priority: HIGH
+- Applies To: input-handler.js, button-handler.js
+- Last Updated: 2023-10-15
+
+## Core Requirements
+- All user input must be processed through centralized handlers
+- Keyboard shortcuts must behave consistently across the application
+- Die buttons must add dice to pool without automatic rolling unless specified
+- Input field must parse and validate dice notation expressions
+
+## Visual Specifications
+- Button presses should have visual feedback (press state)
+- Modifier buttons should update the modifier display immediately
+- Input field should update in real-time as dice are added
+- Error states should be visually indicated to the user
+
+## Behavior Rules
+- Enter key should roll current dice pool from anywhere in the app
+- Escape key should minimize the applet
+- Backspace key should clear the pool when the input field is empty
+- Double-clicking or long-pressing d10 should activate percentile mode
+- Clicking outside the applet should minimize it
+- Roll button should reroll current dice pool
+
+## Implementation Notes
+- Use event delegation where appropriate
+- Handle touch events for mobile compatibility
+- Separate event handling from core business logic
+- Use state API for all state updates
+
+## Validation Criteria
+- All keyboard shortcuts work as specified
+- All mouse/touch interactions behave as expected
+- Input field correctly parses all valid dice notation
+- Error feedback is provided for invalid input

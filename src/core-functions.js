@@ -3,29 +3,40 @@
 *
 * This file centralizes all fundamental dice rolling functionality of the application.
 * It is responsible for providing a clean API for all dice operations, separated
-* from UI concerns and trigger mechanisms.
+* from UI concerns and trigger mechanisms. It now uses the state management API
+* instead of directly manipulating state.
 *
 * This file:
-* 1. Provides standard die rolling functions (rollDie, rollSpecificDie)
-* 2. Handles special percentile dice functionality (rollPercentileDie)
-* 3. Manages state operations (addDieToPool, clearDicePool)
-* 4. Processes modifiers (adjustModifier)
-* 5. Manages text input parsing (processNotation)
-* 6. Controls applet state (resetApplet)
-* 7. Standardizes animation sequence (animateDiceRoll)
+* 1. Provides standard die rolling functions (rollSpecificDie, rollNonStandardDie)
+* 2. Handles special percentile dice functionality (rollPercentileDie, activatePercentileMode)
+* 3. Manages dice pool operations via state API (clearDicePool, rerollAllDice)
+* 4. Processes modifiers through state API (adjustModifier, setModifierValue)
+* 5. Processes dice notation input (processNotation)
+* 6. Controls applet state and positioning (resetApplet, toggleApplet, minimizeApplet)
+* 7. Coordinates animation sequences (animateDiceRoll)
 */
 
-import { state, setModifier, clearDice, clearResults, addDie } from './state';
-import { rollDie, rollAllDice, computeTotal, parseDiceNotation } from './dice-logic';
+// Update imports to use new state API
+import {
+  // State management
+  getSelectedDice, getCurrentRolls, getModifier, getLastTotal,
+  hasPercentileDie, addDie, addRollResult, setRollResults,
+  setModifier, clearDice, clearResults, resetState,
+  // For backward compatibility during refactoring
+  state
+} from './state';
+
+import { rollDie, rollAllDice, computeTotal, parseDiceNotation, rollPercentile } from './dice-logic';
 import { animateDiceIcons, animateResults, resetD10State } from './animations/dice-animations';
 import { updateDisplay } from './ui/display';
 
 /**
  * Roll a specific standard die and add it to the dice pool
  * @param {string} dieType - The type of die to roll (e.g., 'd4', 'd6', 'd20')
+ * @param {boolean} autoRoll - Whether to automatically roll the entire pool after adding
  * @returns {object} - Information about the roll for animation
  */
-export function rollSpecificDie(dieType) {
+export function rollSpecificDie(dieType, autoRoll = true) {
   // Don't allow non-standard dice to be added via this function
   if (!['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].includes(dieType)) {
     console.warn(`Invalid standard die type: ${dieType}`);
@@ -33,10 +44,7 @@ export function rollSpecificDie(dieType) {
   }
   
   // Check if we have a percentile roll and clear it first
-  const hasPercentile = state.selectedDice.length === 1 && 
-    (state.selectedDice[0] === 'd00' || state.selectedDice[0] === 'd100');
-  
-  if (hasPercentile) {
+  if (hasPercentileDie()) {
     clearDicePool();
   }
   
@@ -44,20 +52,21 @@ export function rollSpecificDie(dieType) {
   addDie(dieType);
   updateDisplay();
   
-  // Roll this individual die
-  const sides = parseInt(dieType.slice(1), 10);
-  const result = rollDie(sides);
-  
-  // Update the state with this roll
-  // (We're not using rollAllDice here as we just need this single die's result)
-  state.currentRolls.push(result);
-  
-  // Return the dice to animate and the result
-  return {
-    diceToAnimate: [dieType],
-    results: [result], 
-    total: result + state.modifier
-  };
+  // Roll all dice if autoRoll is enabled
+  if (autoRoll) {
+    return rerollAllDice();
+  } else {
+    // Otherwise just roll the new die and return its info
+    const sides = parseInt(dieType.slice(1), 10);
+    const result = rollDie(sides);
+    addRollResult(result);
+    
+    return {
+      diceToAnimate: [dieType],
+      results: [result], 
+      total: result + getModifier()
+    };
+  }
 }
 
 /**
@@ -78,7 +87,7 @@ export function rollPercentileDie() {
   // Return animation info
   return {
     diceToAnimate: ['d00'],
-    results: state.currentRolls,
+    results: getCurrentRolls(),
     total: computeTotal()
   };
 }
@@ -95,10 +104,7 @@ export function rollNonStandardDie(sides) {
   }
   
   // Clear any percentile roll first
-  const hasPercentile = state.selectedDice.length === 1 && 
-    (state.selectedDice[0] === 'd00' || state.selectedDice[0] === 'd100');
-  
-  if (hasPercentile) {
+  if (hasPercentileDie()) {
     clearDicePool();
   }
   
@@ -109,12 +115,12 @@ export function rollNonStandardDie(sides) {
   
   // Roll this individual die
   const result = rollDie(sides);
-  state.currentRolls.push(result);
+  addRollResult(result);
   
   return {
     diceToAnimate: [dieType],
     results: [result],
-    total: result + state.modifier
+    total: result + getModifier()
   };
 }
 
@@ -123,19 +129,42 @@ export function rollNonStandardDie(sides) {
  * @returns {object} - Information about the roll for animation
  */
 export function rerollAllDice() {
-  if (state.selectedDice.length === 0) {
+  const diceToRoll = getSelectedDice();
+  if (diceToRoll.length === 0) {
     console.warn("No dice in pool to reroll");
     return false;
   }
   
-  // Use the existing roll function
-  rollAllDice();
+  // Clear current rolls but maintain selected dice
+  clearResults();
   
-  return {
-    diceToAnimate: state.selectedDice,
-    results: state.currentRolls,
-    total: computeTotal()
-  };
+  // Check for percentile dice
+  if (hasPercentileDie()) {
+    // Use the existing percentile roll function
+    rollAllDice();
+    
+    return {
+      diceToAnimate: ['d00'],
+      results: getCurrentRolls(),
+      total: computeTotal()
+    };
+  } else {
+    // Roll each die individually to maintain order
+    const newResults = [];
+    
+    diceToRoll.forEach(die => {
+      const sides = parseInt(die.slice(1), 10);
+      const result = rollDie(sides);
+      newResults.push(result);
+      addRollResult(result);
+    });
+    
+    return {
+      diceToAnimate: diceToRoll,
+      results: newResults,
+      total: computeTotal()
+    };
+  }
 }
 
 /**
@@ -294,7 +323,7 @@ export function adjustModifier(amount) {
     return;
   }
   
-  setModifier(state.modifier + amount);
+  setModifier(getModifier() + amount);
   updateDisplay();
 }
 
@@ -313,46 +342,164 @@ export function setModifierValue(value) {
 }
 
 /**
- * Process dice notation text input
- * @param {string} notation - The dice notation to process (e.g., "2d6+1")
- * @returns {object|boolean} - Information about the roll for animation, or false if invalid
+ * Process dice notation from user input
+ * @param {string} notation - The dice notation to process (e.g., "2d6+1d8+3")
+ * @returns {object|null} Information for animation, or null if invalid
  */
 export function processNotation(notation) {
-  if (!notation) {
-    clearDicePool();
-    return false;
+  if (!notation || typeof notation !== 'string') {
+    console.warn('Invalid notation:', notation);
+    return null;
   }
   
+  // Define sets for percentile and non-standard notations
+  const percentileSet = new Set(["d100", "d00", "00"]);
+  const nonStandardSet = new Set(["1d100"]);
+
+  // Special handling for exact standalone "d100" to ensure it still works as percentile
+  if (percentileSet.has(notation.trim().toLowerCase())) {
+    console.log('Exact percentile pattern detected, treating as percentile');
+    
+    // Clear the current dice pool
+    clearDice();
+    
+    // Add a percentile die for d100 (using d00 internally)
+    addDie('d00');
+    
+    // Roll the percentile die
+    rollAllDice();
+    
+    // Update display to show "00" in the input area
+    updateDisplay();
+    
+    return {
+      diceToAnimate: ['d00'],
+      results: getCurrentRolls(),
+      total: computeTotal()
+    };
+  }
+  
+  // Check for non-standard dice patterns
+  if (nonStandardSet.has(notation.trim().toLowerCase())) {
+    console.log('Non-standard dice pattern detected: 1d100 -> converting to d100');
+    
+    // Clear the current dice pool
+    clearDice();
+    
+    // Special case: convert 1d100 to d100 before adding
+    const dieToAdd = 'd100';
+    addDie(dieToAdd);
+    
+    // Roll the non-standard die
+    rollAllDice();
+    
+    // Update display
+    updateDisplay();
+    
+    return {
+      diceToAnimate: [dieToAdd],
+      results: getCurrentRolls(),
+      total: computeTotal()
+    };
+  }
+  
+  // If it's not a special case, continue with normal parsing
   const parsed = parseDiceNotation(notation);
   if (!parsed) {
-    console.warn(`Invalid dice notation: ${notation}`);
-    return false;
+    console.warn('Could not parse notation:', notation);
+    return null;
   }
   
-  // Clear current state
-  clearDicePool();
+  console.log('Parsed notation:', parsed);
   
-  // If this is just a modifier, set it and return
+  // Handle pure modifier input when dice are already in the pool
   if (parsed.type === 'modifier') {
+    const currentDice = getSelectedDice();
+    // Only update the modifier and leave dice as they are
     setModifier(parsed.modifier);
+    
+    // If we have dice in the pool, roll them with the new modifier
+    if (currentDice.length > 0) {
+      return rerollAllDice();
+    }
+    
+    // No dice to roll, just update the display
     updateDisplay();
-    return false; // No roll to animate
+    return null;
   }
   
-  // Add the parsed dice to the pool
-  parsed.dice.forEach(die => addDie(die));
+  // Get current modifier before clearing
+  const currentModifier = getModifier();
   
-  // Set modifier
-  setModifier(parsed.modifier);
+  // Clear the current dice pool
+  clearDice();
   
-  // Roll the dice
-  rollAllDice();
+  // Add the parsed dice to the pool in order
+  parsed.dice.forEach(die => {
+    // Special handling for "1d100", convert to "d100"
+    if (die.toLowerCase() === '1d100') {
+      addDie('d100');
+    } else {
+      addDie(die);
+    }
+  });
   
-  return {
-    diceToAnimate: parsed.dice,
-    results: state.currentRolls,
-    total: computeTotal()
-  };
+  // Add new modifier to the existing one (not replace)
+  setModifier(currentModifier + parsed.modifier);
+  
+  // Check if this is a percentile roll after adding dice
+  if (parsed.type === 'percentile') {
+    // Use the dedicated percentile die function
+    rollAllDice();
+    
+    return {
+      diceToAnimate: ['d00'],
+      results: getCurrentRolls(),
+      total: computeTotal()
+    };
+  } else {
+    // For mixed and normal rolls, handle all dice normally
+    // Roll all dice and maintain their order
+    const diceToRoll = getSelectedDice();
+    clearResults();
+    
+    const results = [];
+    
+    diceToRoll.forEach(die => {
+      if (die === 'd00' || die === 'd100') {
+        if (parsed.type === 'mixed') {
+          // In mixed rolls, treat d00/d100 as a non-standard die
+          const sides = 100;
+          const result = rollDie(sides);
+          results.push(result);
+          addRollResult(result);
+        } else {
+          // Only use percentile handling in pure percentile rolls
+          const percentileResult = rollPercentile();
+          // Since rollPercentile returns all results directly, add them to our results
+          // and to the state
+          if (percentileResult.results) {
+            results.push(...percentileResult.results);
+            percentileResult.results.forEach(result => addRollResult(result));
+          }
+        }
+      } else {
+        // Handle regular die
+        const sides = parseInt(die.slice(1), 10);
+        const result = rollDie(sides);
+        results.push(result);
+        addRollResult(result);
+      }
+    });
+    
+    updateDisplay();
+    
+    return {
+      diceToAnimate: diceToRoll,
+      results: results,
+      total: computeTotal()
+    };
+  }
 }
 
 /**

@@ -1,0 +1,42 @@
+---
+description: Dice rollng rules
+globs: src/core-functions.js,src/dice-logic.js,src/animations/dice-animations.js
+alwaysApply: false
+---
+# Component Rule Sheet: DICE_ROLLING
+
+## Basic Information
+- Priority: HIGH
+- Applies To: core-functions.js, dice-logic.js, animations/dice-animations.js
+- Last Updated: 2023-10-15
+
+## Core Requirements
+- Standard dice (d4, d6, d8, d10, d12, d20) must be implemented as single dice
+- Percentile dice (d00/d100) must display two d10 dice (tens and ones)
+- All dice results must be animated before revealing final value
+- Order of dice must be preserved in results display
+
+## Visual Specifications
+- Standard dice animate with a single spinning motion (360° × 3)
+- Percentile dice show two colored d10 dice spinning simultaneously
+- Animation duration: 2000ms for dice spin, 1000ms for number randomization
+- Results appear in output area with appropriate color coding by die type
+
+## Behavior Rules
+- Clicking a die button adds that die to pool without rolling (unless autoRoll=true)
+- Double-clicking d10 activates percentile mode
+- Long-pressing d10 also activates percentile mode
+- Entering "d00" or "d100" in notation creates percentile roll
+- Non-standard dice (e.g., d30) display in format "dX=Y" in results
+
+## Implementation Notes
+- Use state API functions instead of direct state manipulation
+- Separate animation logic from core rolling functionality
+- Maintain dice order between input and output displays
+- The "00"+"0" combination equals 100, not 0
+
+## Validation Criteria
+- All dice types can be added and rolled individually
+- Percentile mode activates correctly via all three methods
+- Mixed dice pools roll and display in correct order
+- Non-standard dice format correctly in results area
