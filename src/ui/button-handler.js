@@ -181,6 +181,7 @@ function handleDieClick(button) {
   
   // Import state API functions directly
   const { addDie } = require('../state');
+  const { rollAllDice } = require('../dice-logic');
   
   // Add visual feedback
   button.classList.add('clicked');
@@ -188,8 +189,9 @@ function handleDieClick(button) {
     button.classList.remove('clicked');
   }, 150);
   
-  // Add the die to the state pool but don't roll or animate yet
+  // Add the die to the state pool and roll it
   addDie(die);
+  rollAllDice();
   
   // Let the parent function handle animation and display updates
   // This separation makes rapid clicks more responsive

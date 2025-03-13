@@ -378,6 +378,9 @@ body {
    width: 60%;
    padding: 10px;
    position: relative; /* Keep this for absolute positioning context */
+   display: flex;
+   flex-direction: column;
+   gap: 4px;
 }
 
 /* Container for scrollable content */
@@ -389,24 +392,54 @@ body {
    margin-top: -5px; /* Changed from padding to margin */
 }
 
-/* CRITICAL: Results grid layout */
-.results-grid {
-   display: grid;
-   grid-template-columns: repeat(4, minmax(16px, auto));
-   gap: 4px 8px; /* CRITICAL: Creates optimal spacing between results - DO NOT CHANGE */
-   width: calc(100% - 30px); /* CRITICAL: Accounts for modifier space - DO NOT CHANGE */
+/* Non-standard results container */
+.non-standard-results {
+  width: 100%;
+  padding-right: 30px; /* Space for modifier */
+  background: transparent;
 }
 
-.results-grid .roll-box {
-   min-width: 16px;
-   height: 20px;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   font-size: 16px;
-   font-weight: bold;
-   color: #202122;
-   padding-bottom: 1px;
+.non-standard-results-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Non-standard result item */
+.non-standard-result-item {
+  background-color: rgba(245, 245, 245, 0.9);
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 2px 5px;
+  white-space: nowrap;
+  overflow-x: auto;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+/* Results grid for standard dice */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(16px, auto));
+  gap: 4px 8px;
+  width: 100%;
+}
+
+.roll-box {
+  min-width: 16px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: #202122;
+  padding-bottom: 1px;
 }
 
 /* CRITICAL: Results modifier positioning */
@@ -642,4 +675,27 @@ body {
 /* Regular d10 spin */
 .die-button[data-die="d10"]:not(.percentile-active) .main-die.spin {
   animation: spin 2s cubic-bezier(0.2, 0, 0.8, 1);
+}
+
+/* Special styling for non-standard dice */
+.roll-box.nonstandard {
+  /* Span all columns in the grid */
+  grid-column: 1 / -1;
+  /* Ensure text doesn't overflow and enable horizontal scrolling */
+  overflow-x: auto;
+  white-space: nowrap;
+  /* Left-align text instead of centering */
+  justify-content: flex-start;
+  /* Increase padding for better readability */
+  padding: 2px 5px;
+  /* Additional styling to make it stand out */
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  margin: 2px 0;
+  /* Width constraints */
+  width: 100%;
+  min-width: auto;
+  height: auto;
+  min-height: 24px;
 }

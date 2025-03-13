@@ -28,7 +28,105 @@ import {
 
 import { rollDie, rollAllDice, computeTotal, parseDiceNotation, rollPercentile } from './dice-logic';
 import { animateDiceIcons, animateResults, resetD10State } from './animations/dice-animations';
-import { updateDisplay } from './ui/display';
+import { updateDisplay, updateResults } from './ui/display';
+
+/**
+ * Check if a die type is a standard die (d4, d6, d8, d10, d12, d20)
+ * @param {string} dieType - The type of die to check
+ * @returns {boolean} Whether the die is standard
+ */
+function isStandardDie(dieType) {
+  return ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].includes(dieType);
+}
+
+/**
+ * Prepare display data for UI updates
+ * @returns {Object} Data needed for display updates
+ */
+function prepareDisplayData() {
+  const selectedDice = getSelectedDice();
+  const modifier = getModifier();
+  const isPercentile = hasPercentileDie();
+  
+  return {
+    selectedDice,
+    modifier,
+    isPercentile
+  };
+}
+
+/**
+ * Prepare results data for display and animation
+ * @param {Array} results - Array of roll results
+ * @param {Array} diceTypes - Array of dice types
+ * @param {number} modifier - The modifier to apply
+ * @returns {Object} Object containing formatted results data
+ */
+function prepareResultsData(results, diceTypes, modifier) {
+  const standardResults = [];
+  const nonStandardGroups = {};
+  let total = modifier || 0;
+
+  results.forEach((result, index) => {
+    const dieType = diceTypes[index];
+    total += result;
+
+    if (isStandardDie(dieType)) {
+      standardResults.push({
+        value: result,
+        dieType
+      });
+    } else {
+      if (!nonStandardGroups[dieType]) {
+        nonStandardGroups[dieType] = {
+          count: 1,
+          results: [result],
+          subtotal: result
+        };
+      } else {
+        nonStandardGroups[dieType].count++;
+        nonStandardGroups[dieType].results.push(result);
+        nonStandardGroups[dieType].subtotal += result;
+      }
+    }
+  });
+
+  return {
+    standardResults,
+    nonStandardGroups,
+    modifier: modifier || 0,
+    total
+  };
+}
+
+/**
+ * Prepare data for dice roll animations
+ * @param {Array} results - Array of roll results
+ * @param {Array} diceTypes - Array of dice types
+ * @returns {Object} Data needed for roll animations
+ */
+function prepareAnimationData(results, diceTypes) {
+  const standardRolls = [];
+  let total = 0;
+
+  results.forEach((result, index) => {
+    const dieType = diceTypes[index];
+    total += result;
+
+    if (isStandardDie(dieType)) {
+      standardRolls.push({
+        value: result,
+        dieType
+      });
+    }
+  });
+
+  return {
+    rolls: standardRolls,
+    diceTypes: diceTypes.filter(isStandardDie),
+    total
+  };
+}
 
 /**
  * Roll a specific standard die and add it to the dice pool
@@ -50,22 +148,18 @@ export function rollSpecificDie(dieType, autoRoll = true) {
   
   // Add die to pool
   addDie(dieType);
-  updateDisplay();
+  updateDisplay(prepareDisplayData());
   
-  // Roll all dice if autoRoll is enabled
   if (autoRoll) {
-    return rerollAllDice();
+    const { results } = rollAllDice();
+    const durationMs = animateDiceIcons([dieType]);
+    animateResults(prepareAnimationData(results, getSelectedDice()), durationMs);
+    updateResults(prepareResultsData(results, getSelectedDice(), getModifier()));
+    return { results, total: computeTotal() };
   } else {
-    // Otherwise just roll the new die and return its info
-    const sides = parseInt(dieType.slice(1), 10);
-    const result = rollDie(sides);
+    const result = rollDie(parseInt(dieType.slice(1), 10));
     addRollResult(result);
-    
-    return {
-      diceToAnimate: [dieType],
-      results: [result], 
-      total: result + getModifier()
-    };
+    return { results: [result], total: computeTotal() };
   }
 }
 
@@ -79,17 +173,16 @@ export function rollPercentileDie() {
   
   // Add percentile die to the pool
   addDie('d00');
-  updateDisplay();
+  updateDisplay(prepareDisplayData());
   
   // Roll the percentile die using existing logic
-  rollAllDice();
+  const { results, total } = rollAllDice();
   
-  // Return animation info
-  return {
-    diceToAnimate: ['d00'],
-    results: getCurrentRolls(),
-    total: computeTotal()
-  };
+  const durationMs = animateDiceIcons(['d00']);
+  animateResults(prepareAnimationData(results, getSelectedDice()), durationMs);
+  updateResults(prepareResultsData(results, getSelectedDice(), getModifier()));
+  
+  return { results, total };
 }
 
 /**
@@ -111,16 +204,20 @@ export function rollNonStandardDie(sides) {
   // Add custom die to pool
   const dieType = `d${sides}`;
   addDie(dieType);
-  updateDisplay();
+  updateDisplay(prepareDisplayData());
   
   // Roll this individual die
   const result = rollDie(sides);
   addRollResult(result);
   
+  const durationMs = animateDiceIcons([dieType]);
+  animateResults(prepareAnimationData([result], [dieType]), durationMs);
+  updateResults(prepareResultsData([result], [dieType], getModifier()));
+  
   return {
     diceToAnimate: [dieType],
     results: [result],
-    total: result + getModifier()
+    total: computeTotal()
   };
 }
 
@@ -141,27 +238,28 @@ export function rerollAllDice() {
   // Check for percentile dice
   if (hasPercentileDie()) {
     // Use the existing percentile roll function
-    rollAllDice();
+    const { results } = rollAllDice();
+    
+    const durationMs = animateDiceIcons(diceToRoll);
+    animateResults(prepareAnimationData(results, diceToRoll), durationMs);
+    updateResults(prepareResultsData(results, diceToRoll, getModifier()));
     
     return {
       diceToAnimate: ['d00'],
-      results: getCurrentRolls(),
+      results: results,
       total: computeTotal()
     };
   } else {
     // Roll each die individually to maintain order
-    const newResults = [];
+    const { results } = rollAllDice();
     
-    diceToRoll.forEach(die => {
-      const sides = parseInt(die.slice(1), 10);
-      const result = rollDie(sides);
-      newResults.push(result);
-      addRollResult(result);
-    });
+    const durationMs = animateDiceIcons(diceToRoll);
+    animateResults(prepareAnimationData(results, diceToRoll), durationMs);
+    updateResults(prepareResultsData(results, diceToRoll, getModifier()));
     
     return {
       diceToAnimate: diceToRoll,
-      results: newResults,
+      results: results,
       total: computeTotal()
     };
   }
@@ -174,7 +272,14 @@ export function clearDicePool() {
   clearDice();
   clearResults();
   resetD10State();
-  updateDisplay();
+  // Update both displays with empty data
+  updateDisplay(prepareDisplayData());
+  updateResults({
+    standardResults: [],
+    nonStandardGroups: {},
+    modifier: 0,
+    total: 0
+  });
 }
 
 // Add a variable to store the last position of the applet
@@ -324,7 +429,7 @@ export function adjustModifier(amount) {
   }
   
   setModifier(getModifier() + amount);
-  updateDisplay();
+  updateDisplay(prepareDisplayData());
 }
 
 /**
@@ -338,7 +443,7 @@ export function setModifierValue(value) {
   }
   
   setModifier(value);
-  updateDisplay();
+  updateDisplay(prepareDisplayData());
 }
 
 /**
@@ -367,14 +472,14 @@ export function processNotation(notation) {
     addDie('d00');
     
     // Roll the percentile die
-    rollAllDice();
+    const { results } = rollAllDice();
     
     // Update display to show "00" in the input area
-    updateDisplay();
+    updateDisplay(prepareDisplayData());
     
     return {
       diceToAnimate: ['d00'],
-      results: getCurrentRolls(),
+      results: results,
       total: computeTotal()
     };
   }
@@ -391,14 +496,14 @@ export function processNotation(notation) {
     addDie(dieToAdd);
     
     // Roll the non-standard die
-    rollAllDice();
+    const { results } = rollAllDice();
     
     // Update display
-    updateDisplay();
+    updateDisplay(prepareDisplayData());
     
     return {
       diceToAnimate: [dieToAdd],
-      results: getCurrentRolls(),
+      results: results,
       total: computeTotal()
     };
   }
@@ -420,11 +525,15 @@ export function processNotation(notation) {
     
     // If we have dice in the pool, roll them with the new modifier
     if (currentDice.length > 0) {
-      return rerollAllDice();
+      const { results } = rollAllDice();
+      const durationMs = animateDiceIcons(currentDice);
+      animateResults(prepareAnimationData(results, currentDice), durationMs);
+      updateResults(prepareResultsData(results, currentDice, parsed.modifier));
+      return { results, total: computeTotal() };
     }
     
     // No dice to roll, just update the display
-    updateDisplay();
+    updateDisplay(prepareDisplayData());
     return null;
   }
   
@@ -435,12 +544,17 @@ export function processNotation(notation) {
   clearDice();
   
   // Add the parsed dice to the pool in order
+  const diceToRoll = [];
+  const results = [];
+  
   parsed.dice.forEach(die => {
     // Special handling for "1d100", convert to "d100"
     if (die.toLowerCase() === '1d100') {
       addDie('d100');
+      diceToRoll.push('d100');
     } else {
       addDie(die);
+      diceToRoll.push(die);
     }
   });
   
@@ -450,21 +564,20 @@ export function processNotation(notation) {
   // Check if this is a percentile roll after adding dice
   if (parsed.type === 'percentile') {
     // Use the dedicated percentile die function
-    rollAllDice();
+    const { results } = rollAllDice();
+    
+    const durationMs = animateDiceIcons(['d00']);
+    animateResults(prepareAnimationData(results, diceToRoll), durationMs);
+    updateResults(prepareResultsData(results, diceToRoll, currentModifier + parsed.modifier));
     
     return {
       diceToAnimate: ['d00'],
-      results: getCurrentRolls(),
+      results: results,
       total: computeTotal()
     };
   } else {
     // For mixed and normal rolls, handle all dice normally
-    // Roll all dice and maintain their order
-    const diceToRoll = getSelectedDice();
-    clearResults();
-    
-    const results = [];
-    
+    // Roll each die individually to maintain order
     diceToRoll.forEach(die => {
       if (die === 'd00' || die === 'd100') {
         if (parsed.type === 'mixed') {
@@ -492,7 +605,11 @@ export function processNotation(notation) {
       }
     });
     
-    updateDisplay();
+    updateDisplay(prepareDisplayData());
+    
+    const durationMs = animateDiceIcons(diceToRoll);
+    animateResults(prepareAnimationData(results, diceToRoll), durationMs);
+    updateResults(prepareResultsData(results, diceToRoll, currentModifier + parsed.modifier));
     
     return {
       diceToAnimate: diceToRoll,
@@ -514,7 +631,11 @@ export function animateDiceRoll(rollInfo) {
   
   // Start animation sequence
   const durationMs = animateDiceIcons(diceToAnimate);
-  animateResults(results, total, durationMs);
+  animateResults({
+    rolls: results,
+    diceTypes: diceToAnimate,
+    total
+  }, durationMs);
   
   return durationMs;
 }

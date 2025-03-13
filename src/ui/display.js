@@ -3,33 +3,24 @@
 *
 * This file handles updating all visual displays in the dice roller interface.
 * It is responsible for refreshing the input area, modifier displays, and results
-* based on the current application state. It now uses the state API for accessing
-* state data rather than direct manipulation.
+* based on data passed to it from the core logic layer.
 *
 * This file:
-* 1. Updates the main input display with current dice selection (updateDisplay)
+* 1. Updates the main input display with provided dice selection
 * 2. Formats and displays dice groups with proper styling
 * 3. Manages modifier display in both input and results areas
-* 4. Updates the results display with current roll values (updateResults)
+* 4. Updates the results display with provided roll values
 * 5. Handles special display cases like percentile mode
-* 6. Uses state API functions to retrieve all state information
 */
 
-import { 
-  getSelectedDice, 
-  getCurrentRolls, 
-  getModifier, 
-  getLastTotal,
-  hasPercentileDie,
-  clearLastTotal,
-  getSortedDiceNotation,
-  isStandardDie,
-  isPercentileDie
-} from '../state';
-import { computeNotation, computeTotal } from '../dice-logic';
-import { formatModifier, formatDiceInput } from '../utils/formatting';
-
-export function updateDisplay() {
+/**
+ * Update the input display and modifier areas
+ * @param {Object} displayData - Object containing display information
+ * @param {Array} displayData.selectedDice - Currently selected dice
+ * @param {number} displayData.modifier - Current modifier value
+ * @param {boolean} displayData.isPercentile - Whether in percentile mode
+ */
+export function updateDisplay({ selectedDice, modifier, isPercentile }) {
   const diceInput = document.getElementById('dice-input');
   const modifierOverlay = document.getElementById('modifier-overlay');
   const inputModifierDisplay = document.querySelector('.input-modifier-display');
@@ -38,17 +29,27 @@ export function updateDisplay() {
   // Update input area
   if (diceInput) {
     // Check for percentile roll first
-    if (hasPercentileDie()) {
+    if (isPercentile) {
       diceInput.innerHTML = '00';
-    } else if (getSelectedDice().length > 0) {
-      // Get sorted dice for display
-      const { counts, sorted } = getSortedDiceNotation();
+    } else if (selectedDice.length > 0) {
+      // Group dice by type for display
+      const diceCounts = {};
+      selectedDice.forEach(die => {
+        diceCounts[die] = (diceCounts[die] || 0) + 1;
+      });
+      
+      // Sort dice by their numeric value
+      const sortedDice = Object.keys(diceCounts).sort((a, b) => {
+        const aValue = parseInt(a.slice(1), 10);
+        const bValue = parseInt(b.slice(1), 10);
+        return aValue - bValue;
+      });
       
       // Create colored spans for each die group
       const parts = [];
-      sorted.forEach((die, index) => {
+      sortedDice.forEach((die, index) => {
         if (index > 0) parts.push(' + ');
-        parts.push(`<span class="${die}-result">${counts[die]}${die}</span>`);
+        parts.push(`<span class="${die}-result">${diceCounts[die]}${die}</span>`);
       });
       diceInput.innerHTML = parts.join('');
     } else {
@@ -56,150 +57,83 @@ export function updateDisplay() {
     }
   }
   
-  // Get current modifier value
-  const modifier = getModifier();
-  
   // Format modifier text with explicit +0 when modifier is 0
   const modifierText = modifier === 0 ? '+0' : (modifier > 0 ? `+${modifier}` : `${modifier}`);
   
   // Update all modifier displays
-  if (modifierOverlay) {
-    modifierOverlay.textContent = modifierText;
-  }
-  
-  if (inputModifierDisplay) {
-    inputModifierDisplay.textContent = modifierText;
-  }
-  
-  if (resultsModifier) {
-    resultsModifier.textContent = modifierText;
-  }
-  
-  updateResults();
+  if (modifierOverlay) modifierOverlay.textContent = modifierText;
+  if (inputModifierDisplay) inputModifierDisplay.textContent = modifierText;
+  if (resultsModifier) resultsModifier.textContent = modifierText;
 }
 
 /**
- * Update the results area with current roll results
+ * Update the results area with provided roll results
+ * @param {Object} resultData - Object containing roll results
+ * @param {Array} resultData.standardResults - Array of standard dice results
+ * @param {Object} resultData.nonStandardGroups - Grouped non-standard dice results
+ * @param {number} resultData.total - Total value of all rolls
  */
-export function updateResults() {
-  const resultsRollsEl = document.getElementById('results-rolls');
+export function updateResults({ standardResults, nonStandardGroups, total }) {
+  const diceResultsContainer = document.getElementById('results-rolls');
   const resultsTotalEl = document.getElementById('results-total');
+  const nonStandardResultsEl = document.getElementById('non-standard-results');
   
-  if (!resultsRollsEl || !resultsTotalEl) {
+  if (!diceResultsContainer || !resultsTotalEl) {
     console.error('Could not find result areas');
     return;
   }
   
-  // Clear previous results
-  resultsRollsEl.innerHTML = '';
-  
-  // Get current state values
-  const selectedDice = getSelectedDice();
-  const currentRolls = getCurrentRolls();
-  const lastTotal = getLastTotal();
-  
-  // Check if the current rolls contain percentile dice
-  const hasPercentile = currentRolls.some(roll => 
-    typeof roll === 'object' && (roll.type === 'd10-tens' || roll.type === 'd10-ones')
-  );
-  
-  // Check if we need to process percentile dice special case
-  if (hasPercentile) {
-    // Handle percentile display
-    currentRolls.forEach(roll => {
-      const rollBox = document.createElement('div');
-      rollBox.className = 'roll-box';
-      rollBox.textContent = roll.value;
-      rollBox.dataset.die = roll.type;  // d10-tens or d10-ones
-      resultsRollsEl.appendChild(rollBox);
-    });
-  } else {
-    // Regular dice processing - maintain original order
-    const nonStandardResults = [];
-    const standardResults = [];
+  // First add non-standard dice to their special container if it exists
+  if (nonStandardResultsEl && Object.keys(nonStandardGroups).length > 0) {
+    // Clear the non-standard results container
+    nonStandardResultsEl.innerHTML = '';
     
-    // NEW: Object to store grouped non-standard dice
-    const nonStandardGroups = {};
-    
-    // Process dice in their original order
-    selectedDice.forEach((dieType, index) => {
-      const result = currentRolls[index];
+    Object.entries(nonStandardGroups).forEach(([dieType, data]) => {
+      const resultItem = document.createElement('div');
+      resultItem.className = 'non-standard-result-item';
       
-      // Skip undefined results
-      if (result === undefined) return;
+      // Format as "NdX: total [roll1, roll2, ...]"
+      const notation = `${data.count}${dieType}`;
+      const rollsText = `[${data.results.join(', ')}]`;
+      const displayText = `${notation}: ${data.subtotal} ${rollsText}`;
+      resultItem.textContent = displayText;
       
-      // Use the utility functions to determine die type
-      if (isStandardDie(dieType)) {
-        standardResults.push({ dieType, result, originalIndex: index });
-      } else if (isPercentileDie(dieType) && hasPercentileDie()) {
-        // Only treat as percentile if it's a pure percentile roll
-        // This case should be handled by the hasPercentile branch above
-        // Skip this die since it's already handled in the percentile case
-        return;
-      } else {
-        // This is a non-standard die (including d100 in mixed rolls)
-        nonStandardResults.push({ dieType, result, originalIndex: index });
-        
-        // Group non-standard dice by type
-        if (!nonStandardGroups[dieType]) {
-          nonStandardGroups[dieType] = {
-            count: 0,
-            nomenclature: dieType,
-            results: [],
-            subtotal: 0
-          };
-        }
-        
-        // Add this die to its group
-        nonStandardGroups[dieType].count++;
-        nonStandardGroups[dieType].results.push(result);
-        nonStandardGroups[dieType].subtotal += result;
-      }
-    });
-    
-    // DEBUG: Log the grouped non-standard dice
-    console.log('Non-standard groups:', nonStandardGroups);
-    
-    // Sort by original index to preserve input order
-    nonStandardResults.sort((a, b) => a.originalIndex - b.originalIndex);
-    standardResults.sort((a, b) => a.originalIndex - b.originalIndex);
-    
-    // Display non-standard dice first with special format "dX=Y"
-    nonStandardResults.forEach(({ dieType, result }) => {
-      const rollBox = document.createElement('div');
-      rollBox.className = 'roll-box nonstandard';
-      // Format non-standard dice as "dX=Y"
-      rollBox.textContent = `${dieType}=${result}`;
-      rollBox.dataset.die = dieType;
-      resultsRollsEl.appendChild(rollBox);
+      resultItem.dataset.die = dieType;
+      resultItem.dataset.group = notation;
+      resultItem.title = `Group of ${data.count} ${dieType} dice. Total: ${data.subtotal}`;
       
-      // DEBUG: Add data attribute to show which group this die belongs to
-      if (nonStandardGroups[dieType]) {
-        rollBox.dataset.group = `${nonStandardGroups[dieType].count}${dieType}`;
-        rollBox.title = `Part of group: ${nonStandardGroups[dieType].count}${dieType}, total: ${nonStandardGroups[dieType].subtotal}`;
-      }
+      nonStandardResultsEl.appendChild(resultItem);
     });
+  } else if (nonStandardResultsEl) {
+    // Clear non-standard results if there are none
+    nonStandardResultsEl.innerHTML = '';
+  }
+  
+  // Then display standard dice in the grid
+  if (standardResults.length > 0) {
+    // Create a container for standard results
+    const standardContainer = document.createElement('div');
+    standardContainer.className = 'results-grid';
     
-    // Display standard dice with normal format
     standardResults.forEach(({ dieType, result }) => {
       const rollBox = document.createElement('div');
       rollBox.className = 'roll-box';
       rollBox.textContent = result;
       rollBox.dataset.die = dieType;
-      resultsRollsEl.appendChild(rollBox);
+      standardContainer.appendChild(rollBox);
     });
+    
+    // Clear and update the dice results container
+    diceResultsContainer.innerHTML = '';
+    diceResultsContainer.appendChild(standardContainer);
+  } else {
+    // Clear standard results if there are none
+    diceResultsContainer.innerHTML = '';
   }
   
   // Update total
   const totalValue = resultsTotalEl.querySelector('.total-value');
   if (totalValue) {
-    // Always compute total, which will include the modifier
-    const total = computeTotal();
     totalValue.textContent = total;
-    
-    // Clear lastTotal after use
-    if (lastTotal !== undefined) {
-      clearLastTotal();
-    }
   }
 }
