@@ -1,3 +1,25 @@
+/*
+* STYLES AND LAYOUT
+*
+* This file manages all visual styling and layout for the dice roller application.
+* It is responsible for component positioning, animations, visual feedback, and
+* maintaining consistent spacing throughout the interface.
+*
+* This file is organized into sections:
+* 1. Reset and Global Styles
+* 2. Container and Applet Layout
+* 3. Input Field Styling
+* 4. Dice Button Grid Layout
+* 5. Control Button Styling
+* 6. Results Display Area
+* 7. Animation Definitions
+* 8. Color Schemes and Visual Feedback
+* 9. Special Cases (Percentile Mode, Non-standard Dice)
+*
+* Critical sections are marked with CRITICAL comments and should not be
+* modified without careful consideration of layout implications.
+*/
+
 /* Reset/Normalize */
 * {
    margin: 0;

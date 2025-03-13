@@ -100,11 +100,24 @@ May 24, 2023 - Consolidated UI event handlers:
 4. Reduced redundancy in the codebase by centralizing all button interactions
 5. Maintained clear separation of concerns between keyboard handling and button handling
 
+May 25, 2023 - Enhanced results display and scrolling:
+1. Adjusted non-standard dice results container width for better readability
+2. Updated CSS documentation with clear section organization
+3. Preparing unified scrolling implementation for results area
+4. Planning improved scroll behavior with 2-way scrolling and content overflow handling
+5. Added proper documentation headers to style-related files
+
 ## AGENDA ITEMS
 1. ✓ Refactor application to use centralized core functions
 2. ✓ Enhance applet state management
-3. Improve animation consistency across all trigger methods
-4. Refine timing for smoother animations
-5. Fix percentile dice animation issues
-6. Ensure proper synchronization between graphics and numbers
-7. Document all changes made to the codebase 
+3. ✓ Update non-standard dice display width
+4. → Implement unified 2-way scrolling for results area
+   - Create single scrollable container for all results
+   - Add horizontal scrolling with max-width constraint
+   - Implement ellipsis for overflowing content
+   - Maintain modifier visibility
+5. Improve animation consistency across all trigger methods
+6. Refine timing for smoother animations
+7. Fix percentile dice animation issues
+8. Ensure proper synchronization between graphics and numbers
+9. Document all changes made to the codebase 
