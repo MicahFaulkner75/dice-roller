@@ -40,7 +40,8 @@ import {
   animateDiceRoll
 } from '../core-functions';
 
-import { updateDisplay } from '../ui/display';
+import { updateDisplay } from './display';
+import { prepareDisplayData } from '../core-functions';
 
 /**
  * Main setup function called from index.js to initialize all UI event handlers
@@ -107,8 +108,8 @@ export function setupDiceButtons() {
         // Single click - only handle if not in a double-click
         if (!isDoubleClick) {
           handleDieClick(button);
-          // Update the display after die is added
-          updateDisplay();
+          // Update the display after die is added with proper display data
+          updateDisplay(prepareDisplayData());
         }
       }
       lastClickTime = currentTime;

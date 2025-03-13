@@ -43,7 +43,7 @@ function isStandardDie(dieType) {
  * Prepare display data for UI updates
  * @returns {Object} Data needed for display updates
  */
-function prepareDisplayData() {
+export function prepareDisplayData() {
   const selectedDice = getSelectedDice();
   const modifier = getModifier();
   const isPercentile = hasPercentileDie();
@@ -152,9 +152,12 @@ export function rollSpecificDie(dieType, autoRoll = true) {
   
   if (autoRoll) {
     const { results } = rollAllDice();
+    const diceTypes = getSelectedDice();
+    const currentModifier = getModifier();
+    
     const durationMs = animateDiceIcons([dieType]);
-    animateResults(prepareAnimationData(results, getSelectedDice()), durationMs);
-    updateResults(prepareResultsData(results, getSelectedDice(), getModifier()));
+    animateResults(prepareAnimationData(results, diceTypes), durationMs);
+    updateResults(prepareResultsData(results, diceTypes, currentModifier));
     return { results, total: computeTotal() };
   } else {
     const result = rollDie(parseInt(dieType.slice(1), 10));

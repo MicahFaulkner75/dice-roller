@@ -395,8 +395,9 @@ body {
 /* Non-standard results container */
 .non-standard-results {
   width: 100%;
-  padding-right: 30px; /* Space for modifier */
+  padding-right: 20px; /* Reduced from 30px to increase effective width by 10px */
   background: transparent;
+  margin-left: -3px; /* Move container 3px to the left */
 }
 
 .non-standard-results-container {
