@@ -390,24 +390,23 @@ body {
 }
 
 .results-left {
-   width: 40%;
+   width: 32%; /* Changed from 35% to 32% for precise requested ratio - Modified 2023-05-27 07:45 */
    text-align: center;
    vertical-align: top;
    padding: 10px;
 }
 
-/* CRITICAL: Results container layout and scroll behavior */
-/* Any modifications to padding, overflow, or positioning may break the scroll functionality */
+/* Results container layout and scroll behavior */
 .results-right {
-   width: 60%;
-   padding: 15px 10px 10px 10px; /* CRITICAL: These padding values ensure proper vertical centering of content - DO NOT CHANGE */
-   position: relative; /* Required for absolute positioning of gradient and modifier */
+   width: 68%;
+   padding: 15px 2px 10px 0px; /* Reduced left padding to 0px to move content left - Modified 2023-05-27 08:30 */
+   position: relative;
    display: flex;
    flex-direction: column;
-   gap: 2px; /* CRITICAL: This gap creates optimal spacing between result lines - DO NOT CHANGE */
+   gap: 2px;
    max-height: none;
-   overflow-y: visible; /* CRITICAL: Allows content to expand vertically without scrollbar - DO NOT CHANGE */
-   overflow-x: hidden; /* CRITICAL: Prevents container-level horizontal scrolling while allowing child scrolling - DO NOT CHANGE */
+   overflow-y: visible;
+   overflow-x: hidden;
 }
 
 /* CRITICAL: Gradient overlay implementation */
@@ -415,13 +414,13 @@ body {
 .results-right::before {
   content: "";
   position: absolute;
-  right: 10px;
+  right: 5px; /* Moved more to the right from 10px to 5px - Modified 2023-05-27 09:30 */
   top: 10px;
   height: calc(100% - 20px);
-  width: 40px; /* CRITICAL: Width balanced to show gradient without hiding modifier - DO NOT CHANGE */
-  background: linear-gradient(to right, rgba(240, 240, 240, 0), rgba(240, 240, 240, 1) 80%); /* CRITICAL: Gradient formula for smooth fade - DO NOT CHANGE */
-  pointer-events: none; /* CRITICAL: Allows interaction with content under the gradient - DO NOT CHANGE */
-  z-index: 2; /* CRITICAL: Must be below modifier (z-index 3) but above content - DO NOT CHANGE */
+  width: 60px; /* Increased width from 40px to 60px for thicker gradient - Modified 2023-05-27 09:30 */
+  background: linear-gradient(to right, rgba(240, 240, 240, 0), rgba(240, 240, 240, 1) 80%);
+  pointer-events: none;
+  z-index: 2;
 }
 
 /* CRITICAL: Non-standard results container configuration */
@@ -435,6 +434,14 @@ body {
   overflow-y: visible; /* CRITICAL: Allows vertical expansion without scrollbar - DO NOT CHANGE */
   position: relative;
   padding-right: 5px;
+  /* Hide scrollbars while maintaining scroll functionality - Added 2023-05-27 09:45 */
+  -ms-overflow-style: none;  /* Hide scrollbar for IE and Edge */
+  scrollbar-width: none;  /* Hide scrollbar for Firefox */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera - Added 2023-05-27 09:45 */
+.non-standard-results::-webkit-scrollbar {
+  display: none;
 }
 
 /* CRITICAL: Non-standard result item styling */
@@ -714,4 +721,49 @@ body {
   min-width: auto;
   height: auto;
   min-height: 24px;
+}
+
+/* CRITICAL: Standard dice results grid layout - Modified 2023-05-27 04:00 */
+/* Controls the 4-column layout for standard dice results */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(10px, auto)); /* Changed minimum width from 16px to 10px - Modified 2023-05-27 09:00 */
+  gap: 4px 0px; /* Changed from 0px to 4px 0px to add vertical spacing while keeping no horizontal spacing - Modified 2023-05-27 10:10 */
+  width: 80%; /* Reduced from 100% to 80% to compress horizontally - Modified 2023-05-27 09:15 */
+  overflow: visible;
+  margin-top: -9px; /* Changed from -10px to -9px to move down 1px more - Modified 2023-05-27 10:05 */
+  margin-left: -8px; /* Changed from -5px to -8px to move left 3px - Modified 2023-05-27 10:00 */
+  position: relative;
+  z-index: 1;
+}
+
+/* CRITICAL: Individual dice result styling - Modified 2023-05-27 04:00 */
+/* Controls the appearance of each standard die result */
+.roll-box {
+  min-width: 16px; /* Restored from 12px to 16px - Modified 2023-05-27 06:00 */
+  height: 18px; /* Reduced from 20px to match non-standard height - Modified 2023-05-27 04:00 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px; /* CRITICAL: Matches non-standard result size - DO NOT CHANGE */
+  font-weight: bold;
+  color: #202122;
+  padding: 0; /* Removed padding-bottom to align text vertically - Modified 2023-05-27 04:00 */
+  margin: 0; /* Ensure no extra margins - Modified 2023-05-27 04:00 */
+  line-height: 1.2; /* Match line-height with non-standard items - Modified 2023-05-27 04:00 */
+  opacity: 1; /* Ensure full visibility - Modified 2023-05-27 03:30 */
+  position: relative; /* Added to establish proper stacking - Modified 2023-05-27 03:30 */
+}
+
+/* Add slight horizontal compression to all dice results */
+#results-rolls .roll-box {
+  letter-spacing: -0.25px; /* Moderate letter spacing reduction - Modified 2023-05-27 08:45 */
+}
+
+/* CRITICAL: Results field separator - Modified 2023-05-27 04:00 */
+/* Creates visual separation between non-standard and standard results */
+.non-standard-results + #results-rolls {
+  border-top: 1px solid rgba(0, 0, 0, 0.05); /* Light separator between result types */
+  padding-top: 2px; /* Reduced from 3px for tighter layout - Modified 2023-05-27 04:00 */
+  margin-top: -9px; /* Modified from 2px to -9px to align with adjusted grid position - Modified 2023-05-27 04:30 */
 }
