@@ -380,7 +380,7 @@ body {
 
 /* Results field styling - CRITICAL DIMENSIONS */
 .results-field {
-   height: 90px; /* CRITICAL: Provides space for 3 rows of results - DO NOT CHANGE */
+   height: 100px; /* CRITICAL: This height provides optimal space for results while maintaining compact applet size - DO NOT CHANGE */
    background-color: #f0f0f0;
    padding: 0;
    box-sizing: border-box;
@@ -396,76 +396,69 @@ body {
    padding: 10px;
 }
 
+/* CRITICAL: Results container layout and scroll behavior */
+/* Any modifications to padding, overflow, or positioning may break the scroll functionality */
 .results-right {
    width: 60%;
-   padding: 10px;
-   position: relative; /* Keep this for absolute positioning context */
+   padding: 15px 10px 10px 10px; /* CRITICAL: These padding values ensure proper vertical centering of content - DO NOT CHANGE */
+   position: relative; /* Required for absolute positioning of gradient and modifier */
    display: flex;
    flex-direction: column;
-   gap: 4px;
+   gap: 2px; /* CRITICAL: This gap creates optimal spacing between result lines - DO NOT CHANGE */
+   max-height: none;
+   overflow-y: visible; /* CRITICAL: Allows content to expand vertically without scrollbar - DO NOT CHANGE */
+   overflow-x: hidden; /* CRITICAL: Prevents container-level horizontal scrolling while allowing child scrolling - DO NOT CHANGE */
 }
 
-/* Container for scrollable content */
-#results-rolls {
-   width: 100%;
-   padding-right: 30px; /* Space for modifier */
-   height: 70px; /* Increased from 60px */
-   overflow-y: auto; /* Enable vertical scrolling */
-   margin-top: -5px; /* Changed from padding to margin */
+/* CRITICAL: Gradient overlay implementation */
+/* This creates the fade-out effect at the right edge while preserving modifier visibility */
+.results-right::before {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  height: calc(100% - 20px);
+  width: 40px; /* CRITICAL: Width balanced to show gradient without hiding modifier - DO NOT CHANGE */
+  background: linear-gradient(to right, rgba(240, 240, 240, 0), rgba(240, 240, 240, 1) 80%); /* CRITICAL: Gradient formula for smooth fade - DO NOT CHANGE */
+  pointer-events: none; /* CRITICAL: Allows interaction with content under the gradient - DO NOT CHANGE */
+  z-index: 2; /* CRITICAL: Must be below modifier (z-index 3) but above content - DO NOT CHANGE */
 }
 
-/* Non-standard results container */
+/* CRITICAL: Non-standard results container configuration */
+/* Handles horizontal scrolling for dice notation and results */
 .non-standard-results {
   width: 100%;
-  padding-right: 20px; /* Reduced from 30px to increase effective width by 10px */
   background: transparent;
-  margin-left: -3px; /* Move container 3px to the left */
+  margin: -2px 0 5px -3px; /* CRITICAL: These margin values perfectly position the container - DO NOT CHANGE */
+  max-height: none;
+  overflow-x: auto; /* CRITICAL: Enables horizontal scrolling for long content - DO NOT CHANGE */
+  overflow-y: visible; /* CRITICAL: Allows vertical expansion without scrollbar - DO NOT CHANGE */
+  position: relative;
+  padding-right: 5px;
 }
 
-.non-standard-results-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-/* Non-standard result item */
+/* CRITICAL: Non-standard result item styling */
+/* Controls text display and horizontal scrolling behavior */
 .non-standard-result-item {
-  background-color: rgba(245, 245, 245, 0.9);
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  padding: 2px 5px;
-  white-space: nowrap;
-  overflow-x: auto;
-  font-size: 14px;
+  background-color: transparent;
+  padding: 0px 5px;
+  white-space: nowrap; /* CRITICAL: Prevents text wrapping for scrollable content - DO NOT CHANGE */
+  overflow: visible;
+  text-overflow: initial;
+  font-size: 16px; /* CRITICAL: Matches standard dice result size - DO NOT CHANGE */
   font-weight: bold;
   color: #333;
-  min-height: 24px;
-  display: flex;
-  align-items: center;
+  min-height: 18px; /* CRITICAL: Optimal height for text without excessive spacing - DO NOT CHANGE */
+  display: inline-block; /* CRITICAL: Required for proper scrolling behavior - DO NOT CHANGE */
+  margin-bottom: 0px;
+  margin-right: 40px; /* CRITICAL: Creates scrollable space past content end - DO NOT CHANGE */
+  line-height: 1.2; /* CRITICAL: Provides proper text spacing within line - DO NOT CHANGE */
+  box-sizing: border-box;
+  position: relative;
 }
 
-/* Results grid for standard dice */
-.results-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(16px, auto));
-  gap: 4px 8px;
-  width: 100%;
-}
-
-.roll-box {
-  min-width: 16px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: bold;
-  color: #202122;
-  padding-bottom: 1px;
-}
-
-/* CRITICAL: Results modifier positioning */
+/* CRITICAL: Results modifier positioning and visibility */
+/* Must remain visible above gradient and other elements */
 .results-modifier {
    position: absolute;
    right: 5px;
@@ -478,7 +471,7 @@ body {
    font-weight: bold;
    color: #000000;
    background-color: #f0f0f0;
-   z-index: 2;
+   z-index: 3; /* CRITICAL: Must be above gradient overlay (z-index 2) - DO NOT CHANGE */
    user-select: none;
 }
 

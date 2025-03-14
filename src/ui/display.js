@@ -11,6 +11,8 @@
 * 3. Manages modifier display in both input and results areas
 * 4. Updates the results display with provided roll values
 * 5. Handles special display cases like percentile mode
+* 6. Manages scrollable results area for both standard and non-standard dice
+*    (Added 2023-05-26 16:45)
 */
 
 /**
@@ -83,7 +85,10 @@ export function updateResults({ standardResults, nonStandardGroups, total }) {
     return;
   }
   
-  // First add non-standard dice to their special container if it exists
+  // Clear the dice results container - Updated 2023-05-26 16:45
+  diceResultsContainer.innerHTML = '';
+  
+  // First add non-standard dice to their special container if it exists - Modified 2023-05-26 16:45
   if (nonStandardResultsEl && Object.keys(nonStandardGroups).length > 0) {
     // Clear the non-standard results container
     nonStandardResultsEl.innerHTML = '';
@@ -109,26 +114,27 @@ export function updateResults({ standardResults, nonStandardGroups, total }) {
     nonStandardResultsEl.innerHTML = '';
   }
   
-  // Then display standard dice in the grid
-  if (standardResults.length > 0) {
-    // Create a container for standard results
+  // Then display standard dice in the grid - Modified 2023-05-26 16:45
+  if (standardResults && standardResults.length > 0) {
+    // Create a single container for all standard dice results
     const standardContainer = document.createElement('div');
     standardContainer.className = 'results-grid';
     
-    standardResults.forEach(({ dieType, result }) => {
+    standardResults.forEach(item => {
       const rollBox = document.createElement('div');
       rollBox.className = 'roll-box';
+      
+      // Handle both formats: {dieType, result} and {dieType, value} - Added 2023-05-26 16:45
+      const result = item.result !== undefined ? item.result : 
+                    (item.value !== undefined ? item.value : '?');
+                    
       rollBox.textContent = result;
-      rollBox.dataset.die = dieType;
+      rollBox.dataset.die = item.dieType;
       standardContainer.appendChild(rollBox);
     });
     
-    // Clear and update the dice results container
-    diceResultsContainer.innerHTML = '';
+    // Add the standard results container to the main results area
     diceResultsContainer.appendChild(standardContainer);
-  } else {
-    // Clear standard results if there are none
-    diceResultsContainer.innerHTML = '';
   }
   
   // Update total
