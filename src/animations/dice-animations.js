@@ -23,33 +23,107 @@ function isStandardDie(dieType) {
 }
 
 /**
- * Animate dice icons spinning
+ * Physics-based deceleration function
+ * @param {number} t - Elapsed time in milliseconds
+ * @param {number} p_f - Final position/angle
+ * @param {number} A - Amplitude (typically final - initial)
+ * @param {number} tau - Time constant controlling deceleration rate
+ * @returns {number} - Current position/angle at time t
+ */
+function decelerate(t, p_f, A, tau) {
+  return p_f - A * Math.exp(-t / tau);
+}
+
+/**
+ * Animate dice icons spinning with physics-based deceleration
  * @param {Array} diceToAnimate - Array of dice types to animate
  * @returns {number} - Animation duration in milliseconds
  */
 export function animateDiceIcons(diceToAnimate) {
   const durationMs = 2000;
+  const tau = 325; // Time constant for appropriate deceleration (in ms)
+  const finalAngle = 360 * 3; // 3 full spins in degrees
+  const initialAngle = 0;
+  const amplitude = finalAngle - initialAngle;
+  
+  // Track all ongoing animations to ensure they complete
+  const animationPromises = [];
   
   diceToAnimate.forEach(dieType => {
     const dieButtons = document.querySelectorAll(`.die-button[data-die="${dieType}"] img`);
+    
     dieButtons.forEach(button => {
-      const finalAngle = 360 * 3; // 3 full spins
-      button.style.transition = `transform ${durationMs}ms cubic-bezier(0.2, 0, 0.8, 1)`;
-      button.style.transform = `rotate(${finalAngle}deg)`;
+      // Create a promise that resolves when animation completes
+      const animationPromise = new Promise(resolve => {
+        let startTime = null;
+        let animationFrameId = null;
+        
+        // Animation step function
+        function animateStep(timestamp) {
+          if (!startTime) startTime = timestamp;
+          const elapsedTime = timestamp - startTime;
+          
+          if (elapsedTime < durationMs) {
+            // Calculate current angle using deceleration function
+            const currentAngle = decelerate(elapsedTime, finalAngle, amplitude, tau);
+            
+            // Apply rotation
+            button.style.transform = `rotate(${currentAngle}deg)`;
+            
+            // Continue animation
+            animationFrameId = requestAnimationFrame(animateStep);
+          } else {
+            // Ensure we end at exactly the final angle
+            button.style.transform = `rotate(${finalAngle}deg)`;
+            
+            // Reset after a brief delay to avoid visual glitch
+            setTimeout(() => {
+              button.style.transform = '';
+            }, 50);
+            
+            resolve();
+          }
+        }
+        
+        // Start the animation
+        animationFrameId = requestAnimationFrame(animateStep);
+      });
       
-      // Reset after animation
-      setTimeout(() => {
-        button.style.transition = '';
-        button.style.transform = '';
-      }, durationMs);
+      animationPromises.push(animationPromise);
     });
+  });
+  
+  // Wait for all animations to complete (useful if we need to chain animations)
+  Promise.all(animationPromises).then(() => {
+    console.log('All dice animations completed');
   });
   
   return durationMs;
 }
 
 /**
- * Animate a single number result
+ * Generate a random number for a specific die type
+ * @param {string} dieType - Type of die (e.g., 'd20', 'd6')
+ * @returns {number|string} - Random number appropriate for the die type
+ */
+function getRandomValueForDie(dieType) {
+  // Handle percentile special cases
+  if (dieType === 'd10-tens') {
+    // Returns 00, 10, 20, ..., 90
+    const tens = Math.floor(Math.random() * 10);
+    return (tens * 10).toString().padStart(2, '0');
+  } else if (dieType === 'd10-ones') {
+    // Returns 0-9
+    return Math.floor(Math.random() * 10);
+  }
+  
+  // Standard dice
+  const sides = parseInt(dieType.slice(1), 10);
+  return Math.floor(Math.random() * sides) + 1;
+}
+
+/**
+ * Animate a single number result with randomization effect
  * @param {HTMLElement} element - Element to animate
  * @param {number|string} finalValue - Final value to display
  * @param {string} dieType - Type of die for styling
@@ -58,13 +132,53 @@ export function animateDiceIcons(diceToAnimate) {
 function animateNumberResult(element, finalValue, dieType, durationMs) {
   element.dataset.die = dieType;
   
-  // Start with empty content
-  element.textContent = '';
+  // Animation parameters
+  const numberAnimDuration = 1000; // Numbers settle after 1000ms
+  const initialInterval = 50; // Start updating every 50ms (20fps)
+  const maxInterval = 200; // Slow down to updating every 200ms
   
-  // Add the final value after a delay
-  setTimeout(() => {
-    element.textContent = finalValue;
-  }, durationMs * 0.75); // Show number at 75% of animation
+  // Start animation
+  let startTime = Date.now();
+  let lastUpdateTime = 0;
+  let currentInterval = initialInterval;
+  
+  // Start with a random value
+  element.textContent = getRandomValueForDie(dieType);
+  
+  // Animation function
+  function updateNumber() {
+    const elapsed = Date.now() - startTime;
+    
+    if (elapsed < numberAnimDuration) {
+      // Calculate progress (0 to 1)
+      const progress = Math.min(elapsed / numberAnimDuration, 1);
+      
+      // Slow down updates as we progress
+      // This creates a more natural deceleration effect
+      currentInterval = initialInterval + (maxInterval - initialInterval) * progress;
+      
+      // Only update if enough time has passed since last update
+      const timeSinceLastUpdate = Date.now() - lastUpdateTime;
+      if (timeSinceLastUpdate >= currentInterval) {
+        // Chance of showing final value increases as we progress
+        if (Math.random() < Math.pow(progress, 2)) {
+          element.textContent = finalValue;
+        } else {
+          element.textContent = getRandomValueForDie(dieType);
+        }
+        lastUpdateTime = Date.now();
+      }
+      
+      // Schedule next frame
+      requestAnimationFrame(updateNumber);
+    } else {
+      // Ensure we end with the final value
+      element.textContent = finalValue;
+    }
+  }
+  
+  // Start animation
+  requestAnimationFrame(updateNumber);
 }
 
 /**

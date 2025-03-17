@@ -181,7 +181,7 @@ function handleDieClick(button) {
   const die = button.dataset.die;
   
   // Import state API functions directly
-  const { addDie } = require('../state');
+  const { addDie, getSelectedDice } = require('../state');
   const { rollAllDice } = require('../dice-logic');
   
   // Add visual feedback
@@ -190,11 +190,26 @@ function handleDieClick(button) {
     button.classList.remove('clicked');
   }, 150);
   
-  // Add the die to the state pool and roll it
+  // Add the die to the state pool
   addDie(die);
-  rollAllDice();
   
-  // Let the parent function handle animation and display updates
+  // Get the roll results
+  const { results, total } = rollAllDice();
+  
+  // Get all dice in the pool (including the one we just added)
+  const allDice = getSelectedDice();
+  
+  // Create the proper data structure for animation
+  const rollInfo = {
+    diceToAnimate: allDice,  // Use ALL dice in the pool
+    results: results,
+    total: total
+  };
+  
+  // Animate the dice roll results
+  animateDiceRoll(rollInfo);
+  
+  // Let the parent function handle display updates
   // This separation makes rapid clicks more responsive
 }
 
