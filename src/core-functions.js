@@ -22,6 +22,8 @@ import {
   getSelectedDice, getCurrentRolls, getModifier, getLastTotal,
   hasPercentileDie, addDie, addRollResult, setRollResults,
   setModifier, clearDice, clearResults, resetState,
+  // Animation display state
+  clearAnimationSubtotals,
   // For backward compatibility during refactoring
   state
 } from './state';
@@ -63,19 +65,29 @@ export function prepareDisplayData() {
  * @returns {Object} Object containing formatted results data
  */
 function prepareResultsData(results, diceTypes, modifier) {
+  console.log('=== DEBUG: prepareResultsData ===');
+  console.log('Input results:', results);
+  console.log('Input diceTypes:', diceTypes);
+  console.log('Input modifier:', modifier);
+  
   const standardResults = [];
   const nonStandardGroups = {};
   let total = modifier || 0;
+  console.log('Starting total (modifier):', total);
 
   results.forEach((result, index) => {
     const dieType = diceTypes[index];
+    console.log(`Processing die ${index}: ${dieType} = ${result}`);
+    
     total += result;
+    console.log(`After adding result, total = ${total}`);
 
     if (isStandardDie(dieType)) {
       standardResults.push({
         value: result,
         dieType
       });
+      console.log(`Added standard die ${dieType} = ${result}`);
     } else {
       if (!nonStandardGroups[dieType]) {
         nonStandardGroups[dieType] = {
@@ -83,13 +95,18 @@ function prepareResultsData(results, diceTypes, modifier) {
           results: [result],
           subtotal: result
         };
+        console.log(`Created new non-standard group for ${dieType}, subtotal = ${result}`);
       } else {
         nonStandardGroups[dieType].count++;
         nonStandardGroups[dieType].results.push(result);
         nonStandardGroups[dieType].subtotal += result;
+        console.log(`Updated non-standard group for ${dieType}, new subtotal = ${nonStandardGroups[dieType].subtotal}`);
       }
     }
   });
+  
+  console.log('Final nonStandardGroups:', JSON.stringify(nonStandardGroups, null, 2));
+  console.log('Final total:', total);
 
   return {
     standardResults,
@@ -274,6 +291,7 @@ export function rerollAllDice() {
 export function clearDicePool() {
   clearDice();
   clearResults();
+  clearAnimationSubtotals(); // Clear animation display state
   resetD10State();
   // Update both displays with empty data
   updateDisplay(prepareDisplayData());
@@ -400,7 +418,7 @@ export function toggleApplet(centerIfShowing = false) {
 export function resetApplet(clearAll = true, centerPosition = true, hideApplet = true) {
   // Clear dice pool and results if requested
   if (clearAll) {
-    clearDicePool();
+    clearDicePool(); // This now also clears animation subtotals
     
     // Reset modifier to 0
     setModifier(0);
@@ -470,6 +488,7 @@ export function processNotation(notation) {
     
     // Clear the current dice pool
     clearDice();
+    clearResults(); // Also clear results to prevent accumulation
     
     // Add a percentile die for d100 (using d00 internally)
     addDie('d00');
@@ -493,6 +512,7 @@ export function processNotation(notation) {
     
     // Clear the current dice pool
     clearDice();
+    clearResults(); // Also clear results to prevent accumulation
     
     // Special case: convert 1d100 to d100 before adding
     const dieToAdd = 'd100';
@@ -528,6 +548,7 @@ export function processNotation(notation) {
     
     // If we have dice in the pool, roll them with the new modifier
     if (currentDice.length > 0) {
+      clearResults(); // Clear previous results before rolling again
       const { results } = rollAllDice();
       const durationMs = animateDiceIcons(currentDice);
       animateResults(prepareAnimationData(results, currentDice), durationMs);
@@ -545,6 +566,7 @@ export function processNotation(notation) {
   
   // Clear the current dice pool
   clearDice();
+  clearResults(); // Also clear results to prevent accumulation
   
   // Add the parsed dice to the pool in order
   const diceToRoll = [];
@@ -631,6 +653,11 @@ export function animateDiceRoll(rollInfo) {
   if (!rollInfo) return 0;
   
   const { diceToAnimate, results, total } = rollInfo;
+  
+  console.log('=== DEBUG: animateDiceRoll ===');
+  console.log('diceToAnimate:', diceToAnimate);
+  console.log('results:', results);
+  console.log('total:', total);
   
   // Start animation sequence
   const durationMs = animateDiceIcons(diceToAnimate);

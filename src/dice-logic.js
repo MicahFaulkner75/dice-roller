@@ -140,9 +140,15 @@ export function computeNotation() {
 
 // Compute total of current rolls plus modifier
 export function computeTotal() {
+  console.log('=== DEBUG: computeTotal ===');
+  
   const currentRolls = getCurrentRolls();
   const modifier = getModifier();
   const lastTotal = getLastTotal();
+  
+  console.log('currentRolls:', currentRolls);
+  console.log('modifier:', modifier);
+  console.log('lastTotal:', lastTotal);
   
   let sum = 0;
   
@@ -156,28 +162,39 @@ export function computeTotal() {
       const tensValue = parseInt(tens.value, 10);
       const onesValue = parseInt(ones.value, 10);
       sum = (tensValue === 0 && onesValue === 0) ? 100 : tensValue + onesValue;
+      console.log('Percentile roll calculation:', { tensValue, onesValue, sum });
     }
   } else if (currentRolls.length > 0) {
     // Normal dice rolls
     sum = currentRolls.reduce((total, roll) => {
       // Handle both number rolls and objects
+      let rollValue;
       if (typeof roll === 'number') {
-        return total + roll;
+        rollValue = roll;
       } else if (roll && typeof roll.value === 'number') {
-        return total + roll.value;
+        rollValue = roll.value;
+      } else {
+        rollValue = 0;
       }
-      return total;
+      
+      console.log(`Adding roll ${JSON.stringify(roll)} = ${rollValue} to total ${total}`);
+      return total + rollValue;
     }, 0);
+    
+    console.log('Sum after reduce:', sum);
   }
 
   // If we have a lastTotal (from percentile rolls), use that instead
   if (lastTotal !== undefined) {
+    console.log(`Using lastTotal (${lastTotal}) instead of calculated sum (${sum})`);
     clearLastTotal(); // Clear after use
     return lastTotal + modifier;
   }
   
   // Always add the modifier
-  return sum + modifier;
+  const finalTotal = sum + modifier;
+  console.log(`Final total: ${sum} + ${modifier} = ${finalTotal}`);
+  return finalTotal;
 }
 
 // Improved parseDiceNotation with explicit sets for percentile and non-standard rolls

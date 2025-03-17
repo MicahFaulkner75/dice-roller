@@ -464,6 +464,18 @@ body {
   position: relative;
 }
 
+/* Added - Styling for individual dice values in non-standard results */
+.non-standard-result-item .dice-values {
+  color: #666666;
+  font-weight: bold;
+}
+
+/* Added - Styling for notation and subtotal in non-standard results */
+.non-standard-result-item .result-notation {
+  color: #000000;
+  font-weight: bold;
+}
+
 /* CRITICAL: Results modifier positioning and visibility */
 /* Must remain visible above gradient and other elements */
 .results-modifier {

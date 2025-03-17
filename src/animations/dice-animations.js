@@ -13,6 +13,12 @@
 * 4. Coordinates the animation of results and total display (animateResults)
 */
 
+// Import state management functions
+import { 
+  getAnimationSubtotal, 
+  setAnimationSubtotal 
+} from '../state';
+
 /**
  * Check if a die type is a standard die (d4, d6, d8, d10, d12, d20)
  * @param {string} dieType - The type of die to check
@@ -246,5 +252,118 @@ export function resetD10State(button) {
     die.classList.remove('spin');
     die.style.transform = '';
   });
+}
+
+/**
+ * Animate a non-standard dice group result
+ * @param {HTMLElement} container - Container element for the non-standard result
+ * @param {Object} data - Data for the non-standard dice group
+ * @param {string} dieType - Type of die (e.g., 'd30')
+ * @param {number} durationMs - Animation duration
+ */
+export function animateNonStandardResult(container, data, dieType, durationMs) {
+  console.log('=== DEBUG: animateNonStandardResult ===');
+  console.log('Data received:', JSON.stringify(data, null, 2));
+  console.log('dieType:', dieType);
+  
+  // Animation parameters
+  const numberAnimDuration = 1000; // Numbers settle after 1000ms
+  const initialInterval = 50; // Start updating every 50ms (20fps)
+  const maxInterval = 200; // Slow down to updating every 200ms
+  
+  // Get previous subtotal from state management - for DISPLAY PURPOSES ONLY
+  // This value is never used in calculations, just shown during animation
+  let previousSubtotal = getAnimationSubtotal(dieType);
+  console.log('Previous subtotal from state:', previousSubtotal);
+  
+  // Clear existing content and prepare elements
+  container.innerHTML = '';
+  
+  const notation = `${data.count}${dieType}`;
+  console.log('Notation:', notation);
+  
+  // Create the subtotal element with the previous value
+  const subtotalSpan = document.createElement('span');
+  subtotalSpan.className = 'result-notation';
+  
+  // Use the previous subtotal if available, otherwise use "0"
+  subtotalSpan.textContent = `${notation}: ${previousSubtotal}`;
+  container.appendChild(subtotalSpan);
+  console.log('Set initial display subtotal to:', previousSubtotal);
+  
+  // Add a space
+  container.appendChild(document.createTextNode(' '));
+  
+  // Create the rolls element (initially with placeholder)
+  const rollsSpan = document.createElement('span');
+  rollsSpan.className = 'dice-values';
+  rollsSpan.textContent = '[...]';
+  container.appendChild(rollsSpan);
+  
+  // Set dataset values
+  container.dataset.die = dieType;
+  container.dataset.group = notation;
+  container.title = `Group of ${data.count} ${dieType} dice`;
+  
+  // Start animation for individual dice values
+  let startTime = Date.now();
+  let lastUpdateTime = 0;
+  let currentInterval = initialInterval;
+  
+  // Generate random values for a specific die type
+  function getRandomValuesArray(count, sides) {
+    const sides_num = parseInt(sides, 10);
+    return Array.from({ length: count }, () => Math.floor(Math.random() * sides_num) + 1);
+  }
+  
+  // Animation function for dice values
+  function updateDiceValues() {
+    const elapsed = Date.now() - startTime;
+    
+    if (elapsed < numberAnimDuration) {
+      // Calculate progress (0 to 1)
+      const progress = Math.min(elapsed / numberAnimDuration, 1);
+      
+      // Slow down updates as we progress
+      currentInterval = initialInterval + (maxInterval - initialInterval) * progress;
+      
+      // Only update if enough time has passed since last update
+      const timeSinceLastUpdate = Date.now() - lastUpdateTime;
+      if (timeSinceLastUpdate >= currentInterval) {
+        // Generate random values for dice
+        const sides = dieType.slice(1); // Remove 'd' prefix to get sides
+        const randomValues = getRandomValuesArray(data.count, sides);
+        
+        // Chance of showing final values increases as we progress
+        if (Math.random() < Math.pow(progress, 2)) {
+          // Show final results
+          rollsSpan.textContent = `[${data.results.join(', ')}]`;
+        } else {
+          // Show random values
+          rollsSpan.textContent = `[${randomValues.join(', ')}]`;
+        }
+        
+        lastUpdateTime = Date.now();
+      }
+      
+      // Schedule next frame
+      requestAnimationFrame(updateDiceValues);
+    } else {
+      // Individual dice values have finished animating
+      rollsSpan.textContent = `[${data.results.join(', ')}]`;
+      
+      // After individual dice finish, update the subtotal
+      subtotalSpan.textContent = `${notation}: ${data.subtotal}`;
+      console.log(`Animation complete: Updating displayed subtotal to ${data.subtotal}`);
+      
+      // Store the new subtotal in state management - FOR DISPLAY PURPOSES ONLY
+      // This is only used to show transitions between rolls in the UI
+      setAnimationSubtotal(dieType, data.subtotal);
+      console.log(`Stored new animation subtotal in state: ${data.subtotal}`);
+    }
+  }
+  
+  // Start animation
+  requestAnimationFrame(updateDiceValues);
 }
 

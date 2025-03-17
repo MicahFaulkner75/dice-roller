@@ -17,7 +17,8 @@ const _state = {
   selectedDice: [],
   currentRolls: [],
   modifier: 0,
-  lastTotal: undefined
+  lastTotal: undefined,
+  lastSubtotals: {} // Add storage for last subtotals by die type
 };
 
 // For backward compatibility - will be deprecated in future versions
@@ -58,6 +59,15 @@ export function getModifier() {
  */
 export function getLastTotal() {
   return _state.lastTotal;
+}
+
+/**
+ * Get the last subtotal for a specific non-standard die type (FOR ANIMATION DISPLAY ONLY)
+ * @param {string} dieType - Die type (e.g., 'd30')
+ * @returns {string} - Last subtotal value or "0" if not set
+ */
+export function getAnimationSubtotal(dieType) {
+  return _state.lastSubtotals[dieType] || "0";
 }
 
 /**
@@ -119,10 +129,27 @@ export function setLastTotal(value) {
 }
 
 /**
+ * Set the last subtotal for a specific non-standard die type (FOR ANIMATION DISPLAY ONLY)
+ * This value should NOT be used for calculations, only for showing animation transitions
+ * @param {string} dieType - Die type (e.g., 'd30')
+ * @param {string|number} value - Subtotal value to store
+ */
+export function setAnimationSubtotal(dieType, value) {
+  _state.lastSubtotals[dieType] = value.toString();
+}
+
+/**
  * Clear the last total value
  */
 export function clearLastTotal() {
   _state.lastTotal = undefined;
+}
+
+/**
+ * Clear all stored animation subtotals
+ */
+export function clearAnimationSubtotals() {
+  _state.lastSubtotals = {};
 }
 
 /**
@@ -196,6 +223,7 @@ export function resetState() {
   _state.currentRolls = [];
   _state.modifier = 0;
   _state.lastTotal = undefined;
+  _state.lastSubtotals = {}; // Also reset the subtotals object
 }
 
 /**

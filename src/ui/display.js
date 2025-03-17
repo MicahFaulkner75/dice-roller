@@ -15,6 +15,8 @@
 *    (Added 2023-05-26 16:45)
 */
 
+import { animateNonStandardResult } from '../animations/dice-animations';
+
 /**
  * Update the input display and modifier areas
  * @param {Object} displayData - Object containing display information
@@ -97,15 +99,8 @@ export function updateResults({ standardResults, nonStandardGroups, total }) {
       const resultItem = document.createElement('div');
       resultItem.className = 'non-standard-result-item';
       
-      // Format as "NdX: total [roll1, roll2, ...]"
-      const notation = `${data.count}${dieType}`;
-      const rollsText = `[${data.results.join(', ')}]`;
-      const displayText = `${notation}: ${data.subtotal} ${rollsText}`;
-      resultItem.textContent = displayText;
-      
-      resultItem.dataset.die = dieType;
-      resultItem.dataset.group = notation;
-      resultItem.title = `Group of ${data.count} ${dieType} dice. Total: ${data.subtotal}`;
+      // Animate the non-standard dice result
+      animateNonStandardResult(resultItem, data, dieType, 2000);
       
       nonStandardResultsEl.appendChild(resultItem);
     });
@@ -137,9 +132,17 @@ export function updateResults({ standardResults, nonStandardGroups, total }) {
     diceResultsContainer.appendChild(standardContainer);
   }
   
-  // Update total
+  // Update the total value after individual dice values settle
   const totalValue = resultsTotalEl.querySelector('.total-value');
   if (totalValue) {
-    totalValue.textContent = total;
+    // Keep current total until animations finish
+    // For first roll, use 0 if no value exists
+    const currentTotal = totalValue.textContent || '0';
+    
+    // Update total when individual dice values settle (1000ms)
+    // This is half the full dice animation duration (2000ms)
+    setTimeout(() => {
+      totalValue.textContent = total;
+    }, 1000); // Update when individual dice values settle
   }
 }

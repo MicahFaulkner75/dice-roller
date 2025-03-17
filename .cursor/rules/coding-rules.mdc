@@ -3,6 +3,11 @@ description: How we should prefer to code
 globs: **/*
 alwaysApply: false
 ---
+---
+description: How we should prefer to code
+globs: **/*
+
+---
 # Coding Pattern Preferences
 
 ## General Coding Principles
@@ -17,14 +22,6 @@ alwaysApply: false
 - Avoid writing scripts in files if possible, especially if the script is likely to be run only once
 - Avoid having files over 200-300 lines long. Refactor at that point, but be sure to get guidance from the user after proposing it
 
-## Collaborative Editing Practices
-- NEVER make multiple edits across different files without user approval between each edit
-- Always work through ONE change at a time with the user before proceeding to the next
-- Present your reasoning and approach for each edit and wait for user feedback
-- After implementing a change, allow the user to test the change before suggesting additional modifications
-- If multiple files need to be changed, clearly communicate this and get explicit approval for your plan
-- NEVER assume that a series of edits should be done all at once just because they're related
-- Always respect the user's pace and desire to understand each modification
 
 ## Documentation
 - Always annotate the beginning of any code file with a brief plain-language statement of the file's responsibilities, followed by a list of the things the page accomplishes in the order they appear in the file
