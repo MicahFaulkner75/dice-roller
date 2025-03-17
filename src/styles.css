@@ -506,7 +506,7 @@ body {
   min-width: 120px !important; /* Reduced from 140px to 120px */
   max-width: 120px !important; /* Reduced from 140px to 120px */
   background: transparent;
-  margin: 0; /* Changed from 8px 0 5px 7px to 0 to remove vertical spacing */
+  margin: 0 0 0 7px; /* Modified 2023-08-31: Removed bottom margin completely (was 5px) */
   max-height: none;
   overflow-x: auto;
   overflow-y: visible;
@@ -896,17 +896,17 @@ body {
   letter-spacing: -0.25px; /* Moderate letter spacing reduction - Modified 2023-05-27 08:45 */
 }
 
-/* CRITICAL: Results field separator - Modified 2023-05-27 04:00 */
+/* CRITICAL: Results field separator - Modified 2023-08-31 */
 /* Creates visual separation between non-standard and standard results */
 .non-standard-results + #results-rolls {
   border-top: 1px solid rgba(0, 0, 0, 0.05); /* Light separator between result types */
-  padding-top: 2px; /* Reduced from 3px for tighter layout - Modified 2023-05-27 04:00 */
-  margin-top: 1px; /* Changed from -9px to 1px to lower by 10px */
+  padding-top: 0; /* Modified 2023-08-31: Removed padding completely (was 2px) */
+  margin-top: 0;
 }
 
 /* Add spacing only when non-standard results actually exist */
 .non-standard-results:not(:empty) {
-  margin: 0 0 5px 0; /* Changed from 7px to 0 to eliminate left margin */
+  margin: 0 0 0 0; /* Modified 2023-08-31: Removed bottom margin completely (was 5px) */
 }
 
 /* Add better alignment for results area with both elements */
