@@ -8,7 +8,7 @@ alwaysApply: false
 ## Basic Information
 - Priority: MEDIUM
 - Applies To: src/animations/dice-animations.js
-- Last Updated: 2023-10-15
+- Last Updated: 2023-05-28
 
 ## Core Requirements
 - All animations must be smooth and fluid (60fps target)
@@ -29,13 +29,28 @@ alwaysApply: false
 - Percentile dice should animate both dice simultaneously
 
 ## Implementation Notes
-- Use requestAnimationFrame for smooth animations
-- Separate animation concerns from business logic
-- Use CSS transitions/classes where possible
+- Use requestAnimationFrame for all animation timing
+- Implement physics-based deceleration using exponential functions
+- All animation logic should be centralized in dice-animations.js
+- Use direct style manipulation rather than CSS classes/transitions
+- Apply the decelerate(t, p_f, A, tau) function for natural motion
+- Use a tau value of approximately 325ms for appropriate deceleration
 - Calculate random values appropriate for each die type
+
+## Physics Animation Formula
+The dice animation uses an exponential deceleration model:
+```
+decelerate(t, p_f, A, tau) = p_f - A * Math.exp(-t / tau)
+```
+Where:
+- t: elapsed time in milliseconds
+- p_f: final position/angle
+- A: amplitude (typically final - initial)
+- tau: time constant controlling deceleration rate
 
 ## Validation Criteria
 - Animations run smoothly without stuttering
+- Dice slow down naturally with physics-based deceleration
 - Multiple dice animate concurrently 
 - Number randomization uses appropriate ranges for each die
 - Animations complete in the specified timeframes

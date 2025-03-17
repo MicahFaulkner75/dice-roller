@@ -422,7 +422,7 @@ export function resetApplet(clearAll = true, centerPosition = true, hideApplet =
     
     // Reset modifier to 0
     setModifier(0);
-    updateDisplay();
+    updateDisplay(prepareDisplayData()); // Pass prepared display data instead of nothing
     
     // Reset d10 percentile state
     resetD10State();
