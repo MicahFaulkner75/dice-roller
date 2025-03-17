@@ -470,7 +470,7 @@ body {
    gap: 2px;
    max-height: none;
    overflow-y: visible;
-   overflow-x: hidden;
+   overflow-x: hidden; /* Will be overridden in .results-area */
    box-sizing: border-box;
    border: 1px solid transparent; /* Transparent border for debugging */
 }
@@ -483,6 +483,17 @@ body {
   align-items: flex-start;
   padding: 15px 8px 10px 0; /* Remove left padding (changed from 8px to 0) */
   border: 1px solid transparent; /* Transparent border for debugging */
+  /* Modified 2023-08-31: Make the entire results area horizontally scrollable */
+  overflow-x: auto;
+  overflow-y: visible;
+  /* Hide scrollbars while maintaining scroll functionality */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera in results area */
+.results-area::-webkit-scrollbar {
+  display: none;
 }
 
 /* CRITICAL: Gradient overlay implementation */
@@ -508,7 +519,8 @@ body {
   background: transparent;
   margin: 0 0 0 7px; /* Modified 2023-08-31: Removed bottom margin completely (was 5px) */
   max-height: none;
-  overflow-x: auto;
+  /* Modified 2023-08-31: Let parent handle horizontal scrolling */
+  overflow-x: visible;
   overflow-y: visible;
   position: relative;
   padding-right: 5px;
@@ -516,9 +528,6 @@ body {
   flex-grow: 0; /* Prevent flex growing */
   align-self: flex-start; /* Force alignment to start */
   border: 1px solid transparent; /* Transparent border for debugging */
-  /* Hide scrollbars while maintaining scroll functionality */
-  -ms-overflow-style: none;
-  scrollbar-width: none;
   box-sizing: border-box !important;
   /* Collapse when empty */
   min-height: 0;
@@ -846,8 +855,8 @@ body {
   width: 120px !important; /* Reduced from 140px to 120px */
   min-width: 120px !important; /* Reduced from 140px to 120px */
   max-width: 120px !important; /* Reduced from 140px to 120px */
-  overflow: visible;
-  margin-top: 0; /* Changed from 1px to 0 */
+  overflow: visible; /* Modified 2023-08-31: Let parent handle scrolling */
+  margin-top: 0;
   margin-left: 0;
   position: relative;
   z-index: 1;
@@ -866,11 +875,13 @@ body {
   box-sizing: border-box !important;
   margin-right: auto;
   margin-left: 0; /* Changed from 7px to 0 to eliminate left margin */
-  margin-top: 0; /* Ensure no top margin */
+  margin-top: 0;
   flex-shrink: 0; /* Prevent flex shrinking */
   flex-grow: 0; /* Prevent flex growing */
   align-self: flex-start; /* Force alignment to start */
   border: 1px solid transparent; /* Transparent border for debugging */
+  /* Modified 2023-08-31: Let parent handle scrolling */
+  overflow: visible;
 }
 
 /* CRITICAL: Individual dice result styling - Modified 2023-05-27 04:00 */
@@ -902,6 +913,8 @@ body {
   border-top: 1px solid rgba(0, 0, 0, 0.05); /* Light separator between result types */
   padding-top: 0; /* Modified 2023-08-31: Removed padding completely (was 2px) */
   margin-top: 0;
+  /* Modified 2023-08-31: Clear both to ensure proper vertical stacking in scrollable container */
+  clear: both;
 }
 
 /* Add spacing only when non-standard results actually exist */
