@@ -148,10 +148,12 @@ function prepareAnimationData(results, diceTypes) {
 /**
  * Roll a specific standard die and add it to the dice pool
  * @param {string} dieType - The type of die to roll (e.g., 'd4', 'd6', 'd20')
- * @param {boolean} autoRoll - Whether to automatically roll the entire pool after adding
+ * @param {boolean} autoRoll - Whether to automatically roll the die after adding
  * @returns {object} - Information about the roll for animation
  */
 export function rollSpecificDie(dieType, autoRoll = true) {
+  console.log(`[DEBUG] rollSpecificDie(${dieType}, ${autoRoll}) - start`);
+  
   // Don't allow non-standard dice to be added via this function
   if (!['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].includes(dieType)) {
     console.warn(`Invalid standard die type: ${dieType}`);
@@ -160,26 +162,47 @@ export function rollSpecificDie(dieType, autoRoll = true) {
   
   // Check if we have a percentile roll and clear it first
   if (hasPercentileDie()) {
+    console.log(`[DEBUG] Percentile die detected, clearing pool`);
     clearDicePool();
   }
   
   // Add die to pool
+  console.log(`[DEBUG] Adding ${dieType} to pool`);
   addDie(dieType);
-  updateDisplay(prepareDisplayData());
   
   if (autoRoll) {
-    const { results } = rollAllDice();
-    const diceTypes = getSelectedDice();
-    const currentModifier = getModifier();
-    
-    const durationMs = animateDiceIcons([dieType]);
-    animateResults(prepareAnimationData(results, diceTypes), durationMs);
-    updateResults(prepareResultsData(results, diceTypes, currentModifier));
-    return { results, total: computeTotal() };
-  } else {
+    // Roll just this die (don't re-roll all dice)
     const result = rollDie(parseInt(dieType.slice(1), 10));
+    console.log(`[DEBUG] Rolled ${dieType}: ${result}`);
     addRollResult(result);
-    return { results: [result], total: computeTotal() };
+    
+    // Update the input display
+    console.log(`[DEBUG] Updating input display`);
+    updateDisplay(prepareDisplayData());
+    
+    // Get all current dice types and results
+    const allDiceTypes = getSelectedDice();
+    const allResults = getCurrentRolls();
+    const total = computeTotal();
+    
+    console.log(`[DEBUG] All dice: ${allDiceTypes.join(', ')}`);
+    console.log(`[DEBUG] All results: ${allResults.join(', ')}`);
+    console.log(`[DEBUG] Total: ${total}`);
+    
+    // Return info about all dice, not just the latest one
+    const rollInfo = {
+      diceToAnimate: [dieType], // Only animate the new die
+      results: allResults,      // Include all results
+      diceTypes: allDiceTypes,  // Include all dice types
+      total: total
+    };
+    console.log(`[DEBUG] Returning rollInfo:`, rollInfo);
+    return rollInfo;
+  } else {
+    // Just add to pool without rolling (for double-click quick add)
+    console.log(`[DEBUG] autoRoll is false, just updating display`);
+    updateDisplay(prepareDisplayData());
+    return null;
   }
 }
 
@@ -650,23 +673,48 @@ export function processNotation(notation) {
  * @returns {number} - The animation duration in milliseconds
  */
 export function animateDiceRoll(rollInfo) {
-  if (!rollInfo) return 0;
+  console.log(`[DEBUG] animateDiceRoll() - start`, rollInfo);
   
-  const { diceToAnimate, results, total } = rollInfo;
+  if (!rollInfo) {
+    console.warn(`[DEBUG] No roll info provided to animateDiceRoll`);
+    return 0;
+  }
   
-  console.log('=== DEBUG: animateDiceRoll ===');
-  console.log('diceToAnimate:', diceToAnimate);
-  console.log('results:', results);
-  console.log('total:', total);
+  const { diceToAnimate, results, diceTypes, total } = rollInfo;
+  
+  console.log(`[DEBUG] Extracted from rollInfo:`);
+  console.log(`[DEBUG] diceToAnimate:`, diceToAnimate);
+  console.log(`[DEBUG] results:`, results);
+  console.log(`[DEBUG] diceTypes (if provided):`, diceTypes);
+  console.log(`[DEBUG] total:`, total);
+  
+  // Get current selected dice and modifier for proper display
+  const selectedDice = diceTypes || getSelectedDice();
+  const modifier = getModifier();
+  
+  console.log(`[DEBUG] Current state from API:`)
+  console.log(`[DEBUG] selectedDice:`, selectedDice);
+  console.log(`[DEBUG] modifier:`, modifier);
   
   // Start animation sequence
+  console.log(`[DEBUG] Starting dice icon animations`);
   const durationMs = animateDiceIcons(diceToAnimate);
+  
+  // Update the animations
+  console.log(`[DEBUG] Starting result animations`);
   animateResults({
     rolls: results,
     diceTypes: diceToAnimate,
     total
   }, durationMs);
   
+  // Prepare and update the results display
+  console.log(`[DEBUG] Preparing results data`);
+  const resultsData = prepareResultsData(results, selectedDice, modifier);
+  console.log(`[DEBUG] Updating results display with:`, resultsData);
+  updateResults(resultsData);
+  
+  console.log(`[DEBUG] animateDiceRoll completed, returning duration: ${durationMs}ms`);
   return durationMs;
 }
 

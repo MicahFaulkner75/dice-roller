@@ -241,6 +241,7 @@ body {
    align-items: center;
    position: relative; /* Added for absolute positioning of oversized dice */
    overflow: visible; /* Allow dice to overflow their containers */
+   transition: transform 100ms ease-out;
 }
 
 /* Individual die image sizes */
@@ -778,4 +779,10 @@ body {
   border-top: 1px solid rgba(0, 0, 0, 0.05); /* Light separator between result types */
   padding-top: 2px; /* Reduced from 3px for tighter layout - Modified 2023-05-27 04:00 */
   margin-top: -9px; /* Modified from 2px to -9px to align with adjusted grid position - Modified 2023-05-27 04:30 */
+}
+
+/* Improved button click feedback */
+.die-button.clicked {
+  transform: scale(0.92);
+  transition: transform 100ms ease-out;
 }

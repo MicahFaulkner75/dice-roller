@@ -108,8 +108,6 @@ export function setupDiceButtons() {
         // Single click - only handle if not in a double-click
         if (!isDoubleClick) {
           handleDieClick(button);
-          // Update the display after die is added with proper display data
-          updateDisplay(prepareDisplayData());
         }
       }
       lastClickTime = currentTime;
@@ -173,44 +171,27 @@ export function setupDiceButtons() {
  */
 function handleDieClick(button) {
   const dieType = button.dataset.die;
-  console.log(`${dieType} button clicked`);
+  console.log(`[DEBUG] ${dieType} button clicked - starting handleDieClick`);
   
-  // Add the die to the pool immediately, regardless of animation state
-  // We use addDie directly to avoid any potentially slow operations
-  // that might make rapid clicking unresponsive
-  const die = button.dataset.die;
-  
-  // Import state API functions directly
-  const { addDie, getSelectedDice } = require('../state');
-  const { rollAllDice } = require('../dice-logic');
-  
-  // Add visual feedback
+  // Add visual feedback (temporary click effect)
   button.classList.add('clicked');
   setTimeout(() => {
     button.classList.remove('clicked');
   }, 150);
   
-  // Add the die to the state pool
-  addDie(die);
+  // Call the core function to handle all dice operations
+  console.log(`[DEBUG] Calling rollSpecificDie(${dieType})`);
+  const rollInfo = rollSpecificDie(dieType);
+  console.log(`[DEBUG] rollSpecificDie returned:`, rollInfo);
   
-  // Get the roll results
-  const { results, total } = rollAllDice();
-  
-  // Get all dice in the pool (including the one we just added)
-  const allDice = getSelectedDice();
-  
-  // Create the proper data structure for animation
-  const rollInfo = {
-    diceToAnimate: allDice,  // Use ALL dice in the pool
-    results: results,
-    total: total
-  };
-  
-  // Animate the dice roll results
-  animateDiceRoll(rollInfo);
-  
-  // Let the parent function handle display updates
-  // This separation makes rapid clicks more responsive
+  // Make sure we pass the roll info to animateDiceRoll to properly coordinate animations
+  if (rollInfo) {
+    console.log(`[DEBUG] Calling animateDiceRoll with roll info`);
+    const durationMs = animateDiceRoll(rollInfo);
+    console.log(`[DEBUG] animateDiceRoll returned duration: ${durationMs}ms`);
+  } else {
+    console.warn(`[DEBUG] rollSpecificDie returned falsy value, not calling animateDiceRoll`);
+  }
 }
 
 // ============================================================

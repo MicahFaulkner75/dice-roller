@@ -52,56 +52,57 @@ export function animateDiceIcons(diceToAnimate) {
   const initialAngle = 0;
   const amplitude = finalAngle - initialAngle;
   
-  // Track all ongoing animations to ensure they complete
-  const animationPromises = [];
+  // Store animation references to allow interruption
+  if (!window.diceAnimations) {
+    window.diceAnimations = {};
+  }
   
   diceToAnimate.forEach(dieType => {
     const dieButtons = document.querySelectorAll(`.die-button[data-die="${dieType}"] img`);
     
     dieButtons.forEach(button => {
-      // Create a promise that resolves when animation completes
-      const animationPromise = new Promise(resolve => {
-        let startTime = null;
-        let animationFrameId = null;
-        
-        // Animation step function
-        function animateStep(timestamp) {
-          if (!startTime) startTime = timestamp;
-          const elapsedTime = timestamp - startTime;
-          
-          if (elapsedTime < durationMs) {
-            // Calculate current angle using deceleration function
-            const currentAngle = decelerate(elapsedTime, finalAngle, amplitude, tau);
-            
-            // Apply rotation
-            button.style.transform = `rotate(${currentAngle}deg)`;
-            
-            // Continue animation
-            animationFrameId = requestAnimationFrame(animateStep);
-          } else {
-            // Ensure we end at exactly the final angle
-            button.style.transform = `rotate(${finalAngle}deg)`;
-            
-            // Reset after a brief delay to avoid visual glitch
-            setTimeout(() => {
-              button.style.transform = '';
-            }, 50);
-            
-            resolve();
-          }
-        }
-        
-        // Start the animation
-        animationFrameId = requestAnimationFrame(animateStep);
-      });
+      // Generate a unique ID for this button if it doesn't have one
+      if (!button.animationId) {
+        button.animationId = `die_${dieType}_${Date.now()}`;
+      }
       
-      animationPromises.push(animationPromise);
+      // Cancel any existing animation for this button
+      if (window.diceAnimations[button.animationId]) {
+        cancelAnimationFrame(window.diceAnimations[button.animationId]);
+        window.diceAnimations[button.animationId] = null;
+      }
+      
+      let startTime = null;
+      
+      // Animation step function
+      function animateStep(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsedTime = timestamp - startTime;
+        
+        if (elapsedTime < durationMs) {
+          // Calculate current angle using deceleration function
+          const currentAngle = decelerate(elapsedTime, finalAngle, amplitude, tau);
+          
+          // Apply rotation
+          button.style.transform = `rotate(${currentAngle}deg)`;
+          
+          // Continue animation and store the frame ID
+          window.diceAnimations[button.animationId] = requestAnimationFrame(animateStep);
+        } else {
+          // Ensure we end at exactly the final angle
+          button.style.transform = `rotate(${finalAngle}deg)`;
+          
+          // Reset after a brief delay to avoid visual glitch
+          setTimeout(() => {
+            button.style.transform = '';
+            window.diceAnimations[button.animationId] = null;
+          }, 50);
+        }
+      }
+      
+      // Start the animation and store the frame ID
+      window.diceAnimations[button.animationId] = requestAnimationFrame(animateStep);
     });
-  });
-  
-  // Wait for all animations to complete (useful if we need to chain animations)
-  Promise.all(animationPromises).then(() => {
-    console.log('All dice animations completed');
   });
   
   return durationMs;

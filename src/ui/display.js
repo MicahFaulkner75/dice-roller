@@ -71,78 +71,79 @@ export function updateDisplay({ selectedDice, modifier, isPercentile }) {
 }
 
 /**
- * Update the results area with provided roll results
- * @param {Object} resultData - Object containing roll results
- * @param {Array} resultData.standardResults - Array of standard dice results
- * @param {Object} resultData.nonStandardGroups - Grouped non-standard dice results
- * @param {number} resultData.total - Total value of all rolls
+ * Update the results area with roll results
+ * @param {Object} data - Results data
+ * @param {Array} data.standardResults - Standard dice results
+ * @param {Object} data.nonStandardGroups - Non-standard dice grouped results
+ * @param {number} data.modifier - Modifier value
+ * @param {number} data.total - Total roll value
  */
-export function updateResults({ standardResults, nonStandardGroups, total }) {
-  const diceResultsContainer = document.getElementById('results-rolls');
-  const resultsTotalEl = document.getElementById('results-total');
-  const nonStandardResultsEl = document.getElementById('non-standard-results');
+export function updateResults(data) {
+  console.log(`[DEBUG] updateResults called with:`, data);
   
-  if (!diceResultsContainer || !resultsTotalEl) {
-    console.error('Could not find result areas');
+  if (!data) {
+    console.warn(`[DEBUG] No data provided to updateResults`);
     return;
   }
   
-  // Clear the dice results container - Updated 2023-05-26 16:45
-  diceResultsContainer.innerHTML = '';
+  // Get results containers
+  const resultsField = document.querySelector('.results-field');
+  const resultsRolls = document.getElementById('results-rolls');
+  const resultsTotal = document.getElementById('results-total');
+  const nonStandardResults = document.querySelector('.non-standard-results');
   
-  // First add non-standard dice to their special container if it exists - Modified 2023-05-26 16:45
-  if (nonStandardResultsEl && Object.keys(nonStandardGroups).length > 0) {
-    // Clear the non-standard results container
-    nonStandardResultsEl.innerHTML = '';
-    
-    Object.entries(nonStandardGroups).forEach(([dieType, data]) => {
-      const resultItem = document.createElement('div');
-      resultItem.className = 'non-standard-result-item';
-      
-      // Animate the non-standard dice result
-      animateNonStandardResult(resultItem, data, dieType, 2000);
-      
-      nonStandardResultsEl.appendChild(resultItem);
-    });
-  } else if (nonStandardResultsEl) {
-    // Clear non-standard results if there are none
-    nonStandardResultsEl.innerHTML = '';
+  if (!resultsField || !resultsRolls || !resultsTotal || !nonStandardResults) {
+    console.warn(`[DEBUG] One or more results containers not found in DOM`);
+    return;
   }
   
-  // Then display standard dice in the grid - Modified 2023-05-26 16:45
-  if (standardResults && standardResults.length > 0) {
-    // Create a single container for all standard dice results
-    const standardContainer = document.createElement('div');
-    standardContainer.className = 'results-grid';
-    
-    standardResults.forEach(item => {
-      const rollBox = document.createElement('div');
-      rollBox.className = 'roll-box';
-      
-      // Handle both formats: {dieType, result} and {dieType, value} - Added 2023-05-26 16:45
-      const result = item.result !== undefined ? item.result : 
-                    (item.value !== undefined ? item.value : '?');
-                    
-      rollBox.textContent = result;
-      rollBox.dataset.die = item.dieType;
-      standardContainer.appendChild(rollBox);
-    });
-    
-    // Add the standard results container to the main results area
-    diceResultsContainer.appendChild(standardContainer);
+  console.log(`[DEBUG] Updating results display elements found in DOM`);
+  
+  // Update modifier display
+  const modifierDisplay = resultsField.querySelector('.results-modifier');
+  if (modifierDisplay) {
+    const modifier = data.modifier || 0;
+    modifierDisplay.textContent = modifier > 0 ? `+${modifier}` : (modifier < 0 ? modifier.toString() : "+0");
+    console.log(`[DEBUG] Updated modifier display: ${modifierDisplay.textContent}`);
   }
   
-  // Update the total value after individual dice values settle
-  const totalValue = resultsTotalEl.querySelector('.total-value');
+  // Clear and update non-standard dice results
+  nonStandardResults.innerHTML = '';
+  const nonStandardGroups = data.nonStandardGroups || {};
+  
+  console.log(`[DEBUG] Updating non-standard groups:`, nonStandardGroups);
+  Object.keys(nonStandardGroups).forEach(dieType => {
+    const group = nonStandardGroups[dieType];
+    const container = document.createElement('div');
+    container.className = 'non-standard-result-item';
+    
+    // Call animation function from dice-animations.js
+    console.log(`[DEBUG] Calling animateNonStandardResult for ${dieType}`);
+    animateNonStandardResult(container, group, dieType, 2000);
+    
+    nonStandardResults.appendChild(container);
+  });
+  
+  // Clear and update standard dice results 
+  resultsRolls.innerHTML = '';
+  const standardResults = data.standardResults || [];
+  
+  console.log(`[DEBUG] Updating standard results:`, standardResults);
+  standardResults.forEach(result => {
+    const rollBox = document.createElement('div');
+    rollBox.className = 'roll-box';
+    rollBox.dataset.die = result.dieType;
+    rollBox.textContent = result.value;
+    resultsRolls.appendChild(rollBox);
+    console.log(`[DEBUG] Added standard die result: ${result.dieType} = ${result.value}`);
+  });
+  
+  // Update total value
+  const totalValue = resultsTotal.querySelector('.total-value');
   if (totalValue) {
-    // Keep current total until animations finish
-    // For first roll, use 0 if no value exists
-    const currentTotal = totalValue.textContent || '0';
-    
-    // Update total when individual dice values settle (1000ms)
-    // This is half the full dice animation duration (2000ms)
-    setTimeout(() => {
-      totalValue.textContent = total;
-    }, 1000); // Update when individual dice values settle
+    totalValue.textContent = data.total;
+    console.log(`[DEBUG] Updated total value: ${totalValue.textContent}`);
   }
+  
+  console.log(`[DEBUG] updateResults completed`);
 }
