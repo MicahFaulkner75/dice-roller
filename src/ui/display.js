@@ -28,7 +28,7 @@ export function updateDisplay({ selectedDice, modifier, isPercentile }) {
   const diceInput = document.getElementById('dice-input');
   const modifierOverlay = document.getElementById('modifier-overlay');
   const inputModifierDisplay = document.querySelector('.input-modifier-display');
-  const resultsModifier = document.querySelector('.results-modifier');
+  const extractedResultsModifier = document.getElementById('extracted-results-modifier');
   
   // Update input area
   if (diceInput) {
@@ -64,10 +64,10 @@ export function updateDisplay({ selectedDice, modifier, isPercentile }) {
   // Format modifier text with explicit +0 when modifier is 0
   const modifierText = modifier === 0 ? '+0' : (modifier > 0 ? `+${modifier}` : `${modifier}`);
   
-  // Update all modifier displays
+  // Update all modifier displays, including the extracted one
   if (modifierOverlay) modifierOverlay.textContent = modifierText;
   if (inputModifierDisplay) inputModifierDisplay.textContent = modifierText;
-  if (resultsModifier) resultsModifier.textContent = modifierText;
+  if (extractedResultsModifier) extractedResultsModifier.textContent = modifierText;
 }
 
 /**
@@ -92,6 +92,9 @@ export function updateResults(data) {
   const resultsTotal = document.getElementById('results-total');
   const nonStandardResults = document.querySelector('.non-standard-results');
   
+  // Update the selector to use the extracted results modifier
+  const extractedResultsModifier = document.getElementById('extracted-results-modifier');
+  
   if (!resultsField || !resultsRolls || !resultsTotal || !nonStandardResults) {
     console.warn(`[DEBUG] One or more results containers not found in DOM`);
     return;
@@ -99,12 +102,11 @@ export function updateResults(data) {
   
   console.log(`[DEBUG] Updating results display elements found in DOM`);
   
-  // Update modifier display
-  const modifierDisplay = resultsField.querySelector('.results-modifier');
-  if (modifierDisplay) {
+  // Update the extracted modifier display instead of the original
+  if (extractedResultsModifier) {
     const modifier = data.modifier || 0;
-    modifierDisplay.textContent = modifier > 0 ? `+${modifier}` : (modifier < 0 ? modifier.toString() : "+0");
-    console.log(`[DEBUG] Updated modifier display: ${modifierDisplay.textContent}`);
+    extractedResultsModifier.textContent = modifier > 0 ? `+${modifier}` : (modifier < 0 ? modifier.toString() : "+0");
+    console.log(`[DEBUG] Updated extracted modifier display: ${extractedResultsModifier.textContent}`);
   }
   
   // Clear and update non-standard dice results

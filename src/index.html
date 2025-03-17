@@ -19,12 +19,16 @@
     <div id="dice-roller-container">
         <div id="dice-applet" class="draggable">
             <div class="header">
-                <button id="close-applet">×</button>
+                <div id="close-applet" class="close-button">×</div>
             </div>
+            
+            <!-- Extracted results modifier - positioned absolutely -->
+            <div id="extracted-results-modifier" class="extracted-results-modifier">+0</div>
+            
             <div class="input-row">
                 <div class="input-container">
                     <div id="dice-input" contenteditable="true" placeholder="Enter dice notation"></div>
-                    <div class="input-modifier-display"></div>
+                    <div class="input-modifier-display">+0</div>
                 </div>
             </div>
             <div class="button-area">
@@ -56,30 +60,30 @@
                         <td class="modify-button-container">
                             <button id="modify-button-increase"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/up.svg" alt="Increase"></button>
                             <button id="modify-button-decrease"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/down.svg" alt="Decrease"></button>
-                            <div id="modifier-overlay" class="modifier-display">+0</div>
+                            <div id="modifier-overlay">+0</div>
                         </td>
                     </tr>
                 </table>
             </div>
             <div class="results-field">
-                <div class="results-left">
-                    <div id="results-total">
-                        <div style="font-weight:bold; font-size:16px; text-align:center;">TOTAL</div>
-                        <div class="total-container">
-                            <div class="total-value" style="font-weight:bold; font-size:18px; text-align:center; margin-top:2px;">0</div>
+                <div class="results-header">
+                    <div class="results-total">
+                        <div class="total-label">TOTAL</div>
+                        <div id="results-total">
+                            <span class="total-value" style="font-weight:bold; font-size:18px; text-align:center; margin-top:2px;">0</span>
+                            <!-- The results-modifier has been extracted and moved up -->
+                            <div class="results-modifier-placeholder"></div>
                         </div>
                     </div>
                 </div>
-                <div class="results-right">
+                <div class="results-area">
                     <div id="non-standard-results" class="non-standard-results">
                         <!-- Non-standard grouped dice results will be inserted here -->
                     </div>
                     <div id="results-rolls" class="results-grid">
                         <!-- Roll boxes will be dynamically inserted here -->
                     </div>
-                    <div class="results-modifier">+0</div>
                 </div>
-                <div class="resize-handle"></div>
             </div>
         </div>
     </div>
