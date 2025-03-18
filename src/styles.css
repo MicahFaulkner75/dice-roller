@@ -95,6 +95,8 @@ body {
    border: 1px solid #ccc; /* Add thin gray outline */
    /* Safari support */
    -webkit-transform: translate(-50%, -50%);
+   /* Added: Position relative for overlay positioning */
+   position: relative;
 }
 
 
@@ -215,6 +217,7 @@ body {
    overflow: hidden;
    border: none;
    display: flex;
+   position: relative; /* Make sure position is relative for absolute overlay */
 }
 
 /* Fix for inconsistent naming - ensure both class names work the same way */
@@ -489,6 +492,9 @@ body {
   /* Hide scrollbars while maintaining scroll functionality */
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+  position: relative; /* Ensure position relative for fixed fade overlay */
+  /* Add minimum width to ensure content can scroll adequately */
+  min-width: 100%;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera in results area */
@@ -517,12 +523,12 @@ body {
   min-width: 120px !important; /* Reduced from 140px to 120px */
   max-width: 120px !important; /* Reduced from 140px to 120px */
   background: transparent;
-  margin: 0 0 0 7px; /* Modified 2023-08-31: Removed bottom margin completely (was 5px) */
+  margin: 0 0 0 11px; /* Increased from 9px to 11px to move another 2px to the right */
   max-height: none;
   /* Modified 2023-08-31: Let parent handle horizontal scrolling */
   overflow-x: visible;
   overflow-y: visible;
-  position: relative;
+  position: relative; /* Ensure position relative for the fade overlay */
   padding-right: 5px;
   flex-shrink: 0; /* Prevent flex shrinking */
   flex-grow: 0; /* Prevent flex growing */
@@ -532,15 +538,40 @@ body {
   /* Collapse when empty */
   min-height: 0;
   height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-/* Make empty non-standard results container take no space */
-.non-standard-results:empty {
+/* Remove overlay from non-standard-results as it scrolls with content */
+.non-standard-results::after {
   display: none;
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera - Added 2023-05-27 09:45 */
-.non-standard-results::-webkit-scrollbar {
+/* Remove overlay from results-area as it still scrolls horizontally */
+.results-area::after {
+  display: none; /* Disable this overlay as we're moving it to a non-scrolling parent */
+}
+
+/* Add the overlay to results-field which is a parent container that doesn't scroll */
+.results-field::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  top: 0px;
+  width: 60px; /* Increased from 55px to 60px to expand the overlay by 5px */
+  height: calc(var(--overlay-height, 0px) + 9px);
+  background: linear-gradient(to left, 
+    rgba(240, 240, 240, 1) 50%,
+    rgba(240, 240, 240, 0));
+  pointer-events: none;
+  z-index: 1002;
+  opacity: 1;
+  transition: height 0.2s ease;
+}
+
+/* Hide the overlay when there are no non-standard results */
+.non-standard-results:empty ~ .results-field::after {
   display: none;
 }
 
@@ -558,7 +589,7 @@ body {
   min-height: 18px; /* CRITICAL: Optimal height for text without excessive spacing - DO NOT CHANGE */
   display: inline-block; /* CRITICAL: Required for proper scrolling behavior - DO NOT CHANGE */
   margin-bottom: 0px;
-  margin-right: 40px; /* CRITICAL: Creates scrollable space past content end - DO NOT CHANGE */
+  margin-right: 60px; /* Increased from 40px to 60px to provide more scrollable space */
   line-height: 1.2; /* CRITICAL: Provides proper text spacing within line - DO NOT CHANGE */
   box-sizing: border-box;
   position: relative;
@@ -947,17 +978,7 @@ body {
 
 /* Add a dead space div to take up remaining width with a clear visual indication */
 .results-right::after {
-  content: "";
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 135px; /* Adjusted from 155px to 135px (reduced by 20px) */
-  width: calc(100% - 135px); /* Adjusted from 155px to 135px */
-  height: 100%;
-  background-color: rgba(240, 240, 240, 0.2); /* Very slight background for debugging */
-  pointer-events: none;
-  box-sizing: border-box;
-  /* border: 1px dashed rgba(0, 0, 0, 0.1); */ /* Add a barely visible dashed border for debugging */
+  /* This is now handled by the dead space div later in the file */
 }
 
 /* Force all grid rows to have the correct width */
@@ -981,4 +1002,10 @@ body {
   position: absolute !important;
   visibility: hidden !important;
   pointer-events: none !important;
+}
+
+/* New fixed overlay that attaches to the applet */
+/* This is positioned relative to the applet rather than the scrolling content */
+.results-field {
+  position: relative; /* Make sure position is relative for absolute overlay */
 }

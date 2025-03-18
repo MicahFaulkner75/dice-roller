@@ -90,11 +90,11 @@ export function animateDiceIcons(diceToAnimate) {
           window.diceAnimations[button.animationId] = requestAnimationFrame(animateStep);
         } else {
           // Ensure we end at exactly the final angle
-          button.style.transform = `rotate(${finalAngle}deg)`;
-          
+      button.style.transform = `rotate(${finalAngle}deg)`;
+      
           // Reset after a brief delay to avoid visual glitch
-          setTimeout(() => {
-            button.style.transform = '';
+      setTimeout(() => {
+        button.style.transform = '';
             window.diceAnimations[button.animationId] = null;
           }, 50);
         }
@@ -180,7 +180,7 @@ function animateNumberResult(element, finalValue, dieType, durationMs) {
       requestAnimationFrame(updateNumber);
     } else {
       // Ensure we end with the final value
-      element.textContent = finalValue;
+    element.textContent = finalValue;
     }
   }
   

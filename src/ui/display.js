@@ -12,7 +12,7 @@
 * 4. Updates the results display with provided roll values
 * 5. Handles special display cases like percentile mode
 * 6. Manages scrollable results area for both standard and non-standard dice
-*    (Added 2023-05-26 16:45)
+* 7. Updates dynamic overlay height based on non-standard dice count (Added 2023-05-29)
 */
 
 import { animateNonStandardResult } from '../animations/dice-animations';
@@ -71,6 +71,20 @@ export function updateDisplay({ selectedDice, modifier, isPercentile }) {
 }
 
 /**
+ * Updates the overlay height based on the number of non-standard dice
+ * @param {number} itemCount - Number of non-standard dice results
+ */
+function updateOverlayHeight(itemCount) {
+  // Calculate height: 22px per item (changed from 23px)
+  const height = itemCount * 22;
+  
+  // Apply the height with CSS variable for easier maintenance
+  document.documentElement.style.setProperty('--overlay-height', `${height}px`);
+  
+  console.log(`[DEBUG] Updated overlay height to ${height}px based on ${itemCount} non-standard dice`);
+}
+
+/**
  * Update the results area with roll results
  * @param {Object} data - Results data
  * @param {Array} data.standardResults - Standard dice results
@@ -126,14 +140,17 @@ export function updateResults(data) {
     nonStandardResults.appendChild(container);
   });
   
+  // Update the overlay height based on the number of non-standard dice groups
+  updateOverlayHeight(Object.keys(nonStandardGroups).length);
+  
   // Clear and update standard dice results 
   resultsRolls.innerHTML = '';
   const standardResults = data.standardResults || [];
   
   console.log(`[DEBUG] Updating standard results:`, standardResults);
   standardResults.forEach(result => {
-    const rollBox = document.createElement('div');
-    rollBox.className = 'roll-box';
+      const rollBox = document.createElement('div');
+      rollBox.className = 'roll-box';
     rollBox.dataset.die = result.dieType;
     rollBox.textContent = result.value;
     resultsRolls.appendChild(rollBox);
