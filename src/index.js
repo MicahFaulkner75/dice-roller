@@ -9,9 +9,12 @@
 * 1. Imports and applies CSS styles
 * 2. Sets up debug mode functionality (setupDebugMode)
 * 3. Initializes all UI components on document load
-* 4. Configures the launch button and applet display
-* 5. Makes the applet draggable
-* 6. Exports essential UI functions for use in other modules
+* 4. Sets up number buttons functionality
+* 5. Configures the launch button and applet display
+* 6. Makes the applet draggable
+* 7. Exports essential UI functions for use in other modules
+*
+* Last updated: March 19, 2025
 */
 
 import './styles.css';

@@ -11,6 +11,8 @@
 * 2. Manages d10 percentile mode animations (resetD10State, animatePercentileRoll)
 * 3. Handles number result animations in the results area (animateNumberResult)
 * 4. Coordinates the animation of results and total display (animateResults)
+*
+* Last updated: March 2025
 */
 
 // Import state management functions

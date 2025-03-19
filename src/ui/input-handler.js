@@ -12,7 +12,10 @@
 * 2. Manages all keyboard events application-wide
 * 3. Processes text input for dice notation
 * 4. Prevents event propagation for text selection
-* 5. Adheres to state management architecture by using core functions API
+* 5. Handles keyboard shortcuts for clearing number input (ESC, Backspace)
+* 6. Adheres to state management architecture by using core functions API
+*
+* Last updated: March 19, 2025
 */
 
 import { 

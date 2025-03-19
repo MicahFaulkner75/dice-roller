@@ -3,14 +3,18 @@
 *
 * This file manages the interactions for the number buttons column in the dice roller app.
 * It is responsible for handling button clicks, updating the number display,
-* and processing backspace operations.
+* and processing backspace operations. The numbers entered here are used as multipliers
+* for dice when dice buttons are clicked.
 *
 * This file:
 * 1. Sets up event listeners for number buttons
-* 2. Handles number button clicks
+* 2. Handles number button clicks to build numerical values
 * 3. Manages the number output display
-* 4. Provides backspace functionality
-* 5. Interfaces with the rest of the application
+* 4. Provides backspace functionality for editing number input
+* 5. Interfaces with dice button functionality via exported getter/setter methods
+* 6. Supports quick dice quantity selection for dice roll operations
+*
+* Last updated: March 19, 2025
 */
 
 let currentNumberValue = '';

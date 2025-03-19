@@ -23,6 +23,7 @@ dice_roller/
 │   ├── index.html                 # Main HTML structure
 │   ├── index.js                   # Application entry point
 │   ├── make-draggable.js          # Adds draggable functionality to the applet
+│   ├── number-buttons.js          # Handles number buttons functionality
 │   ├── state.js                   # Manages application state
 │   ├── styles.css                 # CSS styles for the application
 │   └── ui-updates.js              # UI update functions
@@ -45,6 +46,7 @@ The dice roller application is a functional web-based tool for rolling various t
 5. Modifier support for adjusting roll results
 6. Draggable interface
 7. Keyboard shortcuts
+8. Number buttons for quick dice quantity selection
 
 ## ANIMATION SYSTEM CURRENT STATE
 The animation system consists of several components:
@@ -79,45 +81,55 @@ The current focus is on improving the animation system with the following goals:
    - Proper state updates after animations complete
 
 ## CHANGE HISTORY
-May 22, 2023 - Refactored the application architecture to use a more modular approach:
+March 5, 2025 - Refactored the application architecture to use a more modular approach:
 1. Created a new core-functions.js file that centralizes all fundamental dice rolling functionality
 2. Refactored UI event handlers to use the core functions instead of implementing their own logic
 3. Standardized animation sequences across different trigger methods
 4. Reduced code duplication and improved consistency between different trigger methods
 5. Implemented a cleaner separation between UI events and core application logic
 
-May 23, 2023 - Enhanced applet state management:
+March 8, 2025 - Enhanced applet state management:
 1. Added comprehensive applet state management functions
 2. Created standardized methods for showing, hiding, toggling, and centering the applet
 3. Enhanced reset functionality with optional parameters
 4. Made applet position management more consistent
 5. Updated all UI files to use the enhanced applet state management functions
 
-May 24, 2023 - Consolidated UI event handlers:
+March 10, 2025 - Consolidated UI event handlers:
 1. Merged event-handlers.js into ui/button-handler.js to create a unified UI interaction handler
 2. Organized the code into clear sections with logical groupings (dice buttons, control buttons, applet behavior)
 3. Improved comments and documentation within the UI handler files
 4. Reduced redundancy in the codebase by centralizing all button interactions
 5. Maintained clear separation of concerns between keyboard handling and button handling
 
-May 25, 2023 - Enhanced results display and scrolling:
+March 12, 2025 - Enhanced results display and scrolling:
 1. Adjusted non-standard dice results container width for better readability
 2. Updated CSS documentation with clear section organization
 3. Preparing unified scrolling implementation for results area
 4. Planning improved scroll behavior with 2-way scrolling and content overflow handling
 5. Added proper documentation headers to style-related files
 
+March 19, 2025 - Implemented number buttons for quick dice quantity selection:
+1. Added a column of number buttons (0-9) to the left side of the applet
+2. Created a number-buttons.js module to handle number button interactions
+3. Added backspace button functionality for editing number input
+4. Integrated number input with dice button functionality
+5. Enhanced button-handler.js to add multiple dice based on number input
+6. Updated input-handler.js to clear number display on ESC and clear operations
+7. Ensured number input is additive to existing dice pool
+
 ## AGENDA ITEMS
 1. ✓ Refactor application to use centralized core functions
 2. ✓ Enhance applet state management
 3. ✓ Update non-standard dice display width
-4. → Implement unified 2-way scrolling for results area
+4. ✓ Implement number buttons for quick dice quantity selection
+5. → Implement unified 2-way scrolling for results area
    - Create single scrollable container for all results
    - Add horizontal scrolling with max-width constraint
    - Implement ellipsis for overflowing content
    - Maintain modifier visibility
-5. Improve animation consistency across all trigger methods
-6. Refine timing for smoother animations
-7. Fix percentile dice animation issues
-8. Ensure proper synchronization between graphics and numbers
-9. Document all changes made to the codebase 
+6. Improve animation consistency across all trigger methods
+7. Refine timing for smoother animations
+8. Fix percentile dice animation issues
+9. Ensure proper synchronization between graphics and numbers
+10. Document all changes made to the codebase 

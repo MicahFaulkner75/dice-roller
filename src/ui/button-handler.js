@@ -13,7 +13,11 @@
 * 3. Manages complex interactions (single-click, double-click, long-press)
 * 4. Handles applet close behavior (click-outside)
 * 5. Maps all button interactions to core functions
-* 6. Adheres to state management architecture by using core functions API
+* 6. Integrates number button input with dice functionality
+* 7. Allows adding multiple dice based on number input
+* 8. Adheres to state management architecture by using core functions API
+*
+* Last updated: March 19, 2025
 */
 
 import { 

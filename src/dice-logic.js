@@ -14,6 +14,8 @@
 * 5. Calculates total values from dice rolls (computeTotal)
 * 6. Generates formatted notation for display (computeNotation)
 * 7. Interfaces with the state management API for all state updates
+*
+* Last updated: March 2025
 */
 
 // Update imports to use new state API
