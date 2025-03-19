@@ -42,6 +42,8 @@ import {
 
 import { updateDisplay } from './display';
 import { prepareDisplayData } from '../core-functions';
+import { getCurrentNumberValue, clearNumberValue } from '../number-buttons';
+import { addDie, getSelectedDice } from '../state';
 
 /**
  * Main setup function called from index.js to initialize all UI event handlers
@@ -115,6 +117,7 @@ export function setupDiceButtons() {
     
     // Long press handlers
     button.addEventListener('mousedown', (e) => {
+      if (e.target.closest('button') || e.target.closest('.input-row')) return;
       pressTimer = setTimeout(() => {
         isLongPress = true;
         
@@ -141,7 +144,7 @@ export function setupDiceButtons() {
           animateDiceRoll(rollInfo);
         }
       }, 500);
-    });
+    }, { passive: false });
     
     // Clear timer if mouse/touch ends
     const clearTimer = (e) => {
@@ -179,10 +182,48 @@ function handleDieClick(button) {
     button.classList.remove('clicked');
   }, 150);
   
-  // Call the core function to handle all dice operations
-  console.log(`[DEBUG] Calling rollSpecificDie(${dieType})`);
-  const rollInfo = rollSpecificDie(dieType);
-  console.log(`[DEBUG] rollSpecificDie returned:`, rollInfo);
+  // Check if there's a value in the number display
+  const numValue = getCurrentNumberValue();
+  console.log(`[DEBUG] Current number value: "${numValue}"`);
+  
+  let rollInfo;
+  
+  if (numValue && numValue.length > 0) {
+    // Use the number as a quantity for the die
+    const quantity = parseInt(numValue, 10);
+    
+    if (!isNaN(quantity) && quantity > 0) {
+      console.log(`[DEBUG] Adding ${quantity} ${dieType} dice to pool`);
+      
+      // Add the specified number of dice to the EXISTING pool
+      // (no longer clearing the dice pool first)
+      for (let i = 0; i < quantity; i++) {
+        addDie(dieType);
+      }
+      
+      // Update display based on the new dice selection
+      const selectedDice = getSelectedDice();
+      updateDisplay({
+        selectedDice,
+        modifier: 0,
+        isPercentile: false
+      });
+      
+      // Roll all dice
+      rollInfo = rerollAllDice();
+    } else {
+      console.log(`[DEBUG] Invalid number value: ${numValue}, using default behavior`);
+      // Fall back to default behavior if number is invalid
+      rollInfo = rollSpecificDie(dieType);
+    }
+    
+    // Clear the number display after adding dice
+    clearNumberValue();
+  } else {
+    // No number value, use standard behavior
+    console.log(`[DEBUG] No number value, using default behavior`);
+    rollInfo = rollSpecificDie(dieType);
+  }
   
   // Make sure we pass the roll info to animateDiceRoll to properly coordinate animations
   if (rollInfo) {
@@ -209,6 +250,8 @@ function setupControlButtons() {
     clearDicePool();
     // Reset modifier to 0
     setModifierValue(0);
+    // Also clear the number display
+    clearNumberValue();
   });
 
   // Roll button

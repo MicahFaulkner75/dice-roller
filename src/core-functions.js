@@ -745,4 +745,25 @@ export function activatePercentileMode() {
   
   // Roll and get animation info
   return rollPercentileDie();
+}
+
+/**
+ * Roll a custom die using the number input
+ * Uses the number from the number buttons to create a custom die
+ * @param {string} numberValue - The number value from the number buttons
+ * @returns {Object} Roll information for the custom die
+ */
+export function rollCustomDie(numberValue) {
+    const sides = parseInt(numberValue, 10);
+    
+    // Validate the input
+    if (isNaN(sides) || sides <= 0) {
+        console.error(`Invalid number of sides: ${sides}`);
+        return null;
+    }
+    
+    console.log(`Rolling custom die with ${sides} sides`);
+    
+    // Use the existing non-standard die rolling function
+    return rollNonStandardDie(sides);
 } 

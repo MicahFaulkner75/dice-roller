@@ -26,6 +26,8 @@ import {
   toggleApplet
 } from '../core-functions';
 
+import { clearNumberValue } from '../number-buttons';
+
 /**
  * Sets up the dice input field and global keyboard handling
  */
@@ -87,6 +89,8 @@ function setupGlobalKeyboardHandlers(diceInput) {
         // Use core function to clear pool and reset modifier
         clearDicePool();
         setModifierValue(0);
+        // Also clear the number display
+        clearNumberValue();
         break;
         
       case 'Escape':
@@ -97,6 +101,9 @@ function setupGlobalKeyboardHandlers(diceInput) {
           diceInput.blur();
           return;
         }
+        
+        // Clear the number display
+        clearNumberValue();
         
         // Otherwise reset the applet
         resetApplet();
@@ -140,6 +147,8 @@ function handleInputKeyDown(e) {
       e.preventDefault();
       e.stopPropagation();
       e.target.blur();
+      // Also clear the number display
+      clearNumberValue();
       break;
   }
 }

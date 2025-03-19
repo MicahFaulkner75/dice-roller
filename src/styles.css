@@ -78,7 +78,7 @@ body {
 /* Base styling */
 #dice-applet {
    position: fixed;
-   width: 224px;
+   width: 264px; /* 224px original width + 40px for number column */
    height: auto;
    top: 50%;
    left: 50%;
@@ -1008,4 +1008,99 @@ body {
 /* This is positioned relative to the applet rather than the scrolling content */
 .results-field {
   position: relative; /* Make sure position is relative for absolute overlay */
+}
+
+/* 
+* APPLET LAYOUT STRUCTURE
+*/
+
+/* Make the applet layout a side-by-side structure */
+.applet-layout {
+  display: flex;
+  width: 100%;
+}
+
+/* Expand applet width to accommodate the number column */
+#dice-applet {
+  width: 264px; /* 224px original width + 40px for number column */
+}
+
+/* Number column container */
+.number-column {
+  width: 40px;
+  background-color: #444;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* Add this to make it a positioning context */
+}
+
+/* Number output display - positioned above number buttons */
+.number-output {
+  position: absolute; /* Change from relative to absolute positioning */
+  width: 100%;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: #000;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 0; /* Remove margin since it's absolutely positioned */
+  overflow: hidden;
+  z-index: 10; /* Ensure it appears above buttons */
+  top: -27px; /* Position it above the number column */
+}
+
+/* Remove the styles for clickable output that are no longer needed */
+
+/* Backspace icon styling - positioned to float over the header */
+#number-backspace {
+  position: absolute;
+  left: 42px;
+  top: -2px;
+  font-size: 26px;
+  color: #555; /* Changed back from white to #555 */
+  cursor: pointer;
+  z-index: 10;
+}
+
+#number-backspace:hover {
+  color: #333;
+}
+
+/* Number buttons */
+.number-button {
+  height: 37px; /* Changed from 39.5px to 37px */
+  width: 100%;
+  border: none;
+  background-color: #666; /* Changed from #ffffff to #666 */
+  color: white; /* Changed from #333 to white */
+  font-size: 18px; /* Changed from 16px to 18px */
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.number-button:hover {
+  background-color: #f0f0f0;
+}
+
+.number-button:active {
+  background-color: #e0e0e0;
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Remove the number-column-header styles since we've removed that element */
+.number-column-header {
+  display: none;
 }

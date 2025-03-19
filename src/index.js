@@ -23,6 +23,8 @@ import {
   centerApplet, 
   minimizeApplet 
 } from './core-functions';
+// Import the number buttons functionality
+import { setupNumberButtons } from './number-buttons';
 
 // Add debug border toggle functionality
 function setupDebugMode() {
@@ -44,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDiceInput();
     setupDiceButtons();
     setupDebugMode();
+    // Initialize number buttons
+    setupNumberButtons();
     
     // Get the launch button and applet
     const launchButton = document.getElementById('dice-roller-button');
@@ -69,6 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export UI functions from ui-updates.js
 export { setupDiceInput, setupDiceButtons } from './ui-updates';
+
+// Export number buttons functions
+export { 
+    getCurrentNumberValue, 
+    setCurrentNumberValue, 
+    clearNumberValue
+} from './number-buttons';
 
 // Export core functions for potential use in other modules
 export {
