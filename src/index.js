@@ -10,9 +10,10 @@
 * 2. Sets up debug mode functionality (setupDebugMode)
 * 3. Initializes all UI components on document load
 * 4. Sets up number buttons functionality
-* 5. Configures the launch button and applet display
-* 6. Makes the applet draggable
-* 7. Exports essential UI functions for use in other modules
+* 5. Sets up help popup functionality
+* 6. Configures the launch button and applet display
+* 7. Makes the applet draggable
+* 8. Exports essential UI functions for use in other modules
 *
 * Last updated: March 19, 2025
 */
@@ -28,6 +29,8 @@ import {
 } from './core-functions';
 // Import the number buttons functionality
 import { setupNumberButtons } from './number-buttons';
+// Import the help popup functionality
+import { setupHelpPopup } from './help';
 
 // Add debug border toggle functionality
 function setupDebugMode() {
@@ -51,6 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDebugMode();
     // Initialize number buttons
     setupNumberButtons();
+    // Initialize help popup
+    setupHelpPopup();
     
     // Get the launch button and applet
     const launchButton = document.getElementById('dice-roller-button');
@@ -83,6 +88,13 @@ export {
     setCurrentNumberValue, 
     clearNumberValue
 } from './number-buttons';
+
+// Export help popup functions
+export {
+    showHelpPopup,
+    hideHelpPopup,
+    toggleHelpPopup
+} from './help';
 
 // Export core functions for potential use in other modules
 export {

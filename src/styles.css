@@ -1104,3 +1104,121 @@ body {
 .number-column-header {
   display: none;
 }
+
+/* Help button in header */
+.help-button {
+  position: absolute;
+  right: 35px; /* Adjusted from 40px to 35px to move it 5px to the right */
+  top: 2px; /* Adjusted from 5px to 2px to move it 3px up */
+  font-size: 18px;
+  color: #777;
+  cursor: pointer;
+  height: 20px;
+  width: 20px;
+  line-height: 20px;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  transition: all 0.2s ease;
+}
+
+.help-button:hover {
+  background-color: #e0e0e0;
+  color: #555;
+}
+
+/* Help popup */
+.help-popup {
+  display: none; /* Hidden by default */
+  position: fixed; /* Change from absolute to fixed - will follow the applet */
+  /* Remove absolute positioning coordinates */
+  /* top: 143px; */
+  /* left: 66px; */
+  width: 260px; /* Exact width as specified */
+  height: 370px; /* Exact height as specified */
+  background-color: white;
+  z-index: 1100; /* Above everything else but below the header */
+  overflow: hidden;
+  border-top: 1px solid #eee; /* Add a subtle separator */
+  /* Add box shadow for visual separation */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Help content */
+.help-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.help-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #eee;
+  background-color: #f8f8f8;
+}
+
+.help-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #444;
+}
+
+.close-help {
+  display: none; /* Hide the close button */
+  font-size: 24px;
+  color: #777;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-help:hover {
+  color: #333;
+}
+
+.help-body {
+  padding: 15px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.help-section {
+  margin-bottom: 20px;
+}
+
+.help-section h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #555;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.help-section p, .help-section li {
+  margin: 5px 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #666;
+}
+
+.help-section code {
+  font-family: monospace;
+  background-color: #f5f5f5;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.help-section ol, .help-section ul {
+  padding-left: 20px;
+  margin: 5px 0;
+}
+
+/* Make the help popup visible */
+.help-popup.show {
+  display: block;
+}

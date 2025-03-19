@@ -20,6 +20,7 @@ dice_roller/
 │   ├── utils/
 │   │   └── formatting.js          # Text formatting utilities
 │   ├── dice-logic.js              # Core dice rolling functionality
+│   ├── help.js                    # Help popup functionality and event handlers
 │   ├── index.html                 # Main HTML structure
 │   ├── index.js                   # Application entry point
 │   ├── make-draggable.js          # Adds draggable functionality to the applet

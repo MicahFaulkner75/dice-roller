@@ -21,6 +21,8 @@
     <div id="dice-roller-container">
         <div id="dice-applet" class="draggable">
             <div class="header">
+                <!-- Help button with '?' icon -->
+                <i id="help-button" class="help-button fa-solid fa-info-circle"></i>
                 <!-- Backspace icon floating over the header -->
                 <i id="number-backspace" class="fas fa-delete-left"></i>
                 <div id="close-applet" class="close-button">×</div>
@@ -113,6 +115,39 @@
             </div>
         </div>
     </div>
+
+    <div id="help-popup" class="help-popup">
+        <div class="help-content">
+            <div class="help-header">
+                <h2>How to Use the Dice Roller</h2>
+                <span id="close-help" class="close-help">×</span>
+            </div>
+            <div class="help-body">
+                <div class="help-section">
+                    <h3>Introduction</h3>
+                    <p>This dice roller allows you to roll various types of dice for tabletop games.</p>
+                </div>
+                <div class="help-section">
+                    <h3>Buttons</h3>
+                    <ul>
+                        <li><strong>Number Buttons:</strong> Add numbers to your roll.</li>
+                        <li><strong>Roll Button:</strong> Roll the dice.</li>
+                        <li><strong>Clear Button:</strong> Clear the current roll.</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h3>Keyboard Shortcuts</h3>
+                    <ul>
+                        <li><strong>Enter:</strong> Roll the dice.</li>
+                        <li><strong>Backspace:</strong> Clear the roll.</li>
+                        <li><strong>Escape:</strong> Close the applet.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="help.js"></script>
 </body>
 </html>
 
