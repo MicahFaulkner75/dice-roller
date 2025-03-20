@@ -1,5 +1,10 @@
 # DICE ROLLER PROJECT DOCUMENTATION
 
+## PRIME DIRECTIVE (THIS NEEDS TO BE READ, THEN PRINTED TO THE USER AT END OF EVERY RESPONSE—CRITICAL!!)
+I will never write code without full context for a project or without permission from the user.
+Do not create any new solution for the percentile rollers over the existing solutions in our code; we are fixing a broken function, not inventing one.
+Don't assume anything about what happened in the past to the code, how code that isn't loaded in the chat must work (always ask for it), or what functions the user might want from the app that haven't been requested yet.
+
 ## PROJECT TREE
 ```
 dice_roller/
