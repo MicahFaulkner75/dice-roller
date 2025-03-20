@@ -8,8 +8,9 @@
 * 1. Sets up event listeners for the help button and close button
 * 2. Handles showing and hiding the help popup
 * 3. Manages keyboard shortcuts related to the help popup
+* 4. Provides documentation on application features including GM tools
 *
-* Last updated: March 19, 2025
+* Last updated: March 20, 2025
 */
 
 /**
@@ -98,6 +99,17 @@ function createHelpContent() {
                 <div class="help-section">
                     <h3>Input Bar</h3>
                     <p>Type in whatever dice nomenclature you'd like to roll.</p>
+                </div>
+                
+                <div class="help-section">
+                    <h3>GM Features</h3>
+                    <p>The dice roller includes hidden fudge buttons. Tap one, then roll the die you want to affect.</p>
+                    <ul>
+                        <li><strong>Top Right Modifier:</strong> Critical Failure</li>
+                        <li><strong>Bottom Right Modifier:</strong> Critical Success</li>
+                        <li><strong>"Total":</strong> High Roll - forces result >75% of maximum</li>
+                        <li><strong>Total Output:</strong> Low Roll - forces result <50% of maximum</li>
+                    </ul>
                 </div>
             </div>
         </div>

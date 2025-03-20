@@ -10,8 +10,9 @@
 * 3. Offers validation for state changes
 * 4. Provides utility functions for state operations
 * 5. Implements a consistent pattern for state updates
+* 6. Manages fudge dice mode for GM roll manipulation
 *
-* Last updated: March 2025
+* Last updated: March 20, 2025
 */
 
 // Private state object - no longer directly exported
@@ -20,7 +21,8 @@ const _state = {
   currentRolls: [],
   modifier: 0,
   lastTotal: undefined,
-  lastSubtotals: {} // Add storage for last subtotals by die type
+  lastSubtotals: {}, // Add storage for last subtotals by die type
+  fudgeMode: null    // Add new fudge mode property (null, 'critical', 'high', 'low', 'minimum')
 };
 
 // For backward compatibility - will be deprecated in future versions
@@ -102,6 +104,14 @@ export function isPercentileDie(die) {
 }
 
 /**
+ * Get current fudge mode
+ * @returns {string|null} - Current fudge mode or null if not active
+ */
+export function getFudgeMode() {
+  return _state.fudgeMode;
+}
+
+/**
  * SETTERS
  */
 
@@ -152,6 +162,30 @@ export function clearLastTotal() {
  */
 export function clearAnimationSubtotals() {
   _state.lastSubtotals = {};
+}
+
+/**
+ * Set the fudge mode for dice rolls
+ * @param {string|null} mode - 'critical', 'high', 'low', 'minimum', or null
+ * @returns {boolean} - Whether the mode was set successfully
+ */
+export function setFudgeMode(mode) {
+  // Validate the mode
+  const validModes = [null, 'critical', 'high', 'low', 'minimum'];
+  if (!validModes.includes(mode)) {
+    console.warn(`Invalid fudge mode: ${mode}`);
+    return false;
+  }
+  
+  _state.fudgeMode = mode;
+  return true;
+}
+
+/**
+ * Clear the current fudge mode
+ */
+export function clearFudgeMode() {
+  _state.fudgeMode = null;
 }
 
 /**
@@ -266,6 +300,7 @@ export function getStateSnapshot() {
     selectedDice: [..._state.selectedDice],
     currentRolls: [..._state.currentRolls],
     modifier: _state.modifier,
-    lastTotal: _state.lastTotal
+    lastTotal: _state.lastTotal,
+    fudgeMode: _state.fudgeMode // Add fudge mode to the snapshot
   };
 }

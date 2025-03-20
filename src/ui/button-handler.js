@@ -15,9 +15,10 @@
 * 5. Maps all button interactions to core functions
 * 6. Integrates number button input with dice functionality
 * 7. Allows adding multiple dice based on number input
-* 8. Adheres to state management architecture by using core functions API
+* 8. Manages GM fudge dice button interactions
+* 9. Adheres to state management architecture by using core functions API
 *
-* Last updated: March 19, 2025
+* Last updated: March 20, 2025
 */
 
 import { 
@@ -47,7 +48,7 @@ import {
 import { updateDisplay } from './display';
 import { prepareDisplayData } from '../core-functions';
 import { getCurrentNumberValue, clearNumberValue } from '../number-buttons';
-import { addDie, getSelectedDice } from '../state';
+import { addDie, getSelectedDice, setFudgeMode } from '../state';
 
 /**
  * Main setup function called from index.js to initialize all UI event handlers
@@ -62,6 +63,9 @@ export function setupEventListeners() {
   
   // Set up click-outside behavior
   setupClickOutsideBehavior();
+  
+  // Set up fudge dice buttons
+  setupFudgeButtons();
   
   console.log("UI button handlers have been set up");
 }
@@ -355,6 +359,62 @@ function handleInputKeyDown(e) {
   if (rollInfo) {
     animateDiceRoll(rollInfo);
   }
+}
+
+/**
+ * Set up the fudge dice buttons for GM use
+ * These are invisible buttons that influence roll outcomes
+ */
+function setupFudgeButtons() {
+  const criticalButton = document.querySelector('.fudge-button.critical');
+  const highButton = document.querySelector('.fudge-button.high');
+  const lowButton = document.querySelector('.fudge-button.low');
+  const minimumButton = document.querySelector('.fudge-button.minimum');
+  
+  // Revised button functionality:
+  // Red (critical) -> critical success
+  if (criticalButton) {
+    criticalButton.addEventListener('click', () => {
+      console.log('Fudge mode: critical success');
+      setFudgeMode('critical');
+    });
+  }
+  
+  // Green (minimum) -> high roll
+  if (minimumButton) {
+    minimumButton.addEventListener('click', () => {
+      console.log('Fudge mode: high roll');
+      setFudgeMode('high');
+    });
+  }
+  
+  // Orange (high) -> low roll
+  if (highButton) {
+    highButton.addEventListener('click', () => {
+      console.log('Fudge mode: low roll');
+      setFudgeMode('low');
+    });
+  }
+  
+  // Blue (low) -> critical failure
+  if (lowButton) {
+    lowButton.addEventListener('click', () => {
+      console.log('Fudge mode: critical failure');
+      setFudgeMode('minimum');
+    });
+  }
+  
+  // Add keyboard shortcut for debug mode (Ctrl+Shift+F)
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+      const applet = document.getElementById('dice-applet');
+      applet.classList.toggle('debug-fudge');
+      console.log('Fudge debug mode:', applet.classList.contains('debug-fudge') ? 'ON' : 'OFF');
+      e.preventDefault();
+    }
+  });
+  
+  console.log("Fudge button handlers initialized");
 }
 
 

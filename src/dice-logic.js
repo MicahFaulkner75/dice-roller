@@ -14,8 +14,9 @@
 * 5. Calculates total values from dice rolls (computeTotal)
 * 6. Generates formatted notation for display (computeNotation)
 * 7. Interfaces with the state management API for all state updates
+* 8. Applies GM fudge dice modifications to roll results
 *
-* Last updated: March 2025
+* Last updated: March 20, 2025
 */
 
 // Update imports to use new state API
@@ -28,25 +29,115 @@ import {
   setRollResults,
   setLastTotal,
   clearLastTotal,
-  addRollResult
+  addRollResult,
+  getFudgeMode,
+  clearFudgeMode
 } from './state';
 
 // Roll a single die given the number of sides.
 export function rollDie(sides) {
+  // Get the current fudge mode
+  const fudgeMode = getFudgeMode();
+  
+  // If fudge mode is active, override the roll result
+  if (fudgeMode) {
+    let result;
+    
+    switch (fudgeMode) {
+      case 'critical':
+        // Maximum possible value
+        result = sides;
+        break;
+        
+      case 'high':
+        // Between 75-100% of maximum
+        const highMin = Math.ceil(sides * 0.75);
+        result = Math.floor(Math.random() * (sides - highMin + 1)) + highMin;
+        break;
+        
+      case 'low':
+        // Between 1-50% of maximum
+        const lowMax = Math.floor(sides * 0.5);
+        result = Math.floor(Math.random() * lowMax) + 1;
+        break;
+        
+      case 'minimum':
+        // Always return 1
+        result = 1;
+        break;
+        
+      default:
+        // Use normal random roll if fudge mode is invalid
+        result = Math.floor(Math.random() * sides) + 1;
+    }
+    
+    // Clear fudge mode after use
+    clearFudgeMode();
+    
+    return result;
+  }
+  
+  // Normal random roll (unchanged)
   return Math.floor(Math.random() * sides) + 1;
 }
 
 // Add this function for percentile rolls
 export function rollPercentile() {
   console.log("Rolling percentile dice");
-  const tens = Math.floor(Math.random() * 10); // 0-9 for tens digit
-  const ones = Math.floor(Math.random() * 10); // 0-9 for ones digit
+  
+  // Check for fudge mode
+  const fudgeMode = getFudgeMode();
+  
+  let tens, ones, total;
+  
+  if (fudgeMode) {
+    switch (fudgeMode) {
+      case 'critical':
+        // Force 100 (00-0)
+        tens = 0; // 00
+        ones = 0; // 0
+        total = 100;
+        break;
+        
+      case 'high':
+        // Force 75-99 range
+        total = Math.floor(Math.random() * 25) + 75; // 75-99
+        tens = Math.floor(total / 10);
+        ones = total % 10;
+        break;
+        
+      case 'low':
+        // Force 1-50 range
+        total = Math.floor(Math.random() * 50) + 1; // 1-50
+        tens = Math.floor(total / 10);
+        ones = total % 10;
+        break;
+        
+      case 'minimum':
+        // Force 1 (90-1)
+        tens = 9; // 90
+        ones = 1; // 1
+        total = 1;
+        break;
+        
+      default:
+        // Normal random roll
+        tens = Math.floor(Math.random() * 10); // 0-9 for tens digit
+        ones = Math.floor(Math.random() * 10); // 0-9 for ones digit
+        total = (tens === 0 && ones === 0) ? 100 : tens * 10 + ones;
+    }
+    
+    // Clear fudge mode after use
+    clearFudgeMode();
+  } else {
+    // Normal random roll (unchanged)
+    tens = Math.floor(Math.random() * 10); // 0-9 for tens digit
+    ones = Math.floor(Math.random() * 10); // 0-9 for ones digit
+    total = (tens === 0 && ones === 0) ? 100 : tens * 10 + ones;
+  }
   
   // Format tens as "00", "10", "20", etc.
   const tensDisplay = (tens * 10).toString().padStart(2, '0');
-  
-  // Calculate true total (00 = 100)
-  const total = (tens === 0 && ones === 0) ? 100 : tens * 10 + ones;
   
   console.log(`Percentile roll: tens=${tensDisplay}, ones=${ones}, total=${total}`);
   
