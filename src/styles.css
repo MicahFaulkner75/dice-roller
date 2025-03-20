@@ -79,23 +79,23 @@ body {
 #dice-applet {
    position: fixed;
    width: 264px; /* 224px original width + 40px for number column */
+   max-width: 264px; /* Enforce max width to prevent stretching */
+   box-sizing: border-box; /* Include borders in width calculation */
    height: auto;
    top: 50%;
    left: 50%;
    transform: translate(-50%, -50%);
-   background-color: #ffffff; /* Set background to white */
+   background-color: #ffffff;
    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
    display: flex;
    flex-direction: column;
-   justify-content: space-between; /* Distribute space evenly */
+   justify-content: space-between;
    z-index: 1000;
    pointer-events: auto;
    border-radius: 4px;
    overflow: hidden;
-   border: 1px solid #ccc; /* Add thin gray outline */
-   /* Safari support */
+   border: 1px solid #ccc;
    -webkit-transform: translate(-50%, -50%);
-   /* Added: Position relative for overlay positioning */
    position: relative;
 }
 
@@ -126,12 +126,15 @@ body {
 }
 
 
-/* Input field styling */
+/* Input row styling */
 .input-row {
    width: 100%;
-   padding: 0 0 5px 0; /* CRITICAL: Maintains spacing to first button row */
+   max-width: 224px; /* Match main content width */
+   padding: 0 0 5px 0;
    position: relative;
    display: flex;
+   overflow: visible;
+   box-sizing: border-box; /* Include padding in size */
 }
 
 
@@ -143,27 +146,35 @@ body {
    height: 30px;
    background-color: #f0f0f0;
    width: 100%;
-   padding-right: 5px;
+   max-width: 224px; /* Explicit max width */
+   padding: 0;
+   overflow: visible;
+   border-radius: 3px;
+   box-sizing: border-box; /* Include padding in size */
 }
 
 /* CRITICAL: Input field must fill width minus modifier space. 
    DO NOT CHANGE without considering full layout impact.
    Common regression point - verify width after any related changes. */
 #dice-input {
-   flex: 1;
    height: 30px;
    border: none;
    background-color: #f0f0f0;
    color: #202122;
-   padding: 2px 5px; /* Reduced top/bottom padding from 5px to 2px */
-   line-height: 26px; /* Added to center text vertically */
+   padding: 2px 5px;
+   padding-right: 35px; /* Right padding for modifier */
+   line-height: 26px;
    font-size: 16px;
    font-weight: bold;
    outline: none;
-   overflow-x: auto; /* Enable horizontal scrolling */
-   overflow-y: hidden; /* Prevent vertical scrolling */
+   overflow-x: auto;
+   overflow-y: hidden;
    white-space: nowrap;
-   margin-right: 30px; /* Make space for fixed modifier */
+   width: 100%;
+   max-width: 100%;
+   box-sizing: border-box; /* Include padding in size */
+   flex-shrink: 1; /* Allow shrinking if needed */
+   flex-grow: 0; /* Prevent growing beyond constraints */
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -180,7 +191,7 @@ body {
 /* Input modifier display */
 .input-modifier-display {
    position: absolute;
-   right: 5px;
+   right: 0;
    top: 0;
    width: 30px;
    height: 100%;
@@ -192,7 +203,9 @@ body {
    color: #000000;
    background-color: #f0f0f0;
    user-select: none;
-   z-index: 2;
+   z-index: 1000; /* Increased z-index to ensure it's always on top */
+   pointer-events: none; /* Ensure clicks pass through */
+   box-shadow: -15px 0 12px #f0f0f0; /* Add shadow for better blending */
 }
 
 .input-modifier-display:empty::before {
@@ -657,10 +670,9 @@ body {
 
 /* Add a container for all button rows */
 .button-area {
-   display: flex;
-   flex-direction: column;
-   justify-content: space-evenly; /* Distribute space evenly */
-   padding: 10px 0 15px 0; /* Increased bottom padding to 15px to match top spacing */
+   width: 100%;
+   max-width: 224px;
+   box-sizing: border-box;
 }
 
 /* Color coding for dice results */
@@ -1098,6 +1110,10 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  width: 224px; /* Exact width */
+  max-width: 224px; /* Hard constraint */
+  box-sizing: border-box; /* Include padding in size */
+  overflow: visible; /* Allow shadows to show */
 }
 
 /* Remove the number-column-header styles since we've removed that element */
@@ -1307,4 +1323,34 @@ body {
 .debug-fudge .fudge-buttons-container {
     background-color: rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Styling for scrollable input */
+#dice-input.scrollable {
+   mask-image: linear-gradient(to right, black 0% 80%, transparent 100%) !important;
+   -webkit-mask-image: linear-gradient(to right, black 0% 80%, transparent 100%) !important;
+}
+
+/* Different scroll position styles */
+#dice-input.scroll-at-start {
+   mask-image: linear-gradient(to right, black 0% 80%, transparent 100%) !important;
+   -webkit-mask-image: linear-gradient(to right, black 0% 80%, transparent 100%) !important;
+}
+
+#dice-input.scroll-middle {
+   mask-image: linear-gradient(to right, transparent 0%, black 10%, black 80%, transparent 100%) !important;
+   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 80%, transparent 100%) !important;
+}
+
+#dice-input.scroll-at-end {
+   mask-image: linear-gradient(to right, transparent 0%, black 20% 100%) !important;
+   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20% 100%) !important;
+}
+
+/* Fix dice-control-table width */
+.dice-control-table {
+   width: 100%;
+   max-width: 224px;
+   table-layout: fixed; /* Force proper table layout */
+   box-sizing: border-box;
 }

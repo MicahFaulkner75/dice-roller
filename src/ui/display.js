@@ -18,6 +18,40 @@
 import { animateNonStandardResult } from '../animations/dice-animations';
 
 /**
+ * Initialize the display module
+ * Sets up event listeners and initializes display elements
+ */
+export function initDisplayModule() {
+  // Set up scroll handling for the dice input
+  const diceInput = document.getElementById('dice-input');
+  if (diceInput) {
+    // Add scroll event listener
+    diceInput.addEventListener('scroll', handleInputScroll);
+    console.log('Initialized dice input scroll handler');
+  }
+}
+
+/**
+ * Handle scroll events in the dice input
+ * Updates the visual indication based on scroll position
+ * @param {Event} event - The scroll event
+ */
+function handleInputScroll(event) {
+  const diceInput = event.target;
+  
+  // Calculate if we're at the start, middle or end of scrolling
+  const atStart = diceInput.scrollLeft < 10;
+  const atEnd = Math.abs(diceInput.scrollWidth - diceInput.clientWidth - diceInput.scrollLeft) < 10;
+  
+  // Update classes based on scroll position
+  diceInput.classList.toggle('scroll-at-start', atStart);
+  diceInput.classList.toggle('scroll-at-end', atEnd);
+  diceInput.classList.toggle('scroll-middle', !atStart && !atEnd);
+  
+  console.log(`Input scroll position: ${atStart ? 'start' : (atEnd ? 'end' : 'middle')}`);
+}
+
+/**
  * Update the input display and modifier areas
  * @param {Object} displayData - Object containing display information
  * @param {Array} displayData.selectedDice - Currently selected dice
@@ -29,6 +63,9 @@ export function updateDisplay({ selectedDice, modifier, isPercentile }) {
   const modifierOverlay = document.getElementById('modifier-overlay');
   const inputModifierDisplay = document.querySelector('.input-modifier-display');
   const extractedResultsModifier = document.getElementById('extracted-results-modifier');
+  
+  // Store original width to detect expansion
+  const originalWidth = diceInput ? diceInput.offsetWidth : 0;
   
   // Update input area
   if (diceInput) {
@@ -49,15 +86,41 @@ export function updateDisplay({ selectedDice, modifier, isPercentile }) {
         return aValue - bValue;
       });
       
-      // Create colored spans for each die group
+      // Use innerHTML method which preserves layout constraints better
       const parts = [];
       sortedDice.forEach((die, index) => {
         if (index > 0) parts.push(' + ');
         parts.push(`<span class="${die}-result">${diceCounts[die]}${die}</span>`);
       });
       diceInput.innerHTML = parts.join('');
+      
+      // Reset scroll position to the start (left)
+      diceInput.scrollLeft = 0;
+      
+      // Force width to remain consistent
+      if (diceInput.offsetWidth > originalWidth) {
+        diceInput.style.width = originalWidth + 'px';
+      }
+      
+      // Add scroll indicator class if content is scrollable
+      if (diceInput.scrollWidth > diceInput.clientWidth) {
+        diceInput.classList.add('scrollable');
+        diceInput.classList.add('scroll-at-start');
+        diceInput.classList.remove('scroll-at-end');
+        diceInput.classList.remove('scroll-middle');
+      } else {
+        diceInput.classList.remove('scrollable');
+        diceInput.classList.remove('scroll-at-start');
+        diceInput.classList.remove('scroll-at-end');
+        diceInput.classList.remove('scroll-middle');
+      }
     } else {
       diceInput.innerHTML = '';
+      // Remove all scroll classes when empty
+      diceInput.classList.remove('scrollable');
+      diceInput.classList.remove('scroll-at-start');
+      diceInput.classList.remove('scroll-at-end');
+      diceInput.classList.remove('scroll-middle');
     }
   }
   

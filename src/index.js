@@ -25,12 +25,14 @@ import { makeDraggable } from './make-draggable';
 import { 
   toggleApplet, 
   centerApplet, 
-  minimizeApplet 
+  minimizeApplet,
+  resetApplet
 } from './core-functions';
 // Import the number buttons functionality
 import { setupNumberButtons } from './number-buttons';
 // Import the help popup functionality
 import { setupHelpPopup } from './help';
+import { initDisplayModule } from './ui/display';
 
 // Add debug border toggle functionality
 function setupDebugMode() {
@@ -47,6 +49,8 @@ function setupDebugMode() {
 
 // Initialize all UI components when the document is ready
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOMContentLoaded event fired");
+    
     // Initial setup
     setupEventListeners();
     setupDiceInput();
@@ -74,6 +78,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Make the applet draggable
     const applet = document.getElementById('dice-applet');
     makeDraggable(applet);
+    
+    // Reset applet to initial state
+    resetApplet();
+    
+    // Initialize display module
+    initDisplayModule(); // Initialize display module with scroll handler
     
     // Log that initialization is complete for testing
     console.log("Dice roller initialized with new applet state management");
