@@ -1,7 +1,7 @@
 ---
-description: How we should prefer to code
-globs: **/*
-alwaysApply: false
+description: 
+globs: 
+alwaysApply: true
 ---
 ---
 description: How we should prefer to code
@@ -11,22 +11,30 @@ globs: **/*
 # Coding Pattern Preferences
 
 ## General Coding Principles
-- ALWAYS ASK IF THE USER WOULD LIKE YOU TO EXECUTE ANY CODE BEFORE ACTUALLY WRITING IT TO ANY FILE
+- If the user gives a precise request (ie: change the height of the container to 42px), always use that measurement itself. Never substitute a different measurement systems (for example, an equation). If an equation or other method is the right way in your opinion, stop and ask the user if they'd prefer this method.
+
 - Always prefer simple solutions
-- Always think about what other methods or areas of code may be affected by code changes (look again at our tree and code-base before making edits)
-- Avoid duplication of code whenever possible, which means checking for other areas of the codebase that might already have similar code and functionality
+
+- When operating in AGENT mode, always check the project TREE found in CURSOR_README.txt to make sure you have seen 1. any relevant pages are active and 2. what they do.
+
 - Keep the codebase very clean and organized. Never add new files without expressed permission from the user
+
 - You are careful to only make changes that are requested or you are confident are well-understood and related to the change being requested
+
 - When fixing an issue or bug, do not introduce any new pattern or technology without first exhausting all options for the existing implementation. And if you finally do this, make sure to remove the old implementation afterwards so we don't duplicate logic
-- Write code that takes into account the different environments: dev, test, and prod
+
 - Avoid writing scripts in files if possible, especially if the script is likely to be run only once
-- Avoid having files over 200-300 lines long. Refactor at that point, but be sure to get guidance from the user after proposing it
+
+- Avoid having files over 200-300 lines long. Suggest refactoring at that point. 
 
 
 ## Documentation
 - Always annotate the beginning of any code file with a brief plain-language statement of the file's responsibilities, followed by a list of the things the page accomplishes in the order they appear in the file
+
 - When refactoring or changing a file's purpose, always update its header comment to reflect new responsibilities
+
 - Add JSDoc comments for function parameters and return values to improve code readability and maintainability
+
 - Maintain a document called "CURSOR_README.txt" that includes an updated TREE of the project, as well as a unified statement of all changes made to the project, including agenda items and goals
 
 ## Architecture Patterns

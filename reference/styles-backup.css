@@ -1,0 +1,1357 @@
+/*
+* STYLES AND LAYOUT
+*
+* This file manages all visual styling and layout for the dice roller application.
+* It is responsible for component positioning, animations, visual feedback, and
+* maintaining consistent spacing throughout the interface.
+*
+* This file is organized into sections:
+* 1. Reset and Global Styles
+* 2. Container and Applet Layout
+* 3. Input Field Styling
+* 4. Dice Button Grid Layout
+* 5. Control Button Styling
+* 6. Results Display Area
+* 7. Animation Definitions
+* 8. Color Schemes and Visual Feedback
+* 9. Special Cases (Percentile Mode, Non-standard Dice)
+*
+* Critical sections are marked with CRITICAL comments and should not be
+* modified without careful consideration of layout implications.
+*/
+
+/* Reset/Normalize */
+* {
+   margin: 0;
+   padding: 0;
+   box-sizing: border-box;
+}
+
+/* Debug Borders */
+.debug-borders * {
+   box-shadow: inset 0 0 0 1px rgba(255, 0, 0, 0.25) !important;
+}
+
+.debug-borders #dice-applet {
+   box-shadow: inset 0 0 0 2px rgba(255, 0, 0, 0.25) !important;
+}
+
+.debug-borders .input-row,
+.debug-borders .dice-control-table,
+.debug-borders .results-field {
+   box-shadow: inset 0 0 0 1px rgba(255, 0, 0, 0.25) !important;
+}
+
+.debug-borders .input-container,
+.debug-borders #dice-input,
+.debug-borders .input-modifier-display,
+.debug-borders .results-left,
+.debug-borders .results-right,
+.debug-borders #results-total,
+.debug-borders #results-rolls,
+.debug-borders .results-modifier-display {
+   box-shadow: inset 0 0 0 1px rgba(255, 0, 0, 0.25) !important;
+   background-color: rgba(255, 0, 0, 0.02); /* Reduced to 2% for very subtle layering */
+}
+
+/* Global Styles */
+body {
+   font-family: Helvetica, Arial, sans-serif;
+   font-size: 14px;
+   line-height: 1.6;
+   color: #202122;
+}
+
+
+/* Container Positioning */
+#dice-roller-container {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   z-index: 999;
+   pointer-events: none;
+}
+
+
+/* Base styling */
+#dice-applet {
+   position: fixed;
+   width: 264px; /* 224px original width + 40px for number column */
+   max-width: 264px; /* Enforce max width to prevent stretching */
+   box-sizing: border-box; /* Include borders in width calculation */
+   height: auto;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   background-color: #ffffff;
+   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+   display: flex;
+   flex-direction: column;
+   justify-content: space-between;
+   z-index: 1000;
+   pointer-events: auto;
+   border-radius: 4px;
+   overflow: hidden;
+   border: 1px solid #ccc;
+   -webkit-transform: translate(-50%, -50%);
+   position: relative;
+}
+
+
+/* Header styling */
+.header {
+   display: flex;
+   justify-content: flex-end;
+   align-items: center; /* Add vertical centering */
+   padding: 2px 5px;
+   height: 24px;
+   cursor: move;
+   background-color: #ffffff;
+}
+
+
+#close-applet {
+   background: none;
+   border: none;
+   font-size: 20px;
+   line-height: 20px; /* Match line-height to font-size */
+   cursor: pointer;
+   color: #666;
+   padding: 0 5px;
+   display: flex; /* Ensure proper centering */
+   align-items: center;
+   justify-content: center;
+}
+
+
+/* Input row styling */
+.input-row {
+   width: 100%;
+   max-width: 224px; /* Match main content width */
+   padding: 0 0 5px 0;
+   position: relative;
+   display: flex;
+   overflow: visible;
+   box-sizing: border-box; /* Include padding in size */
+}
+
+
+/* Input field container styling */
+.input-container {
+   flex: 1;
+   display: flex;
+   position: relative;
+   height: 30px;
+   background-color: #f0f0f0;
+   width: 100%;
+   max-width: 224px; /* Explicit max width */
+   padding: 0;
+   overflow: visible;
+   border-radius: 3px;
+   box-sizing: border-box; /* Include padding in size */
+}
+
+/* CRITICAL: Input field must fill width minus modifier space. 
+   DO NOT CHANGE without considering full layout impact.
+   Common regression point - verify width after any related changes. */
+#dice-input {
+   height: 30px;
+   border: none;
+   background-color: #f0f0f0;
+   color: #202122;
+   padding: 2px 5px;
+   padding-right: 35px; /* Right padding for modifier */
+   line-height: 26px;
+   font-size: 16px;
+   font-weight: bold;
+   outline: none;
+   overflow-x: auto;
+   overflow-y: hidden;
+   white-space: nowrap;
+   width: 100%;
+   max-width: 100%;
+   box-sizing: border-box; /* Include padding in size */
+   flex-shrink: 1; /* Allow shrinking if needed */
+   flex-grow: 0; /* Prevent growing beyond constraints */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+#dice-input::-webkit-scrollbar {
+   display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+#dice-input {
+   -ms-overflow-style: none;  /* IE and Edge */
+   scrollbar-width: none;  /* Firefox */
+}
+
+/* Input modifier display */
+.input-modifier-display {
+   position: absolute;
+   right: 0;
+   top: 0;
+   width: 30px;
+   height: 100%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   font-weight: bold;
+   font-size: 16px; /* Added to match output font size */
+   color: #000000;
+   background-color: #f0f0f0;
+   user-select: none;
+   z-index: 1000; /* Increased z-index to ensure it's always on top */
+   pointer-events: none; /* Ensure clicks pass through */
+   box-shadow: -15px 0 12px #f0f0f0; /* Add shadow for better blending */
+}
+
+.input-modifier-display:empty::before {
+   content: "+0";
+}
+
+/* Total container styling */
+.total-container {
+   position: relative;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   margin-top: 2px;
+}
+
+/* Results field styling - CRITICAL DIMENSIONS */
+.results-field {
+   height: 104px; /* Changed from 100px to 104px to provide more space for results */
+   background-color: #f0f0f0;
+   padding: 0;
+   box-sizing: border-box;
+   overflow: hidden;
+   border: none;
+   display: flex;
+   position: relative; /* Make sure position is relative for absolute overlay */
+}
+
+/* Fix for inconsistent naming - ensure both class names work the same way */
+.results-header,
+.results-left {
+   width: 30% !important; /* Force 30% width with !important */
+   min-width: 30% !important; /* Ensure minimum width */
+   flex: 0 0 30% !important; /* Fix flex basis at 30% and prevent growing/shrinking */
+   display: flex;
+   flex-direction: column;
+   align-items: center; /* Center horizontally */
+   justify-content: flex-start; /* Align to top but maintain center alignment */
+   padding: 10px 0; /* Changed padding to only apply top/bottom, no left/right padding */
+   box-sizing: border-box;
+}
+
+/* Center the Total label - strengthen specificity */
+.results-header .total-label,
+.results-left .total-label,
+.total-label {
+   display: block;
+   text-align: center;
+   width: 100%;
+   font-weight: bold;
+   padding: 0;
+   margin: 5px 0; /* Add consistent vertical spacing */
+   box-sizing: border-box;
+}
+
+/* Center the results-total container - strengthen specificity */
+.results-header .results-total,
+.results-left .results-total,
+.results-total {
+   width: 100%;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   box-sizing: border-box;
+}
+
+/* Center the total value container - strengthen specificity */
+.results-header #results-total,
+.results-left #results-total,
+#results-total {
+   width: 100%;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   box-sizing: border-box;
+}
+
+/* Center the total value itself - strengthen specificity */
+.results-header .total-value,
+.results-left .total-value,
+.total-value {
+   font-weight: bold;
+   font-size: 18px;
+   text-align: center;
+   display: block;
+   width: 100%;
+   margin: 5px 0 0 0;
+   box-sizing: border-box;
+}
+
+/* Show placeholder when empty */
+#dice-input:empty:before {
+   content: attr(placeholder);
+   color: #D1D5DB;
+}
+
+
+/* Dice buttons layout - CRITICAL SPACING */
+.dice-buttons {
+   display: grid;
+   grid-template-columns: 1fr 1fr 1fr;
+   gap: 10px;
+   justify-items: center;
+   padding: 10px;
+   height: 60px; /* CRITICAL: Standardized row height - DO NOT CHANGE */
+   margin: 0 0 13px 0; /* Increased bottom margin from 5px to 13px for more space between rows */
+}
+
+/* CRITICAL: First row top spacing */
+.dice-buttons:first-child {
+   margin-top: 5px; /* CRITICAL: Creates balanced spacing from input - DO NOT CHANGE */
+}
+
+/* CRITICAL: Button sizes must remain consistent */
+.die-button {
+   width: 40px;  /* CRITICAL SIZE - DO NOT CHANGE */
+   height: 40px; /* CRITICAL SIZE - DO NOT CHANGE */
+   padding: 0;
+   border: none;
+   background: #ffffff;
+   cursor: pointer;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   position: relative; /* Added for absolute positioning of oversized dice */
+   overflow: visible; /* Allow dice to overflow their containers */
+   transition: transform 100ms ease-out;
+}
+
+/* Individual die image sizes */
+.die-button[data-die="d4"] img {
+   width: 42px;
+   height: 36px;
+   position: absolute; /* Allow oversized dice to extend outside button */
+   transform-origin: center calc(100% - 12px); /* Set rotation point 12px above base */
+   margin-top: -5px; /* Move the d4 up by 5 pixels */
+}
+
+.die-button[data-die="d6"] img {
+   width: 32px;
+   height: 32px;
+}
+
+.die-button[data-die="d8"] img {
+   width: 40px;
+   height: 45px;
+   position: absolute;
+}
+
+.die-button[data-die="d10"] img {
+   width: 44px;
+   height: 40px;
+   position: absolute;
+}
+
+.die-button[data-die="d12"] img {
+   width: 42px;
+   height: 44px;
+   position: absolute;
+}
+
+.die-button[data-die="d20"] img {
+   width: 42px;
+   height: 47px;
+   position: absolute;
+}
+
+.die-button:focus,
+#roll-button:focus,
+#clear-button:focus,
+#modify-button-increase:focus,
+#modify-button-decrease:focus {
+  outline: none;
+}
+
+
+/* Control row styling - CRITICAL SPACING */
+.control-row {
+   display: grid;
+   grid-template-columns: 1fr 1fr 1fr;
+   gap: 10px;
+   justify-items: center;
+   padding: 10px 10px 15px 10px; /* Increased bottom padding from 10px to 15px */
+   height: 60px; /* CRITICAL: Matches dice button row height - DO NOT CHANGE */
+   margin: 0 0 13px 0; /* Increased bottom margin from 5px to 13px to match dice buttons */
+}
+
+
+/* CRITICAL: Control button sizes must match design */
+#clear-button,
+#roll-button {
+   width: 50px;  /* CRITICAL SIZE - DO NOT CHANGE */
+   height: 50px; /* CRITICAL SIZE - DO NOT CHANGE */
+   padding: 5px;
+   border: none;
+   background: none;
+   cursor: pointer;
+}
+
+
+#clear-button img,
+#roll-button img,
+#modify-button-increase img,
+#modify-button-decrease img {
+   width: 100%;
+   height: 100%;
+   object-fit: contain;
+}
+
+
+/* Modifier container using grid layout for control row */
+.modify-button-container {
+   position: relative;
+   width: 45px; /* Reduced from 50px */
+   height: 50px;
+   display: flex;
+   flex-direction: column;
+   padding: 0;
+   margin: 0;
+}
+
+
+/* CRITICAL: Modifier button sizes */
+#modify-button-increase,
+#modify-button-decrease {
+   width: 45px;  /* CRITICAL SIZE - Reduced from 50px */
+   height: 25px; /* CRITICAL SIZE - DO NOT CHANGE */
+   padding: 0;
+   border: none;
+   background: none;
+   cursor: pointer;
+}
+
+
+/* Modifier display for inline usage in results */
+.modifier-display {
+   color: #000000; /* Keep color black */
+   font-weight: bold;
+   display: inline;
+}
+
+
+/* Modifier overlay element inside the container */
+#modifier-overlay {
+   position: absolute;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   font-weight: bold;
+   font-size: 16px; /* Added to match output font size */
+   color: #000000; /* Keep color black */
+   pointer-events: none;
+   z-index: 1; /* Ensure it hovers above the buttons */
+   user-select: none; /* Make it unselectable */
+}
+
+#modifier-overlay:empty::before {
+   content: "+0";
+}
+
+
+/* Results container layout and scroll behavior */
+.results-right,
+.results-area {
+   width: 70% !important; /* Force 70% width with !important */
+   min-width: 70% !important; /* Ensure minimum width */
+   flex: 0 0 70% !important; /* Fix flex basis at 70% and prevent growing/shrinking */
+   padding: 15px 8px 10px 8px;
+   position: relative;
+   display: flex;
+   flex-direction: column;
+   align-items: flex-start;
+   gap: 2px;
+   max-height: none;
+   overflow-y: visible;
+   overflow-x: hidden; /* Will be overridden in .results-area */
+   box-sizing: border-box;
+   border: 1px solid transparent; /* Transparent border for debugging */
+}
+
+/* Add direct styling for results-area which holds the grid */
+.results-area {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: flex-start;
+  padding: 15px 8px 10px 0; /* Remove left padding (changed from 8px to 0) */
+  border: 1px solid transparent; /* Transparent border for debugging */
+  /* Modified 2023-08-31: Make the entire results area horizontally scrollable */
+  overflow-x: auto;
+  overflow-y: visible;
+  /* Hide scrollbars while maintaining scroll functionality */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  position: relative; /* Ensure position relative for fixed fade overlay */
+  /* Add minimum width to ensure content can scroll adequately */
+  min-width: 100%;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera in results area */
+.results-area::-webkit-scrollbar {
+  display: none;
+}
+
+/* CRITICAL: Gradient overlay implementation */
+/* This creates the fade-out effect at the right edge while preserving modifier visibility */
+.results-right::before {
+  content: "";
+  position: absolute;
+  right: 5px;
+  top: 10px;
+  height: calc(100% - 20px);
+  width: 60px;
+  background: linear-gradient(to right, rgba(240, 240, 240, 0), rgba(240, 240, 240, 1) 80%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* CRITICAL: Non-standard results container configuration */
+/* Handles horizontal scrolling for dice notation and results */
+.non-standard-results {
+  width: 120px !important; /* Reduced from 140px to 120px */
+  min-width: 120px !important; /* Reduced from 140px to 120px */
+  max-width: 120px !important; /* Reduced from 140px to 120px */
+  background: transparent;
+  margin: 0 0 0 11px; /* Increased from 9px to 11px to move another 2px to the right */
+  max-height: none;
+  /* Modified 2023-08-31: Let parent handle horizontal scrolling */
+  overflow-x: visible;
+  overflow-y: visible;
+  position: relative; /* Ensure position relative for the fade overlay */
+  padding-right: 5px;
+  flex-shrink: 0; /* Prevent flex shrinking */
+  flex-grow: 0; /* Prevent flex growing */
+  align-self: flex-start; /* Force alignment to start */
+  border: 1px solid transparent; /* Transparent border for debugging */
+  box-sizing: border-box !important;
+  /* Collapse when empty */
+  min-height: 0;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Remove overlay from non-standard-results as it scrolls with content */
+.non-standard-results::after {
+  display: none;
+}
+
+/* Remove overlay from results-area as it still scrolls horizontally */
+.results-area::after {
+  display: none; /* Disable this overlay as we're moving it to a non-scrolling parent */
+}
+
+/* Add the overlay to results-field which is a parent container that doesn't scroll */
+.results-field::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  top: 0px;
+  width: 60px; /* Increased from 55px to 60px to expand the overlay by 5px */
+  height: calc(var(--overlay-height, 0px) + 9px);
+  background: linear-gradient(to left, 
+    rgba(240, 240, 240, 1) 50%,
+    rgba(240, 240, 240, 0));
+  pointer-events: none;
+  z-index: 1002;
+  opacity: 1;
+  transition: height 0.2s ease;
+}
+
+/* Hide the overlay when there are no non-standard results */
+.non-standard-results:empty ~ .results-field::after {
+  display: none;
+}
+
+/* CRITICAL: Non-standard result item styling */
+/* Controls text display and horizontal scrolling behavior */
+.non-standard-result-item {
+  background-color: transparent;
+  padding: 0px 5px;
+  white-space: nowrap; /* CRITICAL: Prevents text wrapping for scrollable content - DO NOT CHANGE */
+  overflow: visible;
+  text-overflow: initial;
+  font-size: 16px; /* CRITICAL: Matches standard dice result size - DO NOT CHANGE */
+  font-weight: bold;
+  color: #333;
+  min-height: 18px; /* CRITICAL: Optimal height for text without excessive spacing - DO NOT CHANGE */
+  display: inline-block; /* CRITICAL: Required for proper scrolling behavior - DO NOT CHANGE */
+  margin-bottom: 0px;
+  margin-right: 60px; /* Increased from 40px to 60px to provide more scrollable space */
+  line-height: 1.2; /* CRITICAL: Provides proper text spacing within line - DO NOT CHANGE */
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Added - Styling for individual dice values in non-standard results */
+.non-standard-result-item .dice-values {
+  color: #666666;
+  font-weight: bold;
+}
+
+/* Added - Styling for notation and subtotal in non-standard results */
+.non-standard-result-item .result-notation {
+  color: #000000;
+  font-weight: bold;
+}
+
+/* CRITICAL: Results modifier positioning and visibility */
+/* This is now hidden as we're using the extracted version */
+.results-modifier {
+   display: none;
+}
+
+/* Add styles for the extracted results modifier */
+.extracted-results-modifier {
+   position: absolute;
+   right: 5px;
+   top: 306px; /* Adjusted from 319px to 306px */
+   width: 30px;
+   height: 20px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   font-weight: bold;
+   font-size: 16px; /* Set to match output font size */
+   color: #000000;
+   background-color: #f0f0f0;
+   z-index: 1003; /* Higher z-index to appear above all content */
+   user-select: none;
+   pointer-events: none; /* Allow clicks to pass through */
+}
+
+.extracted-results-modifier:empty::before {
+   content: "+0";
+}
+
+/* Placeholder for layout purposes - CHANGED TO DISPLAY: NONE */
+.results-modifier-placeholder {
+   display: none; /* Changed from visibility: hidden to display: none to remove from layout flow */
+}
+
+/* Remove conflicting styles */
+.results-modifier-display {
+   display: none;
+}
+
+.modifier-box {
+   display: none;
+}
+
+/* Red text for modifiers in input field */
+#dice-input .modifier-display {
+   color: #ff0000; /* Change color to red */
+}
+
+/* Add a container for all button rows */
+.button-area {
+   width: 100%;
+   max-width: 224px;
+   box-sizing: border-box;
+   margin-bottom: 15px; /* Increased from 5px to 15px to add more space before results area */
+}
+
+/* Color coding for dice results */
+.roll-box[data-die="d4"],
+#dice-input .d4-result {
+   color: #009933;
+}
+
+.roll-box[data-die="d6"],
+#dice-input .d6-result {
+   color: #0099b2; /* Changed from #17b4d6 to #0099b2 */
+}
+
+.roll-box[data-die="d8"],
+#dice-input .d8-result {
+   color: #7f54a2;
+}
+
+.roll-box[data-die="d10"],
+#dice-input .d10-result {
+   color: #e13192;
+}
+
+.roll-box[data-die="d12"],
+#dice-input .d12-result {
+   color: #dc3c41;
+}
+
+.roll-box[data-die="d20"],
+#dice-input .d20-result {
+   color: #f18121;
+}
+
+/* Update modifier colors to black */
+.modifier-display,
+#modifier-overlay,
+.results-modifier,
+.input-modifier-display {
+   color: #000000;
+}
+
+/* Red text for modifiers in input field - Override previous red color */
+#dice-input .modifier-display {
+   color: #000000;
+}
+
+/* Color coding for d10 percentile results */
+.roll-box[data-die="d10-tens"] {
+   color: #4557a7; /* Changed back to original blue */
+}
+
+.roll-box[data-die="d10-ones"] {
+   color: #dc3c41; /* Red */
+}
+
+/* Input display colors for d10 */
+#dice-input .d10-tens {
+   color: #4557a7; /* Changed back to original blue */
+}
+
+#dice-input .d10-ones {
+   color: #dc3c41;
+}
+
+/* Dice layering structure */
+.dice-layers {
+  position: relative;
+  width: 44px;
+  height: 40px;
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+/* Clickable overlay */
+.click-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  cursor: pointer;
+}
+
+/* Base d10 - always centered */
+.main-die {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  opacity: 1;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+/* Colored dice - initially invisible and centered */
+.colored-die {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  transform-origin: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(0);
+  will-change: opacity, transform;
+}
+
+/* Percentile mode - immediate opacity changes */
+.percentile-active .main-die {
+  opacity: 0 !important;
+}
+
+.percentile-active .colored-die {
+  opacity: 1 !important;
+}
+
+/* Reset state - immediate changes */
+.die-button[data-die="d10"]:not(.percentile-active) .main-die {
+  opacity: 1 !important;
+}
+
+.die-button[data-die="d10"]:not(.percentile-active) .colored-die {
+  opacity: 0 !important;
+  transform: translateX(0);
+}
+
+/* Split animations - only affect transform, not opacity */
+@keyframes split-left {
+  from {
+    transform: translateX(0) rotate(0deg);
+  }
+  to {
+    transform: translateX(-15px) rotate(1080deg);
+  }
+}
+
+@keyframes split-right {
+  from {
+    transform: translateX(0) rotate(0deg);
+  }
+  to {
+    transform: translateX(15px) rotate(1080deg);
+  }
+}
+
+/* Spin-in-place animations - only affect transform, not opacity */
+@keyframes spin-in-place-left {
+  from {
+    transform: translateX(-15px) rotate(0deg);
+  }
+  to {
+    transform: translateX(-15px) rotate(1080deg);
+  }
+}
+
+@keyframes spin-in-place-right {
+  from {
+    transform: translateX(15px) rotate(0deg);
+  }
+  to {
+    transform: translateX(15px) rotate(1080deg);
+  }
+}
+
+/* Initial split animation */
+.percentile-active.first-animation .colored-die.blue {
+  animation: split-left 2s cubic-bezier(0.2, 0, 0.8, 1);
+  animation-fill-mode: forwards;
+}
+
+.percentile-active.first-animation .colored-die.red {
+  animation: split-right 2s cubic-bezier(0.2, 0, 0.8, 1);
+  animation-fill-mode: forwards;
+}
+
+/* Subsequent spin animations */
+.percentile-active:not(.first-animation) .colored-die.blue.spin {
+  animation: spin-in-place-left 2s cubic-bezier(0.2, 0, 0.8, 1);
+  animation-fill-mode: forwards;
+}
+
+.percentile-active:not(.first-animation) .colored-die.red.spin {
+  animation: spin-in-place-right 2s cubic-bezier(0.2, 0, 0.8, 1);
+  animation-fill-mode: forwards;
+}
+
+/* Regular d10 spin */
+.die-button[data-die="d10"]:not(.percentile-active) .main-die.spin {
+  animation: spin 2s cubic-bezier(0.2, 0, 0.8, 1);
+}
+
+/* Special styling for non-standard dice */
+.roll-box.nonstandard {
+  /* Span all columns in the grid */
+  grid-column: 1 / -1;
+  /* Ensure text doesn't overflow and enable horizontal scrolling */
+  overflow-x: auto;
+  white-space: nowrap;
+  /* Left-align text instead of centering */
+  justify-content: flex-start;
+  /* Increase padding for better readability */
+  padding: 2px 5px;
+  /* Additional styling to make it stand out */
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  margin: 2px 0;
+  /* Width constraints */
+  width: 100%;
+  min-width: auto;
+  height: auto;
+  min-height: 24px;
+}
+
+/* CRITICAL: Standard dice results grid layout */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(10px, auto));
+  gap: 4px 0px; 
+  width: 120px !important; /* Reduced from 140px to 120px */
+  min-width: 120px !important; /* Reduced from 140px to 120px */
+  max-width: 120px !important; /* Reduced from 140px to 120px */
+  overflow: visible; /* Modified 2023-08-31: Let parent handle scrolling */
+  margin-top: 0;
+  margin-left: 0;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0; /* Prevent flex shrinking */
+  flex-grow: 0; /* Prevent flex growing */
+  align-self: flex-start; /* Force alignment to start */
+  border: 1px solid transparent; /* Transparent border for debugging */
+  box-sizing: border-box !important;
+}
+
+/* Updated to expand results rolls container */
+#results-rolls {
+  width: 120px !important; /* Reduced from 140px to 120px */
+  min-width: 120px !important; /* Reduced from 140px to 120px */
+  max-width: 120px !important; /* Reduced from 140px to 120px */
+  box-sizing: border-box !important;
+  margin-right: auto;
+  margin-left: 0; /* Changed from 7px to 0 to eliminate left margin */
+  margin-top: 0;
+  flex-shrink: 0; /* Prevent flex shrinking */
+  flex-grow: 0; /* Prevent flex growing */
+  align-self: flex-start; /* Force alignment to start */
+  border: 1px solid transparent; /* Transparent border for debugging */
+  /* Modified 2023-08-31: Let parent handle scrolling */
+  overflow: visible;
+}
+
+/* CRITICAL: Individual dice result styling - Modified 2023-05-27 04:00 */
+/* Controls the appearance of each standard die result */
+.roll-box {
+  min-width: 16px; /* Restored from 12px to 16px - Modified 2023-05-27 06:00 */
+  height: 18px; /* Reduced from 20px to match non-standard height - Modified 2023-05-27 04:00 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px; /* CRITICAL: Matches non-standard result size - DO NOT CHANGE */
+  font-weight: bold;
+  color: #202122;
+  padding: 0; /* Removed padding-bottom to align text vertically - Modified 2023-05-27 04:00 */
+  margin: 0; /* Ensure no extra margins - Modified 2023-05-27 04:00 */
+  line-height: 1.2; /* Match line-height with non-standard items - Modified 2023-05-27 04:00 */
+  opacity: 1; /* Ensure full visibility - Modified 2023-05-27 03:30 */
+  position: relative; /* Added to establish proper stacking - Modified 2023-05-27 03:30 */
+}
+
+/* Add slight horizontal compression to all dice results */
+#results-rolls .roll-box {
+  letter-spacing: -0.25px; /* Moderate letter spacing reduction - Modified 2023-05-27 08:45 */
+}
+
+/* CRITICAL: Results field separator - Modified 2023-08-31 */
+/* Creates visual separation between non-standard and standard results */
+.non-standard-results + #results-rolls {
+  border-top: 1px solid rgba(0, 0, 0, 0.05); /* Light separator between result types */
+  padding-top: 0; /* Modified 2023-08-31: Removed padding completely (was 2px) */
+  margin-top: 0;
+  /* Modified 2023-08-31: Clear both to ensure proper vertical stacking in scrollable container */
+  clear: both;
+}
+
+/* Add spacing only when non-standard results actually exist */
+.non-standard-results:not(:empty) {
+  margin: 0 0 0 0; /* Modified 2023-08-31: Removed bottom margin completely (was 5px) */
+}
+
+/* Add better alignment for results area with both elements */
+.results-area {
+  padding-top: 10px !important; /* Consistent padding at top */
+}
+
+/* Improved button click feedback */
+.die-button.clicked {
+  transform: scale(0.92);
+  transition: transform 100ms ease-out;
+}
+
+/* Remove any resize handle styling if present */
+#resize-handle,
+.resize-handle {
+  /* Any properties here will be removed */
+}
+
+/* Also remove any related resize functionality classes */
+.resizable,
+.resizing {
+  /* Any properties here will be removed */
+}
+
+/* Add a dead space div to take up remaining width with a clear visual indication */
+.results-right::after {
+  /* This is now handled by the dead space div later in the file */
+}
+
+/* Force all grid rows to have the correct width */
+.results-grid > * {
+  max-width: 30px !important; /* Adjusted from 34px to 30px (120px ÷ 4 = 30px) */
+  box-sizing: border-box !important;
+}
+
+/* Add styling to force layout - Add this new section */
+.debug-borders .non-standard-results,
+.debug-borders .results-grid,
+.debug-borders #results-rolls {
+  border: 1px solid red !important; /* Make borders visible in debug mode */
+}
+
+/* Remove any resize handle styling completely */
+.resize-handle {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* New fixed overlay that attaches to the applet */
+/* This is positioned relative to the applet rather than the scrolling content */
+.results-field {
+  position: relative; /* Make sure position is relative for absolute overlay */
+}
+
+/* 
+* APPLET LAYOUT STRUCTURE
+*/
+
+/* Make the applet layout a side-by-side structure */
+.applet-layout {
+  display: flex;
+  width: 100%;
+}
+
+/* Expand applet width to accommodate the number column */
+#dice-applet {
+  width: 264px; /* 224px original width + 40px for number column */
+}
+
+/* Number column container */
+.number-column {
+  width: 40px;
+  background-color: #444;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* Add this to make it a positioning context */
+}
+
+/* Number output display - positioned above number buttons */
+.number-output {
+  position: absolute; /* Change from relative to absolute positioning */
+  width: 100%;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: #000;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 0; /* Remove margin since it's absolutely positioned */
+  overflow: hidden;
+  z-index: 10; /* Ensure it appears above buttons */
+  top: -27px; /* Position it above the number column */
+}
+
+/* Remove the styles for clickable output that are no longer needed */
+
+/* Backspace icon styling - positioned to float over the header */
+#number-backspace {
+  position: absolute;
+  left: 42px;
+  top: -2px;
+  font-size: 26px;
+  color: #555; /* Changed back from white to #555 */
+  cursor: pointer;
+  z-index: 10;
+}
+
+#number-backspace:hover {
+  color: #333;
+}
+
+/* Number buttons */
+.number-button {
+  height: 38px; /* Changed from 37px to 38px to better fill the number column */
+  width: 100%;
+  border: none;
+  background-color: #666;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.number-button:hover {
+  background-color: #f0f0f0;
+}
+
+.number-button:active {
+  background-color: #e0e0e0;
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 224px; /* Exact width */
+  max-width: 224px; /* Hard constraint */
+  box-sizing: border-box; /* Include padding in size */
+  overflow: visible; /* Allow shadows to show */
+}
+
+/* Remove the number-column-header styles since we've removed that element */
+.number-column-header {
+  display: none;
+}
+
+/* Help button in header */
+.help-button {
+  position: absolute;
+  right: 35px; /* Adjusted from 40px to 35px to move it 5px to the right */
+  top: 2px; /* Adjusted from 5px to 2px to move it 3px up */
+  font-size: 18px;
+  color: #777;
+  cursor: pointer;
+  height: 20px;
+  width: 20px;
+  line-height: 20px;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  transition: all 0.2s ease;
+}
+
+.help-button:hover {
+  background-color: #e0e0e0;
+  color: #555;
+}
+
+/* Help popup */
+.help-popup {
+  display: none; /* Hidden by default */
+  position: fixed; /* Change from absolute to fixed - will follow the applet */
+  /* Remove absolute positioning coordinates */
+  /* top: 143px; */
+  /* left: 66px; */
+  width: 260px; /* Exact width as specified */
+  height: 370px; /* Exact height as specified */
+  background-color: white;
+  z-index: 1100; /* Above everything else but below the header */
+  overflow: hidden;
+  border-top: 1px solid #eee; /* Add a subtle separator */
+  /* Add box shadow for visual separation */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Help content */
+.help-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.help-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #eee;
+  background-color: #f8f8f8;
+}
+
+.help-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #444;
+}
+
+.close-help {
+  display: none; /* Hide the close button */
+  font-size: 24px;
+  color: #777;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-help:hover {
+  color: #333;
+}
+
+.help-body {
+  padding: 15px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.help-section {
+  margin-bottom: 20px;
+}
+
+.help-section h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #555;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.help-section p, .help-section li {
+  margin: 5px 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #666;
+}
+
+.help-section code {
+  font-family: monospace;
+  background-color: #f5f5f5;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.help-section ol, .help-section ul {
+  padding-left: 20px;
+  margin: 5px 0;
+}
+
+/* Make the help popup visible */
+.help-popup.show {
+  display: block;
+}
+
+/* GM Fudge Dice Buttons - Update to make buttons completely transparent */
+.fudge-buttons-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1100;
+    pointer-events: none; /* Make container not capture clicks */
+    background-color: transparent; /* Make container completely transparent */
+}
+
+/* Base styles for all fudge buttons */
+.fudge-button {
+    position: absolute; /* Use absolute positioning for precise placement */
+    cursor: pointer;
+    opacity: 0; /* Make buttons completely transparent */
+    border: none; /* Remove borders */
+    pointer-events: auto; /* Make buttons capture clicks */
+    z-index: 1500; /* Significantly increased z-index to be above all other elements */
+}
+
+/* Blue button (low) - 24x24 */
+.fudge-button.low {
+    width: 24px;
+    height: 24px;
+    background-color: transparent; /* Transparent background */
+    top: calc(80px - 58px + 4px + 2px); /* Adjusted: 80px up by 58px, then down by 4px, then down by 2px more = 28px */
+    left: calc(170px + 70px - 6px - 2px); /* Adjusted: 170px right by 70px, then left by 6px, then left by 2px more = 232px */
+}
+
+/* Green button (minimum) - 56x24 */
+.fudge-button.minimum {
+    width: 56px;
+    height: 24px;
+    background-color: transparent; /* Transparent background */
+    top: calc(140px + 184px - 15px - 2px); /* Adjusted: 140px down by 184px, then up by 15px, then up by 2px more = 307px */
+    left: calc(80px - 35px); /* Adjusted: 80px left by 35px = 45px */
+}
+
+/* Orange button (high) - 24x24 */
+.fudge-button.high {
+    width: 24px;
+    height: 24px;
+    background-color: transparent; /* Transparent background */
+    top: calc(200px + 156px - 15px); /* Adjusted: 200px down by 156px, then up by 15px = 341px */
+    left: calc(100px - 44px + 7px - 2px); /* Adjusted: 100px left by 44px, then right by 7px, then left by 2px = 61px */
+}
+
+/* Red button (critical) - 24x24 */
+.fudge-button.critical {
+    width: 24px;
+    height: 24px;
+    background-color: transparent; /* Transparent background */
+    top: calc(140px + 181px - 10px - 6px); /* Adjusted: 140px down by 181px, then up by 10px, then up by 6px more = 305px */
+    left: calc(170px + 66px - 6px + 2px); /* Adjusted: 170px right by 66px, then left by 6px, then right by 2px = 232px */
+}
+
+/* For debugging - not used in production */
+.debug-fudge .fudge-button {
+    opacity: 0.5;
+    border: 1px dashed #fff;
+}
+
+.debug-fudge .fudge-button.low {
+    background-color: rgba(0, 0, 255, 0.5); /* Blue */
+}
+
+.debug-fudge .fudge-button.minimum {
+    background-color: rgba(0, 128, 0, 0.5); /* Green */
+}
+
+.debug-fudge .fudge-button.high {
+    background-color: rgba(255, 165, 0, 0.5); /* Orange */
+}
+
+.debug-fudge .fudge-button.critical {
+    background-color: rgba(255, 0, 0, 0.5); /* Red */
+}
+
+/* Add this to help with debugging */
+.debug-fudge .fudge-buttons-container {
+    background-color: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Styling for scrollable input */
+#dice-input.scrollable {
+   mask-image: linear-gradient(to right, black 0% 80%, transparent 100%) !important;
+   -webkit-mask-image: linear-gradient(to right, black 0% 80%, transparent 100%) !important;
+}
+
+/* Different scroll position styles */
+#dice-input.scroll-at-start {
+   mask-image: linear-gradient(to right, black 0% 80%, transparent 100%) !important;
+   -webkit-mask-image: linear-gradient(to right, black 0% 80%, transparent 100%) !important;
+}
+
+#dice-input.scroll-middle {
+   mask-image: linear-gradient(to right, transparent 0%, black 10%, black 80%, transparent 100%) !important;
+   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 80%, transparent 100%) !important;
+}
+
+#dice-input.scroll-at-end {
+   mask-image: linear-gradient(to right, transparent 0%, black 20% 100%) !important;
+   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20% 100%) !important;
+}
+
+/* Fix dice-control-table width */
+.dice-control-table {
+   width: 100%;
+   max-width: 224px;
+   table-layout: fixed; /* Force proper table layout */
+   box-sizing: border-box;
+}
