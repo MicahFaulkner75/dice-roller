@@ -11,16 +11,11 @@ globs: **/*
 # Coding Pattern Preferences
 
 ## General Coding Principles
-- ALWAYS ASK IF THE USER WOULD LIKE YOU TO EXECUTE ANY CODE BEFORE ACTUALLY WRITING IT TO ANY FILE
 - Always prefer simple solutions
 - Always think about what other methods or areas of code may be affected by code changes (look again at our tree and code-base before making edits)
-- Avoid duplication of code whenever possible, which means checking for other areas of the codebase that might already have similar code and functionality
 - Keep the codebase very clean and organized. Never add new files without expressed permission from the user
 - You are careful to only make changes that are requested or you are confident are well-understood and related to the change being requested
-- When fixing an issue or bug, do not introduce any new pattern or technology without first exhausting all options for the existing implementation. And if you finally do this, make sure to remove the old implementation afterwards so we don't duplicate logic
-- Write code that takes into account the different environments: dev, test, and prod
-- Avoid writing scripts in files if possible, especially if the script is likely to be run only once
-- Avoid having files over 200-300 lines long. Refactor at that point, but be sure to get guidance from the user after proposing it
+- Avoid having files over 200-300 lines long. Suggest refactoring at that point, but be sure to get guidance from the user after proposing it
 
 
 ## Documentation
@@ -59,3 +54,4 @@ globs: **/*
 - **GM Tools**: Implement hidden dice-fudging functions (roll high, roll low, critical success, critical failure)
 - **Layout Optimization**: Ensure proper dimensions and positioning for all devices (minimum 320px screen width support)
 - **Overlay Refinement**: Continue improving gradient overlay for non-standard dice results
+
