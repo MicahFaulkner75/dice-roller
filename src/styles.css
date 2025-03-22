@@ -440,13 +440,13 @@ body {
    align-items: center;
    justify-content: center;
    font-weight: bold;
-   font-size: 16px; /* Added to match output font size */
+   font-size: 16px;
    color: #000000;
    background-color: #f0f0f0;
    user-select: none;
-   z-index: 1000; /* Increased z-index to ensure it's always on top */
-   pointer-events: none; /* Ensure clicks pass through */
-   box-shadow: -15px 0 12px #f0f0f0; /* Add shadow for better blending */
+   z-index: 1000;
+   pointer-events: none;
+   box-shadow: -15px 0 12px #f0f0f0;
 }
 
 .input-modifier-display:empty::before {
@@ -457,28 +457,6 @@ body {
 #dice-input:empty:before {
    content: attr(placeholder);
    color: #D1D5DB;
-}
-
-/* Styling for scrollable input */
-#dice-input.scrollable {
-   mask-image: linear-gradient(to right, black 0% 80%, transparent 100%) !important;
-   -webkit-mask-image: linear-gradient(to right, black 0% 80%, transparent 100%) !important;
-}
-
-/* Different scroll position styles */
-#dice-input.scroll-at-start {
-   mask-image: linear-gradient(to right, black 0% 80%, transparent 100%) !important;
-   -webkit-mask-image: linear-gradient(to right, black 0% 80%, transparent 100%) !important;
-}
-
-#dice-input.scroll-middle {
-   mask-image: linear-gradient(to right, transparent 0%, black 10%, black 80%, transparent 100%) !important;
-   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 80%, transparent 100%) !important;
-}
-
-#dice-input.scroll-at-end {
-   mask-image: linear-gradient(to right, transparent 0%, black 20% 100%) !important;
-   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20% 100%) !important;
 }
 
 /*
@@ -1193,7 +1171,7 @@ body {
 * ==============================================
 */
 
-/* GM Fudge Dice Buttons - Update to make buttons completely transparent */
+/* GM Fudge Dice Buttons */
 .fudge-buttons-container {
     position: absolute;
     top: 0;
@@ -1201,82 +1179,55 @@ body {
     width: 100%;
     height: 100%;
     z-index: 1100;
-    pointer-events: none; /* Make container not capture clicks */
-    background-color: transparent; /* Make container completely transparent */
+    pointer-events: none;
+    background-color: transparent;
 }
 
 /* Base styles for all fudge buttons */
 .fudge-button {
-    position: absolute; /* Use absolute positioning for precise placement */
+    position: absolute;
     cursor: pointer;
-    opacity: 0; /* Make buttons completely transparent */
-    border: none; /* Remove borders */
-    pointer-events: auto; /* Make buttons capture clicks */
-    z-index: 1500; /* Significantly increased z-index to be above all other elements */
+    opacity: 0;
+    border: none;
+    pointer-events: auto;
+    z-index: 1500;
+    background-color: transparent;
 }
 
 /* Blue button (low) - 24x24 */
 .fudge-button.low {
     width: 24px;
     height: 24px;
-    background-color: transparent; /* Transparent background */
-    top: calc(80px - 58px + 4px + 2px); /* Adjusted: 80px up by 58px, then down by 4px, then down by 2px more = 28px */
-    left: calc(170px + 70px - 6px - 2px); /* Adjusted: 170px right by 70px, then left by 6px, then left by 2px more = 232px */
+    background-color: transparent;
+    top: 28px;
+    left: 237px;
 }
 
 /* Green button (minimum) - 56x24 */
 .fudge-button.minimum {
     width: 56px;
     height: 24px;
-    background-color: transparent; /* Transparent background */
-    top: calc(140px + 184px - 15px - 2px); /* Adjusted: 140px down by 184px, then up by 15px, then up by 2px more = 307px */
-    left: calc(80px - 35px); /* Adjusted: 80px left by 35px = 45px */
+    background-color: transparent;
+    top: 317px;
+    left: 45px;
 }
 
 /* Orange button (high) - 24x24 */
 .fudge-button.high {
     width: 24px;
     height: 24px;
-    background-color: transparent; /* Transparent background */
-    top: calc(200px + 156px - 15px); /* Adjusted: 200px down by 156px, then up by 15px = 341px */
-    left: calc(100px - 44px + 7px - 2px); /* Adjusted: 100px left by 44px, then right by 7px, then left by 2px = 61px */
+    background-color: transparent;
+    top: 349px;
+    left: 61px;
 }
 
 /* Red button (critical) - 24x24 */
 .fudge-button.critical {
     width: 24px;
     height: 24px;
-    background-color: transparent; /* Transparent background */
-    top: calc(140px + 181px - 10px - 6px); /* Adjusted: 140px down by 181px, then up by 10px, then up by 6px more = 305px */
-    left: calc(170px + 66px - 6px + 2px); /* Adjusted: 170px right by 66px, then left by 6px, then right by 2px = 232px */
-}
-
-/* For debugging - not used in production */
-.debug-fudge .fudge-button {
-    opacity: 0.5;
-    border: 1px dashed #fff;
-}
-
-.debug-fudge .fudge-button.low {
-    background-color: rgba(0, 0, 255, 0.5); /* Blue */
-}
-
-.debug-fudge .fudge-button.minimum {
-    background-color: rgba(0, 128, 0, 0.5); /* Green */
-}
-
-.debug-fudge .fudge-button.high {
-    background-color: rgba(255, 165, 0, 0.5); /* Orange */
-}
-
-.debug-fudge .fudge-button.critical {
-    background-color: rgba(255, 0, 0, 0.5); /* Red */
-}
-
-/* Add this to help with debugging */
-.debug-fudge .fudge-buttons-container {
-    background-color: rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background-color: transparent;
+    top: 305px;
+    left: 232px;
 }
 
 /*

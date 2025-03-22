@@ -52,7 +52,14 @@ export function setupHelpPopup() {
     
     // Listen for ESC key to close the popup
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && helpShown) {
+        if (helpShown && (e.key === 'Escape' || e.key === ' ')) {
+            hideHelpPopup();
+        }
+    });
+    
+    // Listen for clicks outside the help popup
+    document.addEventListener('click', (e) => {
+        if (helpShown && !helpPopup.contains(e.target) && !helpButton.contains(e.target)) {
             hideHelpPopup();
         }
     });
@@ -145,8 +152,10 @@ export function showHelpPopup() {
  */
 export function hideHelpPopup() {
     console.log('Hiding help popup');
-    helpPopup.classList.remove('show');
-    helpShown = false;
+    if (helpPopup) {
+        helpPopup.classList.remove('show');
+        helpShown = false;
+    }
 }
 
 /**

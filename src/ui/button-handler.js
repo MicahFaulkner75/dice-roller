@@ -49,6 +49,7 @@ import { updateDisplay } from './display';
 import { prepareDisplayData } from '../core-functions';
 import { getCurrentNumberValue, clearNumberValue } from '../number-buttons';
 import { addDie, getSelectedDice, setFudgeMode } from '../state';
+import { hideHelpPopup } from '../help';
 
 /**
  * Main setup function called from index.js to initialize all UI event handlers
@@ -291,6 +292,8 @@ function setupControlButtons() {
     closeButton.addEventListener('click', () => {
       // Use core function to minimize the applet without resetting state
       minimizeApplet();
+      // Also close help popup if it's open
+      hideHelpPopup();
     });
   }
   
@@ -337,6 +340,8 @@ function setupClickOutsideBehavior() {
           isQuickClick) {
         // Use core function to minimize the applet
         minimizeApplet();
+        // Also close help popup if it's open
+        hideHelpPopup();
       }
     }
   });
