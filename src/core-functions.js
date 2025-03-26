@@ -58,13 +58,13 @@ export function prepareDisplayData() {
 }
 
 /**
- * Prepare results data for display and animation
+ * Prepare results data for display
  * @param {Array} results - Array of roll results
  * @param {Array} diceTypes - Array of dice types
- * @param {number} modifier - The modifier to apply
- * @returns {Object} Object containing formatted results data
+ * @param {number} modifier - Modifier to apply to total
+ * @returns {Object} Formatted results data
  */
-function prepareResultsData(results, diceTypes, modifier) {
+export function prepareResultsData(results, diceTypes, modifier) {
   console.log('=== DEBUG: prepareResultsData ===');
   console.log('Input results:', results);
   console.log('Input diceTypes:', diceTypes);
@@ -73,41 +73,57 @@ function prepareResultsData(results, diceTypes, modifier) {
   const standardResults = [];
   const nonStandardGroups = {};
   let total = modifier || 0;
+  
   console.log('Starting total (modifier):', total);
-
+  
   results.forEach((result, index) => {
     const dieType = diceTypes[index];
-    console.log(`Processing die ${index}: ${dieType} = ${result}`);
+    console.log(`Processing die ${index}: ${dieType}`);
     
-    total += result;
-    console.log(`After adding result, total = ${total}`);
-
-    if (isStandardDie(dieType)) {
+    // Handle percentile results (which come as objects with type and value)
+    if (result && typeof result === 'object' && 'type' in result) {
+      // This is a percentile component - treat as standard die
       standardResults.push({
-        value: result,
-        dieType
+        value: result,  // Pass the entire object to preserve type and value
+        dieType: 'd00'  // Mark as percentile
       });
-      console.log(`Added standard die ${dieType} = ${result}`);
+      // Don't add to total here - it's handled separately in computeTotal
     } else {
-      if (!nonStandardGroups[dieType]) {
-        nonStandardGroups[dieType] = {
-          count: 1,
-          results: [result],
-          subtotal: result
-        };
-        console.log(`Created new non-standard group for ${dieType}, subtotal = ${result}`);
+      // Handle regular dice results
+      if (isStandardDie(dieType)) {
+        standardResults.push({
+          value: result,
+          dieType
+        });
+        total += result;
+        console.log(`Added standard die ${dieType} = ${result}`);
       } else {
-        nonStandardGroups[dieType].count++;
-        nonStandardGroups[dieType].results.push(result);
-        nonStandardGroups[dieType].subtotal += result;
-        console.log(`Updated non-standard group for ${dieType}, new subtotal = ${nonStandardGroups[dieType].subtotal}`);
+        if (!nonStandardGroups[dieType]) {
+          nonStandardGroups[dieType] = {
+            count: 1,
+            results: [result],
+            subtotal: result
+          };
+          console.log(`Created new non-standard group for ${dieType}, subtotal = ${result}`);
+        } else {
+          nonStandardGroups[dieType].count++;
+          nonStandardGroups[dieType].results.push(result);
+          nonStandardGroups[dieType].subtotal += result;
+          console.log(`Updated non-standard group for ${dieType}, new subtotal = ${nonStandardGroups[dieType].subtotal}`);
+        }
+        total += result;
       }
     }
   });
   
+  // For percentile dice, use the computed total from dice-logic
+  if (diceTypes.includes('d00')) {
+    total = computeTotal();
+  }
+  
   console.log('Final nonStandardGroups:', JSON.stringify(nonStandardGroups, null, 2));
   console.log('Final total:', total);
-
+  
   return {
     standardResults,
     nonStandardGroups,
@@ -221,11 +237,13 @@ export function rollPercentileDie() {
   // Roll the percentile die using existing logic
   const { results, total } = rollAllDice();
   
-  const durationMs = animateDiceIcons(['d00']);
-  animateResults(prepareAnimationData(results, getSelectedDice()), durationMs);
-  updateResults(prepareResultsData(results, getSelectedDice(), getModifier()));
-  
-  return { results, total };
+  // Return the properly structured roll info
+  return {
+    diceToAnimate: ['d00'],  // Always animate the d00 for percentile
+    results,
+    diceTypes: ['d00'],      // Specify the dice type
+    total
+  };
 }
 
 /**
@@ -508,48 +526,35 @@ export function processNotation(notation) {
   // Special handling for exact standalone "d100" to ensure it still works as percentile
   if (percentileSet.has(notation.trim().toLowerCase())) {
     console.log('Exact percentile pattern detected, treating as percentile');
-    
-    // Clear the current dice pool
-    clearDice();
-    clearResults(); // Also clear results to prevent accumulation
-    
-    // Add a percentile die for d100 (using d00 internally)
-    addDie('d00');
-    
-    // Roll the percentile die
-    const { results } = rollAllDice();
-    
-    // Update display to show "00" in the input area
-    updateDisplay(prepareDisplayData());
-    
-    return {
-      diceToAnimate: ['d00'],
-      results: results,
-      total: computeTotal()
-    };
+    return triggerPercentileRoll('notation');
   }
   
   // Check for non-standard dice patterns
   if (nonStandardSet.has(notation.trim().toLowerCase())) {
-    console.log('Non-standard dice pattern detected: 1d100 -> converting to d100');
+    console.log('Non-standard dice pattern detected: 1d100 -> treating as d100');
     
     // Clear the current dice pool
     clearDice();
-    clearResults(); // Also clear results to prevent accumulation
+    clearResults();
     
-    // Special case: convert 1d100 to d100 before adding
-    const dieToAdd = 'd100';
-    addDie(dieToAdd);
+    // Add as non-standard d100
+    const dieType = 'd100';
+    addDie(dieType);
     
-    // Roll the non-standard die
-    const { results } = rollAllDice();
+    // Roll as a regular d100
+    const result = rollDie(100);
+    addRollResult(result);
     
     // Update display
     updateDisplay(prepareDisplayData());
     
+    const durationMs = animateDiceIcons([dieType]);
+    animateResults(prepareAnimationData([result], [dieType]), durationMs);
+    updateResults(prepareResultsData([result], [dieType], getModifier()));
+    
     return {
-      diceToAnimate: [dieToAdd],
-      results: results,
+      diceToAnimate: [dieType],
+      results: [result],
       total: computeTotal()
     };
   }
@@ -719,32 +724,54 @@ export function animateDiceRoll(rollInfo) {
 }
 
 /**
- * Activates percentile mode on the d10 die
+ * Single entry point for all percentile dice functionality
+ * @param {string} triggerType - How the percentile was triggered ('double-click', 'long-press', 'notation', 'shift-click')
+ * @returns {Object} Roll information for animation
  */
-export function activatePercentileMode() {
-  const d10Button = document.querySelector('.die-button[data-die="d10"]');
-  if (!d10Button) return false;
-  
-  // Clear existing dice and set up percentile roll
-  clearDicePool();
-  addDie('d00');
-  updateDisplay();
-  
-  const isFirstActivation = !d10Button.classList.contains('percentile-active');
-  
-  if (isFirstActivation) {
-    // First activation setup
-    d10Button.classList.remove('percentile-active');
-    void d10Button.offsetWidth;
-    d10Button.classList.add('percentile-active', 'first-animation');
+export function triggerPercentileRoll(triggerType) {
+    console.log(`[DEBUG] Percentile roll triggered by: ${triggerType}`);
+    return activatePercentileMode(triggerType);
+}
+
+/**
+ * Activates percentile mode on the d10 die
+ * @param {string} triggerType - How the percentile was triggered
+ * @returns {Object} Roll information for animation
+ */
+export function activatePercentileMode(triggerType) {
+    console.log(`[DEBUG] Activating percentile mode via ${triggerType}`);
     
-    if (!d10Button.classList.contains('has-rolled-once')) {
-      d10Button.classList.add('has-rolled-once');
+    const d10Button = document.querySelector('.die-button[data-die="d10"]');
+    if (!d10Button) {
+        console.warn('[DEBUG] d10 button not found');
+        return false;
     }
-  }
-  
-  // Roll and get animation info
-  return rollPercentileDie();
+    
+    // Clear existing dice and set up percentile roll
+    clearDicePool();
+    addDie('d00');
+    
+    // Update display with percentile mode
+    updateDisplay({
+        selectedDice: getSelectedDice(),
+        modifier: getModifier(),
+        isPercentile: true
+    });
+    
+    // Handle UI feedback
+    const isFirstActivation = !d10Button.classList.contains('percentile-active');
+    if (isFirstActivation) {
+        d10Button.classList.remove('percentile-active');
+        void d10Button.offsetWidth; // Force reflow
+        d10Button.classList.add('percentile-active', 'first-animation');
+        
+        if (!d10Button.classList.contains('has-rolled-once')) {
+            d10Button.classList.add('has-rolled-once');
+        }
+    }
+    
+    // Roll and return animation info
+    return rollPercentileDie();
 }
 
 /**

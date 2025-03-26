@@ -212,12 +212,22 @@ export function updateResults(data) {
   
   console.log(`[DEBUG] Updating standard results:`, standardResults);
   standardResults.forEach(result => {
-      const rollBox = document.createElement('div');
-      rollBox.className = 'roll-box';
-    rollBox.dataset.die = result.dieType;
-    rollBox.textContent = result.value;
+    const rollBox = document.createElement('div');
+    rollBox.className = 'roll-box';
+    
+    // Special handling for percentile results
+    if (typeof result.value === 'object' && result.value.type) {
+      // This is a percentile component
+      rollBox.dataset.die = result.value.type;  // d10-tens or d10-ones
+      rollBox.textContent = result.value.value;
+    } else {
+      // Standard die result
+      rollBox.dataset.die = result.dieType;
+      rollBox.textContent = result.value;
+    }
+    
     resultsRolls.appendChild(rollBox);
-    console.log(`[DEBUG] Added standard die result: ${result.dieType} = ${result.value}`);
+    console.log(`[DEBUG] Added result: ${rollBox.dataset.die} = ${rollBox.textContent}`);
   });
   
   // Update total value

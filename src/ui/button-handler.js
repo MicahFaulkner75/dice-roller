@@ -26,6 +26,7 @@ import {
   rollSpecificDie, 
   rollPercentileDie,
   activatePercentileMode,
+  triggerPercentileRoll,
   
   // Pool management
   clearDicePool,
@@ -85,8 +86,9 @@ export function setupDiceButtons() {
     let pressTimer;
     let lastClickTime = 0;
     const doubleClickDelay = 300; // ms between clicks to count as double-click
-    let isLongPress = false;  // Track if we're handling a long press
-    let isDoubleClick = false; // Track if we're handling a double click
+    const longPressDelay = 350;   // ms to trigger long press (iOS standard)
+    let isLongPress = false;      // Track if we're handling a long press
+    let isDoubleClick = false;    // Track if we're handling a double click
     
     // Single click handler
     button.addEventListener('click', (e) => {
@@ -99,15 +101,25 @@ export function setupDiceButtons() {
       }
       
       const currentTime = Date.now();
+      
+      // Handle shift-click for d10
+      if (e.shiftKey && button.dataset.die === 'd10') {
+        e.preventDefault();
+        e.stopPropagation();
+        const rollInfo = triggerPercentileRoll('shift-click');
+        animateDiceRoll(rollInfo);
+        return;
+      }
+      
       if (currentTime - lastClickTime < doubleClickDelay) {
         // Double click detected
         e.preventDefault();
         e.stopPropagation();
         isDoubleClick = true;
         
-        // Use core function for percentile mode
+        // Use unified trigger for percentile mode
         if (button.dataset.die === 'd10') {
-          const rollInfo = activatePercentileMode();
+          const rollInfo = triggerPercentileRoll('double-click');
           animateDiceRoll(rollInfo);
         }
         
@@ -126,20 +138,20 @@ export function setupDiceButtons() {
     
     // Long press handlers
     button.addEventListener('mousedown', (e) => {
-      if (e.target.closest('button') || e.target.closest('.input-row')) return;
+      // Start the long press timer
       pressTimer = setTimeout(() => {
         isLongPress = true;
         
-        // Use core function for percentile mode
+        // Use unified trigger for percentile mode
         if (button.dataset.die === 'd10') {
-          const rollInfo = activatePercentileMode();
+          const rollInfo = triggerPercentileRoll('long-press');
           animateDiceRoll(rollInfo);
         }
         
         // Prevent any click events from firing
         e.preventDefault();
         e.stopPropagation();
-      }, 500);
+      }, longPressDelay);
     });
     
     button.addEventListener('touchstart', (e) => {
@@ -147,12 +159,12 @@ export function setupDiceButtons() {
       pressTimer = setTimeout(() => {
         isLongPress = true;
         
-        // Use core function for percentile mode
+        // Use unified trigger for percentile mode
         if (button.dataset.die === 'd10') {
-          const rollInfo = activatePercentileMode();
+          const rollInfo = triggerPercentileRoll('long-press');
           animateDiceRoll(rollInfo);
         }
-      }, 500);
+      }, longPressDelay);
     }, { passive: false });
     
     // Clear timer if mouse/touch ends

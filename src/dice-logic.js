@@ -367,7 +367,7 @@ export function parseDiceNotation(input) {
       
       // Special handling for 1d100
       if (match[0].toLowerCase() === '1d100') {
-        console.log("Found 1d100, converting to d100");
+        console.log("Found 1d100, treating as non-standard d100");
         results.dice.push('d100');
         hasOtherDice = true;
         continue;
