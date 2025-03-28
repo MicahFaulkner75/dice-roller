@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Roller Applet</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Add Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Dice Roller Button -->
+    <div id="dice-roller-button-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1100;">
+        <img id="dice-roller-button" 
+             src="https://annotatedtoa.com/wp-content/uploads/2025/02/d20-icon.png" 
+             style="width: 50px; height: 50px; cursor: pointer;" 
+             alt="Launch Dice Roller">
+    </div>
+
+    <!-- Dice Roller Container -->
+    <div id="dice-roller-container">
+        <div id="dice-applet" class="draggable">
+            <div class="header">
+                <!-- Help button with '?' icon -->
+                <i id="help-button" class="help-button fa-solid fa-info-circle"></i>
+                <!-- Clear last digit button -->
+                <i id="clear-last-digit" class="fas fa-delete-left clear-last-digit-button"></i>
+                <div id="close-applet" class="close-button">×</div>
+            </div>
+            
+            <div class="fudge-buttons-container">
+                <div class="fudge-button critical" data-fudge="critical" title="Critical Hit (max)"></div>
+                <div class="fudge-button high" data-fudge="high" title="High Roll (>75%)"></div>
+                <div class="fudge-button low" data-fudge="low" title="Low Roll (<50%)"></div>
+                <div class="fudge-button minimum" data-fudge="minimum" title="Minimum Roll (1)"></div>
+            </div>
+            
+            <div class="applet-layout">
+                <!-- Number buttons column on the left -->
+                <div class="number-column">
+                    <!-- Number output display -->
+                    <div class="number-output"></div>
+                    
+                    <button class="number-button" data-value="1">1</button>
+                    <button class="number-button" data-value="2">2</button>
+                    <button class="number-button" data-value="3">3</button>
+                    <button class="number-button" data-value="4">4</button>
+                    <button class="number-button" data-value="5">5</button>
+                    <button class="number-button" data-value="6">6</button>
+                    <button class="number-button" data-value="7">7</button>
+                    <button class="number-button" data-value="8">8</button>
+                    <button class="number-button" data-value="9">9</button>
+                    <button class="number-button" data-value="0">0</button>
+                </div>
+                
+                <!-- Main applet content -->
+                <div class="main-content">
+                    <!-- Results modifier - positioned absolutely -->
+                    <div id="results-modifier" class="results-modifier">+0</div>
+                    
+                    <div class="input-row">
+                        <div class="input-container">
+                            <div id="dice-input" contenteditable="true" placeholder="Enter dice notation"></div>
+                            <div class="input-modifier-display">+0</div>
+                        </div>
+                    </div>
+                    <div class="button-area">
+                        <table class="dice-control-table">
+                            <tr class="dice-buttons">
+                                <td><button class="die-button" data-die="d4"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/d4.svg" alt="d4"></button></td>
+                                <td><button class="die-button" data-die="d6"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/d6.svg" alt="d6"></button></td>
+                                <td><button class="die-button" data-die="d8"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/d8.svg" alt="d8"></button></td>
+                            </tr>
+                            <tr class="dice-buttons">
+                                <td><button class="die-button" data-die="d10">
+                                    <!-- Clickable overlay -->
+                                    <div class="click-overlay"></div>
+                                    <!-- Visual dice layers beneath -->
+                                    <div class="dice-layers">
+                                        <!-- Base d10 -->
+                                        <img class="main-die" src="https://annotatedtoa.com/wp-content/uploads/2025/03/d10.svg" alt="d10">
+                                        <!-- Colored dice (initially invisible) -->
+                                        <img class="colored-die blue" src="https://annotatedtoa.com/wp-content/uploads/2025/03/d10blue.svg" alt="d10">
+                                        <img class="colored-die red" src="https://annotatedtoa.com/wp-content/uploads/2025/03/d10red.svg" alt="d10">
+                                    </div>
+                                </button></td>
+                                <td><button class="die-button" data-die="d12"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/d12.svg" alt="d12"></button></td>
+                                <td><button class="die-button" data-die="d20"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/d20.svg" alt="d20"></button></td>
+                            </tr>
+                            <tr class="control-row">
+                                <td><button id="clear-button"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/ban.svg" alt="Clear"></button></td>
+                                <td><button id="roll-button"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/reroll.svg" alt="Roll"></button></td>
+                                <td class="modify-button-container">
+                                    <button id="modify-button-increase"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/up.svg" alt="Increase"></button>
+                                    <button id="modify-button-decrease"><img src="https://annotatedtoa.com/wp-content/uploads/2025/03/down.svg" alt="Decrease"></button>
+                                    <div id="modifier-overlay">+0</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="results-field">
+                        <div class="results-header">
+                            <div class="results-total">
+                                <div class="total-label">TOTAL</div>
+                                <div id="results-total">
+                                    <span class="total-value">0</span>
+                                    <!-- The results-modifier has been extracted and moved up -->
+                                    <div class="results-modifier-placeholder"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="results-area">
+                            <div id="non-standard-results" class="non-standard-results">
+                                <!-- Non-standard grouped dice results will be inserted here -->
+                            </div>
+                            <div id="results-rolls" class="results-grid">
+                                <!-- Roll boxes will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-popup" class="help-popup">
+        <div class="help-content">
+            <div class="help-header">
+                <h2>How to Use the Dice Roller</h2>
+                <span id="close-help" class="close-help">×</span>
+            </div>
+            <div class="help-body">
+                <div class="help-section">
+                    <h3>Introduction</h3>
+                    <p>This dice roller allows you to roll various types of dice for tabletop games.</p>
+                </div>
+                <div class="help-section">
+                    <h3>Buttons</h3>
+                    <ul>
+                        <li><strong>Number Buttons:</strong> Add numbers to your roll.</li>
+                        <li><strong>Roll Button:</strong> Roll the dice.</li>
+                        <li><strong>Clear Button:</strong> Clear the current roll.</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h3>Keyboard Shortcuts</h3>
+                    <ul>
+                        <li><strong>Enter:</strong> Roll the dice.</li>
+                        <li><strong>Backspace:</strong> Clear the roll.</li>
+                        <li><strong>Escape:</strong> Close the applet.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

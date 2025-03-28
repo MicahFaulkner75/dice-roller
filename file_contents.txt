@@ -1,0 +1,96 @@
+DICE ANIMATIONS (dice-animations.js) ANALYSIS
+
+1. CORE FUNCTIONS AND UTILITIES (Lines 1-40):
+   - File header explains main responsibilities
+   - Imports state management functions
+   - isStandardDie: Helper to check if a die is standard (d4-d20)
+
+2. PHYSICS-BASED ANIMATION SYSTEM (Lines 41-156):
+   - decelerate: Physics function for realistic dice slowdown
+   - animateTransform: Core animation engine that:
+     - Manages transform animations using requestAnimationFrame
+     - Handles rotation and translation
+     - Uses physics-based deceleration for natural movement
+     - Maintains animation IDs to prevent conflicts
+
+3. DICE ICON ANIMATION (Lines 157-209):
+   - animateDiceIcons: Manages visual dice spinning
+   - Special handling for d10/percentile dice
+   - Uses the physics system for 3 full rotations
+
+4. RANDOM VALUE GENERATION (Lines 210-248):
+   - getRandomValueForDie: Generates appropriate random numbers
+   - Special handling for percentile dice (00-90 for tens, 0-9 for ones)
+   - Input validation and error handling
+
+5. NUMBER RESULT ANIMATION (Lines 249-348):
+   - animateNumberResult: Creates the "counting up" effect
+   - Manages the rapid number changes during animation
+   - Coordinates with the physics system for timing
+
+6. RESULTS ANIMATION SYSTEM (Lines 349-497):
+   - animateResults: Main coordinator for all result animations
+   - Manages:
+     - Results grid creation and layout
+     - Individual number animations
+     - Total value updates
+     - Debug logging and style verification
+   - Heavy focus on style debugging and verification
+   - Creates DOM elements with specific class structure
+   - Coordinates timing between dice and number animations
+
+7. D10 SPECIAL HANDLING (Lines 498-586):
+   - animateD10: Special animation system for d10/percentile
+   - Manages the transition between normal and percentile modes
+   - Coordinates complex animations for split dice display
+
+8. D10 STATE MANAGEMENT (Lines 587-622):
+   - resetD10State: Handles cleanup of d10/percentile animations
+   - Manages transform and opacity transitions
+   - Ensures proper state reset between modes
+
+9. NON-STANDARD DICE HANDLING (Lines 623-740):
+   - animateNonStandardResult: Manages complex dice group animations
+   - Handles:
+     - Subtotal tracking and display
+     - Progressive animation slowdown
+     - Random value generation during animation
+     - State management for display purposes
+
+POTENTIAL FONT ISSUE AREAS:
+
+1. Dynamic Style Application (Lines 406-412):
+```javascript
+rollBox.style.opacity = '1';
+rollBox.style.visibility = 'visible';
+rollBox.style.display = 'flex';
+rollBox.style.alignItems = 'center';
+rollBox.style.justifyContent = 'center';
+rollBox.style.position = 'relative';
+rollBox.style.zIndex = '1';
+```
+These inline styles could potentially interfere with CSS class styles.
+
+2. Style Monitoring (Lines 428-438):
+```javascript
+console.log('Font:', {
+  size: computedNumberStyle.fontSize,
+  weight: computedNumberStyle.fontWeight,
+  color: computedNumberStyle.color
+});
+```
+Shows active monitoring of font styles during animation.
+
+3. Element Creation (Lines 394-399):
+```javascript
+rollBox.className = 'roll-box';
+numberDisplay.className = 'roll-value';
+```
+Class assignment happens before style computation.
+
+POTENTIAL ISSUES:
+1. Style overrides during animation
+2. Timing issues with style application
+3. Potential conflicts between dynamic and static styles
+4. Race conditions between class assignment and style computation
+5. Possible interference from animation state management 
