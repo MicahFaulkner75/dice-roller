@@ -34,37 +34,37 @@ export function setupNumberButtons() {
     console.log('Setting up number buttons...');
     
     // Get all number buttons
-    const numberButtons = document.querySelectorAll('.number-button');
-    const numberOutput = document.querySelector('.number-output');
-    const backspaceButton = document.getElementById('number-backspace');
+    const numberButtonsEl = document.querySelectorAll('.number-button');
+    const numberOutputEl = document.querySelector('.number-output');
+    const clearLastDigitButtonEl = document.getElementById('number-backspace');
     
     // Remove any existing event listeners (just in case)
-    numberButtons.forEach(button => {
+    numberButtonsEl.forEach(button => {
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
     });
     
     // Get the fresh buttons
-    const freshButtons = document.querySelectorAll('.number-button');
+    const freshButtonsEl = document.querySelectorAll('.number-button');
     
     // Add click event listeners to all number buttons
-    freshButtons.forEach(button => {
+    freshButtonsEl.forEach(button => {
         button.addEventListener('click', (e) => {
             console.log(`Button ${button.dataset.value} clicked`);
             const value = button.dataset.value;
-            handleNumberClick(value, numberOutput);
+            handleNumberClick(value, numberOutputEl);
         });
     });
     
-    // Clone and replace backspace button to remove any existing listeners
-    if (backspaceButton) {
-        const newBackspace = backspaceButton.cloneNode(true);
-        backspaceButton.parentNode.replaceChild(newBackspace, backspaceButton);
+    // Clone and replace clear last digit button to remove any existing listeners
+    if (clearLastDigitButtonEl) {
+        const newClearLastDigit = clearLastDigitButtonEl.cloneNode(true);
+        clearLastDigitButtonEl.parentNode.replaceChild(newClearLastDigit, clearLastDigitButtonEl);
         
-        // Add click event listener to the new backspace button
-        newBackspace.addEventListener('click', () => {
-            console.log('Backspace clicked');
-            handleBackspace(numberOutput);
+        // Add click event listener to the new clear last digit button
+        newClearLastDigit.addEventListener('click', () => {
+            console.log('Clear last digit clicked');
+            clearLastDigit(numberOutputEl);
         });
     }
     
@@ -96,26 +96,27 @@ function handleNumberClick(value, outputElement) {
     updateNumberDisplay(outputElement);
     
     // Optional: Add visual feedback to the button
-    const button = document.querySelector(`.number-button[data-value="${value}"]`);
-    if (button) {
-        button.classList.add('active');
+    const buttonEl = document.querySelector(`.number-button[data-value="${value}"]`);
+    if (buttonEl) {
+        buttonEl.classList.add('active');
         setTimeout(() => {
-            button.classList.remove('active');
+            buttonEl.classList.remove('active');
         }, 150);
     }
 }
 
 /**
- * Handle backspace button click
+ * Remove the last digit entered in the number display
+ * This is different from the keyboard backspace which clears the entire app
  * @param {HTMLElement} outputElement - The element displaying the number
  */
-function handleBackspace(outputElement) {
-    console.log(`Handling backspace, current value before: "${currentNumberValue}"`);
+function clearLastDigit(outputElement) {
+    console.log(`Clearing last digit, current value before: "${currentNumberValue}"`);
     
     // Remove the last character
     if (currentNumberValue.length > 0) {
         currentNumberValue = currentNumberValue.slice(0, -1);
-        console.log(`New current value after backspace: "${currentNumberValue}"`);
+        console.log(`New current value after clearing last digit: "${currentNumberValue}"`);
         updateNumberDisplay(outputElement);
     }
 }
@@ -157,9 +158,9 @@ export function setCurrentNumberValue(value) {
     console.log(`Current value set externally to: "${currentNumberValue}"`);
     
     // Update the display
-    const outputElement = document.querySelector('.number-output');
-    if (outputElement) {
-        updateNumberDisplay(outputElement);
+    const outputEl = document.querySelector('.number-output');
+    if (outputEl) {
+        updateNumberDisplay(outputEl);
     }
 }
 
@@ -170,9 +171,9 @@ export function clearNumberValue() {
     currentNumberValue = '';
     console.log('Current value cleared');
     
-    const outputElement = document.querySelector('.number-output');
-    if (outputElement) {
-        updateNumberDisplay(outputElement);
+    const outputEl = document.querySelector('.number-output');
+    if (outputEl) {
+        updateNumberDisplay(outputEl);
     }
 }
 
@@ -186,7 +187,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     `;
     document.head.appendChild(style);
-    
-    // Setup the number buttons once
-    setupNumberButtons();
 }); 

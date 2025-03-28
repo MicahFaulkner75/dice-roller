@@ -31,7 +31,7 @@ import {
 // Import the number buttons functionality
 import { setupNumberButtons } from './number-buttons';
 // Import the help popup functionality
-import { setupHelpPopup } from './help';
+import { initializeHelpSystem } from './help';
 import { initDisplayModule } from './ui/display';
 
 // Add debug border toggle functionality
@@ -40,18 +40,17 @@ function setupDebugMode() {
         // Toggle debug borders with Command + B (metaKey on Mac)
         if (e.metaKey && e.key.toLowerCase() === 'b') {
             e.preventDefault(); // Prevent browser's default bookmark action
-            const applet = document.getElementById('dice-applet');
-            applet.classList.toggle('debug-borders');
-            console.log('Debug borders:', applet.classList.contains('debug-borders') ? 'ON' : 'OFF');
+            const appletEl = document.getElementById('dice-applet');
+            appletEl.classList.toggle('debug-borders');
+            console.log('Debug borders:', appletEl.classList.contains('debug-borders') ? 'ON' : 'OFF');
         }
     });
 }
 
 // Initialize all UI components when the document is ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOMContentLoaded event fired");
-    
-    // Initial setup
+    // console.log('DOM fully loaded and parsed'); // find_me
+    setupUI();
     setupEventListeners();
     setupDiceInput();
     setupDiceButtons();
@@ -59,25 +58,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize number buttons
     setupNumberButtons();
     // Initialize help popup
-    setupHelpPopup();
+    initializeHelpSystem();
     
     // Get the launch button and applet
-    const launchButton = document.getElementById('dice-roller-button');
+    const launchButtonEl = document.getElementById('dice-roller-button');
     
     // Initialize applet state - hide and center it using core functions
     minimizeApplet();
     centerApplet(); // Only center during initial setup
     
     // Add click handler for launch button
-    launchButton.addEventListener('click', () => {
+    launchButtonEl.addEventListener('click', () => {
         // Use core function to toggle applet visibility
         // Don't center when toggling to preserve position
         toggleApplet(false);
     });
 
     // Make the applet draggable
-    const applet = document.getElementById('dice-applet');
-    makeDraggable(applet);
+    const appletEl = document.getElementById('dice-applet');
+    makeDraggable(appletEl);
     
     // Reset applet to initial state
     resetApplet();

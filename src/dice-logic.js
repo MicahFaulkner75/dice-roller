@@ -233,15 +233,15 @@ export function computeNotation() {
 
 // Compute total of current rolls plus modifier
 export function computeTotal() {
-  console.log('=== DEBUG: computeTotal ===');
+  // console.log('=== DEBUG: computeTotal ===');
   
   const currentRolls = getCurrentRolls();
   const modifier = getModifier();
   const lastTotal = getLastTotal();
   
-  console.log('currentRolls:', currentRolls);
-  console.log('modifier:', modifier);
-  console.log('lastTotal:', lastTotal);
+  // console.log('currentRolls:', currentRolls);
+  // console.log('modifier:', modifier);
+  // console.log('lastTotal:', lastTotal);
   
   let sum = 0;
   
@@ -255,7 +255,7 @@ export function computeTotal() {
       const tensValue = parseInt(tens.value, 10);
       const onesValue = parseInt(ones.value, 10);
       sum = (tensValue === 0 && onesValue === 0) ? 100 : tensValue + onesValue;
-      console.log('Percentile roll calculation:', { tensValue, onesValue, sum });
+      // console.log('Percentile roll calculation:', { tensValue, onesValue, sum });
     }
   } else if (currentRolls.length > 0) {
     // Normal dice rolls
@@ -270,23 +270,23 @@ export function computeTotal() {
         rollValue = 0;
       }
       
-      console.log(`Adding roll ${JSON.stringify(roll)} = ${rollValue} to total ${total}`);
+      // console.log(`Adding roll ${JSON.stringify(roll)} = ${rollValue} to total ${total}`);
       return total + rollValue;
     }, 0);
     
-    console.log('Sum after reduce:', sum);
+    // console.log('Sum after reduce:', sum);
   }
 
   // If we have a lastTotal (from percentile rolls), use that instead
   if (lastTotal !== undefined) {
-    console.log(`Using lastTotal (${lastTotal}) instead of calculated sum (${sum})`);
+    // console.log(`Using lastTotal (${lastTotal}) instead of calculated sum (${sum})`);
     clearLastTotal(); // Clear after use
     return lastTotal + modifier;
   }
   
   // Always add the modifier
   const finalTotal = sum + modifier;
-  console.log(`Final total: ${sum} + ${modifier} = ${finalTotal}`);
+  // console.log(`Final total: ${sum} + ${modifier} = ${finalTotal}`);
   return finalTotal;
 }
 
@@ -524,7 +524,7 @@ function validatePercentileRoll(results, total) {
 if (typeof window !== 'undefined') {
     window.testDiceParser = testDiceParser;
     window.testPercentileDice = testPercentileDice;
-    console.log("Test functions available. Run testDiceParser() or testPercentileDice() in console to test.");
+    // console.log("Test functions available. Run testDiceParser() or testPercentileDice() in console to test.");
 }
 
 

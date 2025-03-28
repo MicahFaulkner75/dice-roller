@@ -35,29 +35,29 @@ import { clearNumberValue } from '../number-buttons';
  * Sets up the dice input field and global keyboard handling
  */
 export function setupDiceInput() {
-  const diceInput = document.getElementById('dice-input');
-  diceInput.contentEditable = 'true';
-  diceInput.draggable = false;
+  const diceInputEl = document.getElementById('dice-input');
+  diceInputEl.contentEditable = 'true';
+  diceInputEl.draggable = false;
   
   // Prevent text selection from triggering minimization
-  diceInput.addEventListener('mousedown', (e) => {
+  diceInputEl.addEventListener('mousedown', (e) => {
     e.stopPropagation();
   });
   
-  diceInput.addEventListener('click', (e) => {
+  diceInputEl.addEventListener('click', (e) => {
     e.stopPropagation();
   });
   
   // Set up input-specific keyboard handling
-  diceInput.addEventListener('keydown', handleInputKeyDown);
+  diceInputEl.addEventListener('keydown', handleInputKeyDown);
   
   // No specific action needed on blur
-  diceInput.addEventListener('blur', () => {});
+  diceInputEl.addEventListener('blur', () => {});
 
   // Set up global keyboard handlers
-  setupGlobalKeyboardHandlers(diceInput);
+  setupGlobalKeyboardHandlers(diceInputEl);
   
-  console.log("Input handler setup with centralized keyboard handling");
+  // console.log("Input handler setup with centralized keyboard handling"); // find_me
 }
 
 /**
@@ -92,24 +92,19 @@ function setupGlobalKeyboardHandlers(diceInput) {
         // Use core function to clear pool and reset modifier
         clearDicePool();
         setModifierValue(0);
-        // Also clear the number display
-        clearNumberValue();
         break;
         
       case 'Escape':
         e.preventDefault();
         
-        // When input is focused, just blur it
+        // When input is focused, just blur it (don't clear)
         if (isInputFocused) {
           diceInput.blur();
           return;
         }
         
-        // Clear the number display
-        clearNumberValue();
-        
-        // Otherwise reset the applet
-        resetApplet();
+        // Full applet reset (includes minimize, reposition, clear everything)
+        resetApplet(true); // true flag indicates full reset with minimize
         break;
         
       // Add space key to toggle the applet visibility
@@ -125,7 +120,7 @@ function setupGlobalKeyboardHandlers(diceInput) {
     }
   });
   
-  console.log("Global keyboard handlers have been set up");
+  // console.log("Global keyboard handlers have been set up"); // find_me
 }
 
 /**
@@ -149,9 +144,8 @@ function handleInputKeyDown(e) {
     case 'Escape':
       e.preventDefault();
       e.stopPropagation();
+      // Just blur the input, don't clear anything
       e.target.blur();
-      // Also clear the number display
-      clearNumberValue();
       break;
   }
 }
@@ -161,15 +155,15 @@ function handleInputKeyDown(e) {
  * This is called from ui-updates.js
  */
 export function setupRollButton() {
-  const rollButton = document.getElementById('roll-button');
-  if (rollButton) {
-    rollButton.addEventListener('click', () => {
+  const rollButtonEl = document.getElementById('roll-button');
+  if (rollButtonEl) {
+    rollButtonEl.addEventListener('click', () => {
       // Use core function to reroll and animate
       const rollInfo = rerollAllDice();
       if (rollInfo) {
         animateDiceRoll(rollInfo);
       }
     });
-    console.log("Roll button handler set up");
+    // console.log("Roll button handler set up"); // find_me
   }
 }

@@ -1,7 +1,7 @@
 ---
-description: How we should prefer to code
-globs: **/*
-alwaysApply: false
+description: 
+globs: 
+alwaysApply: true
 ---
 ---
 description: How we should prefer to code
@@ -9,6 +9,8 @@ globs: **/*
 
 ---
 # Coding Pattern Preferences
+
+IMPORTANT: Always write your summaries of our discussions to the bottom of scratch_file.md every three exchanges in the chat dialogue. Summarize what we discussed and learned and any code changes we made. Keep this detailed, but brief. If relevant, ask the user for a timestamp.
 
 ## General Coding Principles
 - Always prefer simple solutions

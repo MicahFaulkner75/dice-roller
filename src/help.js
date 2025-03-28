@@ -21,9 +21,9 @@
  */
 
 // Store references to key elements
-let helpButton;
-let helpPopup;
-let applet;
+let helpButtonEl = null;
+let helpPopupEl = null;
+let appletEl = null;
 
 // Track if the popup is shown
 let helpShown = false;
@@ -31,15 +31,15 @@ let helpShown = false;
 /**
  * Initialize the help popup functionality
  */
-export function setupHelpPopup() {
+export function initializeHelpSystem() {
     console.log('Initializing help popup handler');
     
     // Get references to DOM elements
-    helpButton = document.querySelector('.help-button');
-    helpPopup = document.querySelector('.help-popup');
-    applet = document.getElementById('dice-applet');
+    helpButtonEl = document.querySelector('.help-button');
+    helpPopupEl = document.querySelector('.help-popup');
+    appletEl = document.getElementById('dice-applet');
     
-    if (!helpButton || !helpPopup) {
+    if (!helpButtonEl || !helpPopupEl) {
         console.error('Help elements not found in the DOM');
         return;
     }
@@ -48,7 +48,7 @@ export function setupHelpPopup() {
     createHelpContent();
     
     // Set up event listeners
-    helpButton.addEventListener('click', toggleHelpPopup);
+    helpButtonEl.addEventListener('click', toggleHelpPopup);
     
     // Listen for ESC key to close the popup
     document.addEventListener('keydown', (e) => {
@@ -59,7 +59,7 @@ export function setupHelpPopup() {
     
     // Listen for clicks outside the help popup
     document.addEventListener('click', (e) => {
-        if (helpShown && !helpPopup.contains(e.target) && !helpButton.contains(e.target)) {
+        if (helpShown && !helpPopupEl.contains(e.target) && !helpButtonEl.contains(e.target)) {
             hideHelpPopup();
         }
     });
@@ -76,7 +76,7 @@ export function setupHelpPopup() {
  * Create the help content with the specified sections
  */
 function createHelpContent() {
-    if (!helpPopup) return;
+    if (!helpPopupEl) return;
     
     // Create the content structure
     const content = `
@@ -123,7 +123,7 @@ function createHelpContent() {
     `;
     
     // Update the popup content
-    helpPopup.innerHTML = content;
+    helpPopupEl.innerHTML = content;
 }
 
 /**
@@ -142,7 +142,7 @@ export function toggleHelpPopup() {
  */
 export function showHelpPopup() {
     console.log('Showing help popup');
-    helpPopup.classList.add('show');
+    helpPopupEl.classList.add('show');
     helpShown = true;
     updatePopupPosition();
 }
@@ -152,8 +152,8 @@ export function showHelpPopup() {
  */
 export function hideHelpPopup() {
     console.log('Hiding help popup');
-    if (helpPopup) {
-        helpPopup.classList.remove('show');
+    if (helpPopupEl) {
+        helpPopupEl.classList.remove('show');
         helpShown = false;
     }
 }
@@ -162,19 +162,19 @@ export function hideHelpPopup() {
  * Update the position of the help popup relative to the applet
  */
 function updatePopupPosition() {
-    if (!applet || !helpPopup) return;
+    if (!appletEl || !helpPopupEl) return;
     
     // Get the applet's position
-    const appletRect = applet.getBoundingClientRect();
+    const appletRect = appletEl.getBoundingClientRect();
     
     // Position the popup below the header, centered horizontally
     const headerHeight = 24; // Height of the header in pixels
     
     // Calculate position
-    const popupLeft = appletRect.left + appletRect.width/2 - helpPopup.offsetWidth/2 - 2; // Subtract 2px to move left
+    const popupLeft = appletRect.left + appletRect.width/2 - helpPopupEl.offsetWidth/2 - 2; // Subtract 2px to move left
     const popupTop = appletRect.top + headerHeight;
     
     // Set the popup position
-    helpPopup.style.left = `${popupLeft}px`;
-    helpPopup.style.top = `${popupTop}px`;
+    helpPopupEl.style.left = `${popupLeft}px`;
+    helpPopupEl.style.top = `${popupTop}px`;
 } 

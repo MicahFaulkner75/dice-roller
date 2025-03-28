@@ -23,8 +23,8 @@
             <div class="header">
                 <!-- Help button with '?' icon -->
                 <i id="help-button" class="help-button fa-solid fa-info-circle"></i>
-                <!-- Backspace icon floating over the header -->
-                <i id="number-backspace" class="fas fa-delete-left"></i>
+                <!-- Clear last digit button -->
+                <i id="clear-last-digit" class="fas fa-delete-left clear-last-digit-button"></i>
                 <div id="close-applet" class="close-button">×</div>
             </div>
             
@@ -55,8 +55,8 @@
                 
                 <!-- Main applet content -->
                 <div class="main-content">
-                    <!-- Extracted results modifier - positioned absolutely -->
-                    <div id="extracted-results-modifier" class="extracted-results-modifier">+0</div>
+                    <!-- Results modifier - positioned absolutely -->
+                    <div id="results-modifier" class="results-modifier">+0</div>
                     
                     <div class="input-row">
                         <div class="input-container">
@@ -103,7 +103,7 @@
                             <div class="results-total">
                                 <div class="total-label">TOTAL</div>
                                 <div id="results-total">
-                                    <span class="total-value" style="font-weight:bold; font-size:18px; text-align:center; margin-top:2px;">0</span>
+                                    <span class="total-value">0</span>
                                     <!-- The results-modifier has been extracted and moved up -->
                                     <div class="results-modifier-placeholder"></div>
                                 </div>

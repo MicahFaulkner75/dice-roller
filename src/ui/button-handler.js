@@ -52,13 +52,29 @@ import { getCurrentNumberValue, clearNumberValue } from '../number-buttons';
 import { addDie, getSelectedDice, setFudgeMode } from '../state';
 import { hideHelpPopup } from '../help';
 
+// Update variable names to use 'El' suffix
+const diceInputEl = document.getElementById('dice-input');
+const dieButtonsEl = document.querySelectorAll('.die-button');
+const clearButtonEl = document.getElementById('clear-button');
+const rollButtonEl = document.getElementById('roll-button');
+const increaseButtonEl = document.getElementById('modify-button-increase');
+const decreaseButtonEl = document.getElementById('modify-button-decrease');
+const closeButtonEl = document.getElementById('close-applet');
+const appletEl = document.getElementById('dice-applet');
+const launchButtonEl = document.getElementById('dice-roller-button');
+const criticalButtonEl = document.querySelector('.fudge-button.critical');
+const highButtonEl = document.querySelector('.fudge-button.high');
+const lowButtonEl = document.querySelector('.fudge-button.low');
+const minimumButtonEl = document.querySelector('.fudge-button.minimum');
+
 /**
  * Main setup function called from index.js to initialize all UI event handlers
  */
 export function setupEventListeners() {
   // Set up input area event handlers
-  const diceInput = document.getElementById('dice-input');
-  diceInput.addEventListener('keydown', handleInputKeyDown);
+  if (diceInputEl) {
+    diceInputEl.addEventListener('keydown', handleInputKeyDown);
+  }
 
   // Set up button click handlers
   setupControlButtons();
@@ -81,16 +97,15 @@ export function setupEventListeners() {
  * This is exported for use in ui-updates.js
  */
 export function setupDiceButtons() {
-  const dieButtons = document.querySelectorAll('.die-button');
-  dieButtons.forEach(button => {
+  let isLongPress = false;
+  let isDoubleClick = false;
+  let lastClickTime = 0;
+  const doubleClickDelay = 300;
+  const longPressDelay = 350; // Updated to 350ms as discussed
+  
+  dieButtonsEl.forEach(button => {
     let pressTimer;
-    let lastClickTime = 0;
-    const doubleClickDelay = 300; // ms between clicks to count as double-click
-    const longPressDelay = 350;   // ms to trigger long press (iOS standard)
-    let isLongPress = false;      // Track if we're handling a long press
-    let isDoubleClick = false;    // Track if we're handling a double click
     
-    // Single click handler
     button.addEventListener('click', (e) => {
       // Always prevent click if it was a long press
       if (isLongPress) {
@@ -107,7 +122,10 @@ export function setupDiceButtons() {
         e.preventDefault();
         e.stopPropagation();
         const rollInfo = triggerPercentileRoll('shift-click');
-        animateDiceRoll(rollInfo);
+        if (rollInfo) {
+          // Use new animation system alongside CSS
+          animateDiceRoll(rollInfo);
+        }
         return;
       }
       
@@ -120,7 +138,10 @@ export function setupDiceButtons() {
         // Use unified trigger for percentile mode
         if (button.dataset.die === 'd10') {
           const rollInfo = triggerPercentileRoll('double-click');
-          animateDiceRoll(rollInfo);
+          if (rollInfo) {
+            // Use new animation system alongside CSS
+            animateDiceRoll(rollInfo);
+          }
         }
         
         // Reset after a delay longer than single click handling
@@ -145,7 +166,10 @@ export function setupDiceButtons() {
         // Use unified trigger for percentile mode
         if (button.dataset.die === 'd10') {
           const rollInfo = triggerPercentileRoll('long-press');
-          animateDiceRoll(rollInfo);
+          if (rollInfo) {
+            // Use new animation system alongside CSS
+            animateDiceRoll(rollInfo);
+          }
         }
         
         // Prevent any click events from firing
@@ -162,7 +186,10 @@ export function setupDiceButtons() {
         // Use unified trigger for percentile mode
         if (button.dataset.die === 'd10') {
           const rollInfo = triggerPercentileRoll('long-press');
-          animateDiceRoll(rollInfo);
+          if (rollInfo) {
+            // Use new animation system alongside CSS
+            animateDiceRoll(rollInfo);
+          }
         }
       }, longPressDelay);
     }, { passive: false });
@@ -193,9 +220,9 @@ export function setupDiceButtons() {
  * Handle single-click on a die button
  * @param {HTMLElement} button - The clicked button element
  */
-function handleDieClick(button) {
+export function handleDieClick(button) {
   const dieType = button.dataset.die;
-  console.log(`[DEBUG] ${dieType} button clicked - starting handleDieClick`);
+  // console.log(`Die click: ${dieType}`); // find_me
   
   // Add visual feedback (temporary click effect)
   button.classList.add('clicked');
@@ -205,7 +232,7 @@ function handleDieClick(button) {
   
   // Check if there's a value in the number display
   const numValue = getCurrentNumberValue();
-  console.log(`[DEBUG] Current number value: "${numValue}"`);
+  // console.log(`Current number value: "${numValue}"`); // find_me
   
   let rollInfo;
   
@@ -214,7 +241,7 @@ function handleDieClick(button) {
     const quantity = parseInt(numValue, 10);
     
     if (!isNaN(quantity) && quantity > 0) {
-      console.log(`[DEBUG] Adding ${quantity} ${dieType} dice to pool`);
+      // console.log(`Adding ${quantity} ${dieType} dice to pool`); // find_me
       
       // Add the specified number of dice to the EXISTING pool
       // (no longer clearing the dice pool first)
@@ -233,7 +260,7 @@ function handleDieClick(button) {
       // Roll all dice
       rollInfo = rerollAllDice();
     } else {
-      console.log(`[DEBUG] Invalid number value: ${numValue}, using default behavior`);
+      // console.log(`Invalid number value: ${numValue}, using default behavior`); // find_me
       // Fall back to default behavior if number is invalid
       rollInfo = rollSpecificDie(dieType);
     }
@@ -242,17 +269,17 @@ function handleDieClick(button) {
     clearNumberValue();
   } else {
     // No number value, use standard behavior
-    console.log(`[DEBUG] No number value, using default behavior`);
+    // console.log(`No number value, using default behavior`); // find_me
     rollInfo = rollSpecificDie(dieType);
   }
   
   // Make sure we pass the roll info to animateDiceRoll to properly coordinate animations
   if (rollInfo) {
-    console.log(`[DEBUG] Calling animateDiceRoll with roll info`);
+    // console.log(`Calling animateDiceRoll with roll info`); // find_me
     const durationMs = animateDiceRoll(rollInfo);
-    console.log(`[DEBUG] animateDiceRoll returned duration: ${durationMs}ms`);
+    // console.log(`animateDiceRoll returned duration: ${durationMs}ms`); // find_me
   } else {
-    console.warn(`[DEBUG] rollSpecificDie returned falsy value, not calling animateDiceRoll`);
+    // console.warn(`rollSpecificDie returned falsy value, not calling animateDiceRoll`); // find_me
   }
 }
 
@@ -263,45 +290,51 @@ function handleDieClick(button) {
 /**
  * Sets up all control button click handlers
  */
-function setupControlButtons() {
+export function setupControlButtons() {
+  // console.log('Setting up control buttons'); // find_me
+  
   // Clear button
-  const clearButton = document.getElementById('clear-button');
-  clearButton.addEventListener('click', () => {
-    // Use core function to clear dice pool
-    clearDicePool();
-    // Reset modifier to 0
-    setModifierValue(0);
-    // Also clear the number display
-    clearNumberValue();
-  });
+  if (clearButtonEl) {
+    clearButtonEl.addEventListener('click', () => {
+      // console.log('Clear button clicked'); // find_me
+      // Use core function to clear dice pool
+      clearDicePool();
+      // Reset modifier to 0
+      setModifierValue(0);
+      // Also clear the number display
+      clearNumberValue();
+    });
+  }
 
   // Roll button
-  const rollButton = document.getElementById('roll-button');
-  rollButton.addEventListener('click', () => {
-    // Use core functions to reroll dice and animate
-    const rollInfo = rerollAllDice();
-    if (rollInfo) {
-      animateDiceRoll(rollInfo);
-    }
-  });
+  if (rollButtonEl) {
+    rollButtonEl.addEventListener('click', () => {
+      // Use core functions to reroll dice and animate
+      const rollInfo = rerollAllDice();
+      if (rollInfo) {
+        animateDiceRoll(rollInfo);
+      }
+    });
+  }
 
   // Modifier buttons
-  const increaseButton = document.getElementById('modify-button-increase');
-  increaseButton.addEventListener('click', () => {
-    // Use core function to adjust modifier
-    adjustModifier(1);
-  });
+  if (increaseButtonEl) {
+    increaseButtonEl.addEventListener('click', () => {
+      // Use core function to adjust modifier
+      adjustModifier(1);
+    });
+  }
 
-  const decreaseButton = document.getElementById('modify-button-decrease');
-  decreaseButton.addEventListener('click', () => {
-    // Use core function to adjust modifier
-    adjustModifier(-1);
-  });
+  if (decreaseButtonEl) {
+    decreaseButtonEl.addEventListener('click', () => {
+      // Use core function to adjust modifier
+      adjustModifier(-1);
+    });
+  }
   
   // Close button (X)
-  const closeButton = document.getElementById('close-applet');
-  if (closeButton) {
-    closeButton.addEventListener('click', () => {
+  if (closeButtonEl) {
+    closeButtonEl.addEventListener('click', () => {
       // Use core function to minimize the applet without resetting state
       minimizeApplet();
       // Also close help popup if it's open
@@ -330,12 +363,8 @@ function setupClickOutsideBehavior() {
   });
 
   document.addEventListener('click', (e) => {
-    const applet = document.getElementById('dice-applet');
-    const launchButton = document.getElementById('dice-roller-button');
-    const diceInput = document.getElementById('dice-input');
-     
     // Only process if applet is visible
-    if (applet && applet.style.display !== 'none') {
+    if (appletEl && appletEl.style.display !== 'none') {
       // Check if this was a quick click (not a text selection)
       const isQuickClick = Date.now() - mouseDownTime < CLICK_THRESHOLD_MS;
        
@@ -345,10 +374,10 @@ function setupClickOutsideBehavior() {
       // 3. Click started in input area (text selection)
       // 4. Click ended in input area (text selection)
       // 5. Not a quick click (likely text selection)
-      if (!applet.contains(e.target) && 
-          !launchButton.contains(e.target) && 
-          !diceInput.contains(mouseDownTarget) &&
-          !diceInput.contains(e.target) &&
+      if (!appletEl.contains(e.target) && 
+          !launchButtonEl.contains(e.target) && 
+          !diceInputEl.contains(mouseDownTarget) &&
+          !diceInputEl.contains(e.target) &&
           isQuickClick) {
         // Use core function to minimize the applet
         minimizeApplet();
@@ -383,39 +412,34 @@ function handleInputKeyDown(e) {
  * These are invisible buttons that influence roll outcomes
  */
 function setupFudgeButtons() {
-  const criticalButton = document.querySelector('.fudge-button.critical');
-  const highButton = document.querySelector('.fudge-button.high');
-  const lowButton = document.querySelector('.fudge-button.low');
-  const minimumButton = document.querySelector('.fudge-button.minimum');
-  
   // Revised button functionality:
   // Red (critical) -> critical success
-  if (criticalButton) {
-    criticalButton.addEventListener('click', () => {
+  if (criticalButtonEl) {
+    criticalButtonEl.addEventListener('click', () => {
       console.log('Fudge mode: critical success');
       setFudgeMode('critical');
     });
   }
   
   // Green (minimum) -> high roll
-  if (minimumButton) {
-    minimumButton.addEventListener('click', () => {
+  if (minimumButtonEl) {
+    minimumButtonEl.addEventListener('click', () => {
       console.log('Fudge mode: high roll');
       setFudgeMode('high');
     });
   }
   
   // Orange (high) -> low roll
-  if (highButton) {
-    highButton.addEventListener('click', () => {
+  if (highButtonEl) {
+    highButtonEl.addEventListener('click', () => {
       console.log('Fudge mode: low roll');
       setFudgeMode('low');
     });
   }
   
   // Blue (low) -> critical failure
-  if (lowButton) {
-    lowButton.addEventListener('click', () => {
+  if (lowButtonEl) {
+    lowButtonEl.addEventListener('click', () => {
       console.log('Fudge mode: critical failure');
       setFudgeMode('minimum');
     });

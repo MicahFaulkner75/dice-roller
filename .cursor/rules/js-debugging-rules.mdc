@@ -1,0 +1,137 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Component Rule Sheet: JAVASCRIPT DEBUGGING
+
+## Basic Information
+- Priority: HIGH
+- Applies To: All JavaScript files
+- Last Updated: 2025-03-27
+
+## 1. Core Principles
+
+### 1.1 Predicate Debugging (Dijkstra)
+- Always define pre/post conditions for functions
+- Example template:
+  ```javascript
+  // @pre: typeof param === 'number'
+  // @post: return value < 100
+  ```
+
+### 1.2 Execution Tracing (Knuth)
+- Generate control flow diagrams for:
+  * Loops with >5 iterations
+  * Nested conditionals
+  * Async operations
+
+## 2. Systematic Protocols
+
+### 2.1 Binary Search Debugging
+1. Split code into halves
+2. Disable one half with /* ... */
+3. Test remaining half
+4. Repeat with faulty section
+
+### 2.2 State Transition Tracking
+```javascript
+// Before mutation:
+const _PRE_STATE = structuredClone(state);
+
+// After mutation:
+console.log('State changed:', 
+  diff(_PRE_STATE, state));
+```
+
+### 2.3 Style State Debugging
+```javascript
+// Before style mutation:
+const _PRE_STYLES = {
+  computed: window.getComputedStyle(element),
+  inline: element.style.cssText,
+  classes: [...element.classList]
+};
+
+// After mutation:
+console.log('Style changed:', {
+  computed: diffStyles(_PRE_STYLES.computed, window.getComputedStyle(element)),
+  inline: diffText(_PRE_STYLES.inline, element.style.cssText),
+  classes: diffArrays(_PRE_STYLES.classes, [...element.classList])
+});
+```
+
+2. **Animation Timing Matrix**
+This would help us track race conditions specific to animations:
+
+```markdown
+### 3.2 Animation Timing Matrix
+| Timing Issue    | Symptom                | Solution              |
+|-----------------|------------------------|----------------------|
+| Style Race      | Flash of unstyled text| RAF callback chain   |
+| Class Collision | Style override        | Mutation observer    |
+| Frame Skip      | Jerky animation       | Time delta tracking  |
+```
+
+These additions would be particularly useful because:
+
+1. **Style State Debugging** would help us:
+   - Track exactly when and how font styles are being changed
+   - Identify if changes are coming from inline styles, classes, or computed values
+   - Catch race conditions between style applications
+
+2. **Animation Timing Matrix** would help us:
+   - Identify common animation timing issues
+   - Provide specific solutions for animation-related race conditions
+   - Track frame timing issues that might affect style application
+
+Would you like me to create an updated version of the rule file with these additions? They're specifically targeted at the kind of issues we're seeing with font styling during animations.
+
+The existing rules are good, but these additions would make them more directly applicable to our current debugging task.
+
+
+## 3. Error Matrix
+| Error Type      | Trigger           | Solution          |
+|-----------------|-------------------|-------------------|
+| Nullish        | a.b.c where b=null| a?.b?.c           |
+| Race Condition | Promise.race([])  | Mutex locking     |
+| Infinite Loop  | while(true)      | Iteration counter |
+
+## 4. Implementation Requirements
+
+### 4.1 File Structure
+- Create .cursor/rules/debug/
+- Required files:
+  1. predicate_rules.mdc
+  2. tracing_protocols.mdc
+  3. error_matrix.csv
+
+### 4.2 Required Settings
+```json
+{
+  "debug": {
+    "complexityThreshold": 15,
+    "traceDepth": 3,
+    "autoSnapshot": true
+  }
+}
+```
+
+## 5. Workflow Enforcement
+
+### 5.1 Pre-Commit Check
+```bash
+cursor verify --rules=js_debug
+```
+
+### 5.2 Post-Error Protocol
+1. Generate error fingerprint
+2. Cross-reference git history
+3. Propose regression test
+
+## Validation Criteria
+- All new functions have predicate documentation
+- State transitions are tracked and logged
+- Error matrix is consulted for common issues
+- Debug settings are properly configured
+- Workflow protocols are followed

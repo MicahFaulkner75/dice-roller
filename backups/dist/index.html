@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Roller Applet</title>
+    <link rel="stylesheet" href="styles.css">
+<script defer src="bundle.js"></script><link href="styles.css" rel="stylesheet"></head>
+<body>
+    <!-- Dice Roller Button -->
+    <div id="dice-roller-button-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1100;">
+        <img id="dice-roller-button" 
+             src="https://annotatedtoa.com/wp-content/uploads/2025/02/d20-icon.png" 
+             style="width: 50px; height: 50px; cursor: pointer;" 
+             alt="Launch Dice Roller">
+    </div>
+
+    <!-- Dice Roller Container -->
+    <div id="dice-roller-container">
+        <div id="dice-applet" class="draggable">
+            <div class="header">
+                <button id="close-applet">×</button>
+            </div>
+            <div class="input-row">
+                <div id="dice-input" contenteditable="true" placeholder="Enter dice notation"></div>
+            </div>
+            <table class="dice-control-table">
+                <tr class="dice-buttons">
+                    <td><button class="die-button" data-die="d4"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d4.png" alt="d4"></button></td>
+                    <td><button class="die-button" data-die="d6"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d6.png" alt="d6"></button></td>
+                    <td><button class="die-button" data-die="d8"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d8.png" alt="d8"></button></td>
+                </tr>
+                <tr class="dice-buttons">
+                    <td><button class="die-button" data-die="d10"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d10.png" alt="d10"></button></td>
+                    <td><button class="die-button" data-die="d12"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d12.png" alt="d12"></button></td>
+                    <td><button class="die-button" data-die="d20"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/d20.png" alt="d20"></button></td>
+                </tr>
+                <tr class="control-row">
+                    <td><button id="clear-button"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/ban.png" alt="Clear"></button></td>
+                    <td><button id="roll-button"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/recycle.png" alt="Roll"></button></td>
+                    <td class="modify-button-container">
+                        <button id="modify-button-increase"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/up2.png" alt="Increase"></button>
+                        <button id="modify-button-decrease"><img src="https://annotatedtoa.com/wp-content/uploads/2025/02/down2.png" alt="Decrease"></button>
+                        <div id="modifier-overlay" class="modifier-display">0</div>
+                    </td>
+                </tr>
+            </table>
+            <div class="results-field">
+                <div class="results-left">
+                    <div id="results-total">
+                        <div style="font-weight:bold; font-size:16px; text-align:center;">TOTAL</div>
+                        <div style="font-weight:bold; font-size:18px; text-align:center; margin-top:2px;">0</div>
+                    </div>
+                </div>
+                <div class="results-right">
+                    <div id="results-rolls"></div>
+                </div>
+                <div class="resize-handle"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

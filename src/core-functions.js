@@ -29,7 +29,7 @@ import {
 } from './state';
 
 import { rollDie, rollAllDice, computeTotal, parseDiceNotation, rollPercentile } from './dice-logic';
-import { animateDiceIcons, animateResults, resetD10State } from './animations/dice-animations';
+import { animateDiceIcons, animateResults, resetD10State, animateD10 } from './animations/dice-animations';
 import { updateDisplay, updateResults } from './ui/display';
 
 /**
@@ -362,17 +362,17 @@ let lastPosition = {
  * Center the applet in the viewport
  */
 export function centerApplet() {
-  const applet = document.getElementById('dice-applet');
-  if (applet) {
-    applet.style.left = defaultAppletPosition.left;
-    applet.style.top = defaultAppletPosition.top;
-    applet.style.transform = defaultAppletPosition.transform;
+  const appletEl = document.getElementById('dice-applet');
+  if (appletEl) {
+    appletEl.style.left = defaultAppletPosition.left;
+    appletEl.style.top = defaultAppletPosition.top;
+    appletEl.style.transform = defaultAppletPosition.transform;
     
     // Update last position
     lastPosition = {
-      left: applet.style.left,
-      top: applet.style.top,
-      transform: applet.style.transform
+      left: appletEl.style.left,
+      top: appletEl.style.top,
+      transform: appletEl.style.transform
     };
   }
 }
@@ -381,9 +381,9 @@ export function centerApplet() {
  * Show the applet without changing its position
  */
 export function showApplet() {
-  const applet = document.getElementById('dice-applet');
-  if (applet) {
-    applet.style.display = 'flex';
+  const appletEl = document.getElementById('dice-applet');
+  if (appletEl) {
+    appletEl.style.display = 'flex';
     return true;
   }
   return false;
@@ -393,17 +393,17 @@ export function showApplet() {
  * Enhanced version of minimizeApplet that properly saves state
  */
 export function minimizeApplet() {
-  const applet = document.getElementById('dice-applet');
-  if (applet) {
+  const appletEl = document.getElementById('dice-applet');
+  if (appletEl) {
     // Store current position before hiding
     lastPosition = {
-      left: applet.style.left || defaultAppletPosition.left,
-      top: applet.style.top || defaultAppletPosition.top,
-      transform: applet.style.transform || defaultAppletPosition.transform
+      left: appletEl.style.left || defaultAppletPosition.left,
+      top: appletEl.style.top || defaultAppletPosition.top,
+      transform: appletEl.style.transform || defaultAppletPosition.transform
     };
     
     // Hide the applet
-    applet.style.display = 'none';
+    appletEl.style.display = 'none';
     return true;
   }
   return false;
@@ -415,35 +415,35 @@ export function minimizeApplet() {
  * @returns {boolean} - Whether the applet is now visible
  */
 export function toggleApplet(centerIfShowing = false) {
-  const applet = document.getElementById('dice-applet');
-  if (applet) {
-    const isHidden = applet.style.display === 'none';
+  const appletEl = document.getElementById('dice-applet');
+  if (appletEl) {
+    const isHidden = appletEl.style.display === 'none';
     
     if (isHidden) {
       // Show the applet
-      applet.style.display = 'flex';
+      appletEl.style.display = 'flex';
       
       // Center if requested, otherwise restore to last position
       if (centerIfShowing) {
         centerApplet();
       } else {
         // Restore previous position
-        applet.style.left = lastPosition.left;
-        applet.style.top = lastPosition.top;
-        applet.style.transform = lastPosition.transform;
+        appletEl.style.left = lastPosition.left;
+        appletEl.style.top = lastPosition.top;
+        appletEl.style.transform = lastPosition.transform;
       }
       
       return true; // Now visible
     } else {
       // Save position before hiding
       lastPosition = {
-        left: applet.style.left || defaultAppletPosition.left,
-        top: applet.style.top || defaultAppletPosition.top,
-        transform: applet.style.transform || defaultAppletPosition.transform
+        left: appletEl.style.left || defaultAppletPosition.left,
+        top: appletEl.style.top || defaultAppletPosition.top,
+        transform: appletEl.style.transform || defaultAppletPosition.transform
       };
       
       // Hide the applet
-      applet.style.display = 'none';
+      appletEl.style.display = 'none';
       return false; // Now hidden
     }
   }
@@ -451,22 +451,29 @@ export function toggleApplet(centerIfShowing = false) {
 }
 
 /**
- * Enhanced reset applet function that standardizes the reset process
- * @param {boolean} clearAll - Whether to clear all state (dice, modifier, etc.)
- * @param {boolean} centerPosition - Whether to center the applet
- * @param {boolean} hideApplet - Whether to hide the applet after reset
+ * Reset the applet to its initial state
+ * @param {boolean} clearAll - Whether to clear dice pool, results, and modifier
+ * @param {boolean} centerPosition - Whether to reset position to center
+ * @param {boolean} hideApplet - Whether to minimize the applet
  */
 export function resetApplet(clearAll = true, centerPosition = true, hideApplet = true) {
   // Clear dice pool and results if requested
   if (clearAll) {
-    clearDicePool(); // This now also clears animation subtotals
+    // Clear all state
+    clearDicePool(); // This clears dice pool and animation subtotals
+    resetState(); // This resets ALL state to initial values
     
-    // Reset modifier to 0
-    setModifier(0);
-    updateDisplay(prepareDisplayData()); // Pass prepared display data instead of nothing
+    // Update display with cleared state
+    updateDisplay(prepareDisplayData());
     
     // Reset d10 percentile state
     resetD10State();
+    
+    // Clear input field if it exists
+    const inputEl = document.getElementById('dice-input');
+    if (inputEl) {
+      inputEl.textContent = '';
+    }
   }
   
   // Reset position if requested
@@ -478,6 +485,9 @@ export function resetApplet(clearAll = true, centerPosition = true, hideApplet =
   if (hideApplet) {
     minimizeApplet();
   }
+  
+  // Return true to indicate success
+  return true;
 }
 
 /**
@@ -741,8 +751,8 @@ export function triggerPercentileRoll(triggerType) {
 export function activatePercentileMode(triggerType) {
     console.log(`[DEBUG] Activating percentile mode via ${triggerType}`);
     
-    const d10Button = document.querySelector('.die-button[data-die="d10"]');
-    if (!d10Button) {
+    const d10ButtonEl = document.querySelector('.die-button[data-die="d10"]');
+    if (!d10ButtonEl) {
         console.warn('[DEBUG] d10 button not found');
         return false;
     }
@@ -759,16 +769,21 @@ export function activatePercentileMode(triggerType) {
     });
     
     // Handle UI feedback
-    const isFirstActivation = !d10Button.classList.contains('percentile-active');
+    const isFirstActivation = !d10ButtonEl.classList.contains('percentile-active');
+    
+    // Keep CSS classes for fallback
     if (isFirstActivation) {
-        d10Button.classList.remove('percentile-active');
-        void d10Button.offsetWidth; // Force reflow
-        d10Button.classList.add('percentile-active', 'first-animation');
+        d10ButtonEl.classList.remove('percentile-active');
+        void d10ButtonEl.offsetWidth; // Force reflow
+        d10ButtonEl.classList.add('percentile-active', 'first-animation');
         
-        if (!d10Button.classList.contains('has-rolled-once')) {
-            d10Button.classList.add('has-rolled-once');
+        if (!d10ButtonEl.classList.contains('has-rolled-once')) {
+            d10ButtonEl.classList.add('has-rolled-once');
         }
     }
+    
+    // Use new physics-based animation alongside CSS
+    animateD10(d10ButtonEl, true, isFirstActivation);
     
     // Roll and return animation info
     return rollPercentileDie();
