@@ -1,0 +1,262 @@
+---
+description: Machine-optimized project architecture for dice roller applet
+globs: **/*
+---
+
+# Dice Roller Architecture (Machine-Optimized)
+
+This document provides a structured representation of the dice roller application architecture,
+optimized for AI processing and analysis. Use this structure to understand module relationships,
+function call sequences, and event flows when making targeted code changes.
+
+```json
+{
+  "meta": {
+    "version": "1.0",
+    "appName": "Dice Roller",
+    "knownIssues": ["Animation retriggering on maximize"]
+  },
+  
+  "modules": {
+    "state.js": {
+      "type": "core",
+      "description": "Central state management",
+      "exports": [
+        {"name": "getSelectedDice", "type": "getter", "purpose": "Access dice selection"},
+        {"name": "getCurrentRolls", "type": "getter", "purpose": "Access roll results"},
+        {"name": "getModifier", "type": "getter", "purpose": "Access modifier value"},
+        {"name": "hasPercentileDie", "type": "getter", "purpose": "Check for percentile mode"},
+        {"name": "addDie", "type": "setter", "purpose": "Add die to selection"},
+        {"name": "setRollResults", "type": "setter", "purpose": "Update roll results"},
+        {"name": "setModifier", "type": "setter", "purpose": "Set modifier value"},
+        {"name": "clearDice", "type": "action", "purpose": "Clear dice selection"},
+        {"name": "clearResults", "type": "action", "purpose": "Clear roll results"},
+        {"name": "resetState", "type": "action", "purpose": "Reset all state"}
+      ],
+      "dependencies": [],
+      "dependents": ["core-functions.js", "dice-logic.js", "ui/button-handler.js"]
+    },
+    
+    "core-functions.js": {
+      "type": "core",
+      "description": "Business logic and application API",
+      "exports": [
+        {"name": "rollSpecificDie", "type": "action", "purpose": "Roll standard die"},
+        {"name": "rollPercentileDie", "type": "action", "purpose": "Roll percentile die"},
+        {"name": "activatePercentileMode", "type": "action", "purpose": "Activate percentile UI"},
+        {"name": "triggerPercentileRoll", "type": "action", "purpose": "Start percentile animation"},
+        {"name": "rerollAllDice", "type": "action", "purpose": "Reroll current dice"},
+        {"name": "clearDicePool", "type": "action", "purpose": "Clear all dice"},
+        {"name": "processNotation", "type": "action", "purpose": "Process dice notation input"},
+        {"name": "toggleApplet", "type": "action", "purpose": "Show/hide applet"},
+        {"name": "minimizeApplet", "type": "action", "purpose": "Minimize applet"},
+        {"name": "resetApplet", "type": "action", "purpose": "Reset applet state"},
+        {"name": "animateDiceRoll", "type": "action", "purpose": "Coordinate animation sequence"}
+      ],
+      "dependencies": ["state.js", "dice-logic.js", "animations/dice-animations.js", "ui/display.js"],
+      "dependents": ["ui/button-handler.js", "ui/input-handler.js", "index.js"]
+    },
+    
+    "dice-logic.js": {
+      "type": "core",
+      "description": "Dice rolling algorithms and calculations",
+      "exports": [
+        {"name": "rollDie", "type": "function", "purpose": "Base dice rolling"},
+        {"name": "rollPercentile", "type": "function", "purpose": "Percentile dice logic"},
+        {"name": "rollAllDice", "type": "function", "purpose": "Roll multiple dice"},
+        {"name": "computeTotal", "type": "function", "purpose": "Calculate roll total"},
+        {"name": "parseDiceNotation", "type": "function", "purpose": "Parse dice notation"}
+      ],
+      "dependencies": ["state.js"],
+      "dependents": ["core-functions.js"]
+    },
+    
+    "animations/dice-animations.js": {
+      "type": "utility",
+      "description": "Visual animations and transitions",
+      "exports": [
+        {"name": "animateDiceIcons", "type": "animation", "purpose": "Spin dice icons"},
+        {"name": "animateResults", "type": "animation", "purpose": "Animate result numbers"},
+        {"name": "resetD10State", "type": "utility", "purpose": "Reset d10 appearance"},
+        {"name": "handleVisibilityChange", "type": "event", "purpose": "Handle minimize/maximize"},
+        {"name": "preserveAnimationState", "type": "utility", "purpose": "Store animation state"},
+        {"name": "restoreAnimationState", "type": "utility", "purpose": "Restore animation state"}
+      ],
+      "dependencies": ["state.js"],
+      "dependents": ["core-functions.js"]
+    },
+    
+    "ui/display.js": {
+      "type": "ui",
+      "description": "DOM updates and display management",
+      "exports": [
+        {"name": "updateDisplay", "type": "ui", "purpose": "Update UI with state"},
+        {"name": "updateResults", "type": "ui", "purpose": "Show roll results"}
+      ],
+      "dependencies": [],
+      "dependents": ["core-functions.js"]
+    },
+    
+    "ui/button-handler.js": {
+      "type": "ui",
+      "description": "Button interactions and click handling",
+      "exports": [
+        {"name": "setupEventListeners", "type": "setup", "purpose": "Initialize UI handlers"},
+        {"name": "setupDiceButtons", "type": "setup", "purpose": "Set up dice button events"},
+        {"name": "handleDieClick", "type": "event", "purpose": "Process die button clicks"},
+        {"name": "exitPercentileMode", "type": "utility", "purpose": "Clean up percentile visuals"}
+      ],
+      "dependencies": ["core-functions.js", "state.js", "number-buttons.js"],
+      "dependents": ["index.js"]
+    },
+    
+    "ui/input-handler.js": {
+      "type": "ui",
+      "description": "User input processing and keyboard events",
+      "exports": [
+        {"name": "setupDiceInput", "type": "setup", "purpose": "Initialize input field"},
+        {"name": "setupGlobalKeyboardHandlers", "type": "setup", "purpose": "Set up key events"},
+        {"name": "handleInputKeyDown", "type": "event", "purpose": "Process keyboard input"}
+      ],
+      "dependencies": ["core-functions.js", "number-buttons.js"],
+      "dependents": ["index.js"]
+    },
+    
+    "number-buttons.js": {
+      "type": "ui",
+      "description": "Number selection interface",
+      "exports": [
+        {"name": "getCurrentNumberValue", "type": "getter", "purpose": "Get current number"},
+        {"name": "clearNumberValue", "type": "action", "purpose": "Clear number input"}
+      ],
+      "dependencies": [],
+      "dependents": ["ui/button-handler.js", "ui/input-handler.js"]
+    },
+    
+    "help.js": {
+      "type": "ui",
+      "description": "Help system and instructions",
+      "exports": [
+        {"name": "showHelpPopup", "type": "ui", "purpose": "Show help content"},
+        {"name": "hideHelpPopup", "type": "ui", "purpose": "Hide help content"}
+      ],
+      "dependencies": [],
+      "dependents": ["ui/button-handler.js"]
+    },
+    
+    "index.js": {
+      "type": "entry",
+      "description": "Application entry point",
+      "exports": [],
+      "dependencies": ["core-functions.js", "ui/button-handler.js", "ui/input-handler.js"],
+      "dependents": []
+    }
+  },
+  
+  "eventFlows": [
+    {
+      "name": "standardDiceRoll",
+      "description": "Standard dice rolling flow",
+      "sequence": [
+        {"module": "ui/button-handler.js", "function": "handleDieClick"},
+        {"module": "core-functions.js", "function": "rollSpecificDie"},
+        {"module": "dice-logic.js", "function": "rollDie"},
+        {"module": "state.js", "function": "addDie"},
+        {"module": "state.js", "function": "addRollResult"},
+        {"module": "core-functions.js", "function": "animateDiceRoll"},
+        {"module": "animations/dice-animations.js", "function": "animateDiceIcons"},
+        {"module": "animations/dice-animations.js", "function": "animateResults"},
+        {"module": "ui/display.js", "function": "updateResults"}
+      ]
+    },
+    {
+      "name": "percentileRoll",
+      "description": "Percentile dice rolling flow",
+      "sequence": [
+        {"module": "ui/button-handler.js", "function": "setupDiceButtons:doubleClick"},
+        {"module": "core-functions.js", "function": "triggerPercentileRoll"},
+        {"module": "core-functions.js", "function": "activatePercentileMode"},
+        {"module": "state.js", "function": "clearDicePool"},
+        {"module": "state.js", "function": "addDie:d00"},
+        {"module": "dice-logic.js", "function": "rollPercentile"},
+        {"module": "core-functions.js", "function": "animateDiceRoll"},
+        {"module": "animations/dice-animations.js", "function": "animateDiceIcons"},
+        {"module": "animations/dice-animations.js", "function": "animateResults"},
+        {"module": "ui/display.js", "function": "updateResults"}
+      ]
+    },
+    {
+      "name": "minimizeMaximize",
+      "description": "Applet minimize/maximize flow",
+      "sequence": [
+        {"module": "ui/input-handler.js", "function": "setupGlobalKeyboardHandlers:Space"},
+        {"module": "core-functions.js", "function": "toggleApplet"},
+        {"module": "animations/dice-animations.js", "function": "handleVisibilityChange"},
+        {"module": "animations/dice-animations.js", "function": "preserveAnimationState/restoreAnimationState"}
+      ],
+      "problemArea": {
+        "description": "Animation retriggering on maximize",
+        "suspectedCause": "restoreAnimationState() triggers state change that calls animateDiceRoll",
+        "targetedFixArea": "animations/dice-animations.js:restoreAnimationState"
+      }
+    }
+  ],
+  
+  "stateTransitions": {
+    "percentileMode": {
+      "enter": [
+        {"action": "clearDicePool", "purpose": "Reset existing dice"},
+        {"action": "addDie:d00", "purpose": "Add percentile die"},
+        {"action": "addClass:percentile-active", "purpose": "Change d10 appearance"},
+        {"action": "showColoredDice", "purpose": "Display colored dice"}
+      ],
+      "exit": [
+        {"action": "clearDicePool", "purpose": "Reset dice state"},
+        {"action": "removeClass:percentile-active", "purpose": "Reset d10 appearance"},
+        {"action": "hideColoredDice", "purpose": "Hide colored dice"}
+      ]
+    },
+    "minimizeMaximize": {
+      "minimize": [
+        {"action": "setDisplay:none", "purpose": "Hide applet"},
+        {"action": "preserveAnimationState", "purpose": "Save current state"}
+      ],
+      "maximize": [
+        {"action": "setDisplay:flex", "purpose": "Show applet"},
+        {"action": "restoreAnimationState", "purpose": "Restore previous state"}
+      ]
+    }
+  },
+  
+  "problematicFlow": {
+    "description": "Animation retriggering during maximize",
+    "sequence": [
+      {"action": "Space Key Press", "triggers": "toggleApplet()"},
+      {"action": "applet.style.display = 'flex'", "triggers": "visibility change"},
+      {"action": "handleVisibilityChange()", "detects": "maximize action"},
+      {"action": "restoreAnimationState()", "attempts to": "restore visual state"},
+      {"action": "state change/view update", "incorrectly triggers": "animateDiceRoll()"},
+      {"action": "animateDiceIcons()", "causes": "unwanted dice spinning"}
+    ],
+    "potentialFixApproaches": [
+      {"approach": "Direct Intervention", "method": "Modify animateDiceRoll to check if we're in a maximize operation"},
+      {"approach": "State Locking", "method": "Add a temporary flag during maximize to prevent animation triggers"},
+      {"approach": "Targeted Fix", "method": "Modify only the specific trigger point in restoreAnimationState"}
+    ]
+  }
+}
+```
+
+## Usage Guidelines
+
+When analyzing code or implementing changes:
+
+1. **Function Call Chains**: Use the `eventFlows` section to understand how functions call each other in critical paths
+
+2. **Module Dependencies**: Check the `dependencies` and `dependents` arrays to understand how modules relate to each other
+
+3. **Problem Analysis**: The `problematicFlow` section highlights the specific sequence causing the animation retriggering
+
+4. **State Transitions**: Use the `stateTransitions` section to understand how state changes during key operations
+
+This machine-optimized structure can be directly parsed and utilized by AI models for targeted code analysis and suggestions. The structure emphasizes relationships between components rather than visual layout, making it more suitable for programmatic understanding of the codebase. 

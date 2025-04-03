@@ -680,6 +680,12 @@ export function processNotation(notation) {
 export function animateDiceRoll(rollInfo) {
   console.log(`[DEBUG] animateDiceRoll() - start`, rollInfo);
   
+  // Check if we're currently restoring state - if so, skip animations
+  if (window._isRestoringState) {
+    console.log(`[DEBUG] State restoration in progress, skipping animations`);
+    return 0;
+  }
+  
   if (!rollInfo) {
     console.warn(`[DEBUG] No roll info provided to animateDiceRoll`);
     return 0;
@@ -740,6 +746,12 @@ export function triggerPercentileRoll(triggerType) {
  */
 export function activatePercentileMode(triggerType) {
     console.log(`[DEBUG] Activating percentile mode via ${triggerType}`);
+    
+    // Skip animations if we're restoring state or animations are blocked
+    if (window._isRestoringState || window._animationsBlocked) {
+        console.log(`[DEBUG] State restoration or animations blocked, skipping percentile mode activation`);
+        return null;
+    }
     
     const d10Button = document.querySelector('.die-button[data-die="d10"]');
     if (!d10Button) {

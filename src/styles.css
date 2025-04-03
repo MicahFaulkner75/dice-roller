@@ -15,47 +15,47 @@
 
 /* Reset/Normalize */
 * {
-   margin: 0;
-   padding: 0;
-   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* Global Styles */
 body {
    font-family: Helvetica, Arial, sans-serif;
    font-size: 14px;
-   line-height: 1.6;
+  line-height: 1.6;
    color: #202122;
 }
 
 /* Container Positioning */
 #dice-roller-container {
-   position: fixed;
-   top: 0;
-   left: 0;
-   width: 100%;
-   height: 100%;
-   z-index: 999;
-   pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999;
+  pointer-events: none;
 }
 
 /* Base styling */
 #dice-applet {
-   position: fixed;
+  position: fixed;
    width: 264px; /* 224px original width + 40px for number column */
    max-width: 264px; /* Enforce max width to prevent stretching */
    box-sizing: border-box; /* Include borders in width calculation */
-   height: auto;
-   top: 50%;
-   left: 50%;
-   transform: translate(-50%, -50%);
+  height: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
    background-color: #ffffff;
    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
    display: flex;
    flex-direction: column;
    justify-content: space-between;
-   z-index: 1000;
-   pointer-events: auto;
+  z-index: 1000;
+  pointer-events: auto;
    border-radius: 4px;
    overflow: hidden;
    border: 1px solid #ccc;
@@ -65,7 +65,7 @@ body {
 
 /* Debug Borders - keeping with app launcher as they're global debug styles */
 .debug-borders * {
-   box-shadow: inset 0 0 0 1px rgba(255, 0, 0, 0.25) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 0, 0, 0.25) !important;
 }
 
 .debug-borders #dice-applet {
@@ -86,7 +86,7 @@ body {
 .debug-borders #results-total,
 .debug-borders #results-rolls,
 .debug-borders .results-modifier-display {
-   box-shadow: inset 0 0 0 1px rgba(255, 0, 0, 0.25) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 0, 0, 0.25) !important;
    background-color: rgba(255, 0, 0, 0.02); /* Reduced to 2% for very subtle layering */
 }
 
@@ -116,7 +116,7 @@ body {
 /* Fix dice-control-table width */
 .dice-control-table {
    width: 100%;
-   max-width: 224px;
+  max-width: 224px;
    table-layout: fixed; /* Force proper table layout */
    box-sizing: border-box;
 }
@@ -125,7 +125,7 @@ body {
 .button-area {
    width: 100%;
    max-width: 224px;
-   box-sizing: border-box;
+  box-sizing: border-box;
    margin-bottom: 15px; /* Increased from 5px to 15px to add more space before results area */
 }
 
@@ -137,12 +137,12 @@ body {
 
 /* Header styling */
 .header {
-   display: flex;
-   justify-content: flex-end;
-   align-items: center;
-   padding: 2px 5px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 2px 5px;
    height: 24px;
-   cursor: move;
+  cursor: move;
    background-color: #ffffff;
 }
 
@@ -273,11 +273,11 @@ body {
 */
 
 #close-applet {
-   background: none;
-   border: none;
-   font-size: 20px;
+  background: none;
+  border: none;
+  font-size: 20px;
    line-height: 20px; /* Match line-height to font-size */
-   cursor: pointer;
+  cursor: pointer;
    color: #666;
    padding: 0 5px;
    display: flex; /* Ensure proper centering */
@@ -370,12 +370,12 @@ body {
 
 /* Input row styling */
 .input-row {
-   width: 100%;
+  width: 100%;
    max-width: 224px; /* Match main content width */
-   padding: 0 0 5px 0;
+  padding: 0 0 5px 0;
    position: relative;
    display: flex;
-   overflow: visible;
+  overflow: visible;
    box-sizing: border-box; /* Include padding in size */
 }
 
@@ -431,21 +431,21 @@ body {
 
 /* Input modifier display */
 .input-modifier-display {
-   position: absolute;
-   right: 0;
-   top: 0;
-   width: 30px;
-   height: 100%;
-   display: flex;
-   align-items: center;
-   justify-content: center;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 30px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
    font-weight: bold;
    font-size: 16px;
    color: #000000;
    background-color: #f0f0f0;
-   user-select: none;
-   z-index: 1000;
-   pointer-events: none;
+  user-select: none;
+  z-index: 1000;
+  pointer-events: none;
    box-shadow: -15px 0 12px #f0f0f0;
 }
 
@@ -467,11 +467,11 @@ body {
 
 /* Dice buttons layout - CRITICAL SPACING */
 .dice-buttons {
-   display: grid;
-   grid-template-columns: 1fr 1fr 1fr;
-   gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
    justify-items: center;
-   padding: 10px;
+  padding: 10px;
    height: 60px; /* CRITICAL: Standardized row height - DO NOT CHANGE */
    margin: 0 0 13px 0; /* Increased bottom margin from 5px to 13px for more space between rows */
 }
@@ -485,16 +485,16 @@ body {
 .die-button {
    width: 40px;  /* CRITICAL SIZE - DO NOT CHANGE */
    height: 40px; /* CRITICAL SIZE - DO NOT CHANGE */
-   padding: 0;
-   border: none;
+  padding: 0;
+  border: none;
    background: #ffffff;
-   cursor: pointer;
+  cursor: pointer;
    display: flex;
    justify-content: center;
    align-items: center;
    position: relative; /* Added for absolute positioning of oversized dice */
    overflow: visible; /* Allow dice to overflow their containers */
-   transition: transform 100ms ease-out;
+  transition: transform 100ms ease-out;
 }
 
 /* Individual die image sizes */
@@ -688,9 +688,9 @@ body {
 
 /* Control row styling - CRITICAL SPACING */
 .control-row {
-   display: grid;
-   grid-template-columns: 1fr 1fr 1fr;
-   gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
    justify-items: center;
    padding: 10px 10px 15px 10px; /* Increased bottom padding from 10px to 15px */
    height: 60px; /* CRITICAL: Matches dice button row height - DO NOT CHANGE */
@@ -701,16 +701,16 @@ body {
 #clear-button {
    width: 50px;  /* CRITICAL SIZE - DO NOT CHANGE */
    height: 50px; /* CRITICAL SIZE - DO NOT CHANGE */
-   padding: 5px;
-   border: none;
+  padding: 5px;
+  border: none;
    background: none;
-   cursor: pointer;
+  cursor: pointer;
 }
 
 #clear-button img {
-   width: 100%;
-   height: 100%;
-   object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 /*
@@ -722,16 +722,16 @@ body {
 #roll-button {
    width: 50px;  /* CRITICAL SIZE - DO NOT CHANGE */
    height: 50px; /* CRITICAL SIZE - DO NOT CHANGE */
-   padding: 5px;
-   border: none;
+  padding: 5px;
+  border: none;
    background: none;
-   cursor: pointer;
+  cursor: pointer;
 }
 
 #roll-button img {
-   width: 100%;
-   height: 100%;
-   object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 /*
@@ -742,13 +742,13 @@ body {
 
 /* Modifier container using grid layout for control row */
 .modify-button-container {
-   position: relative;
+  position: relative;
    width: 45px; /* Reduced from 50px */
-   height: 50px;
+  height: 50px;
    display: flex;
    flex-direction: column;
-   padding: 0;
-   margin: 0;
+  padding: 0;
+  margin: 0;
 }
 
 /* CRITICAL: Modifier button sizes */
@@ -812,10 +812,10 @@ body {
 /* Total container styling */
 .total-container {
    position: relative;
-   display: flex;
-   justify-content: center;
-   align-items: center;
-   margin-top: 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2px;
 }
 
 /* Fix for inconsistent naming - ensure both class names work the same way */
@@ -1173,19 +1173,19 @@ body {
 
 /* GM Fudge Dice Buttons */
 .fudge-buttons-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1100;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1100;
     pointer-events: none;
     background-color: transparent;
 }
 
 /* Base styles for all fudge buttons */
 .fudge-button {
-    position: absolute;
+  position: absolute;
     cursor: pointer;
     opacity: 0;
     border: none;
@@ -1196,18 +1196,18 @@ body {
 
 /* Blue button (low) - 24x24 */
 .fudge-button.low {
-    width: 24px;
-    height: 24px;
+  width: 24px;
+  height: 24px;
     background-color: transparent;
     top: 28px;
     left: 237px;
 }
-
+  
 /* Green button (minimum) - 56x24 */
 .fudge-button.minimum {
     width: 56px;
     height: 24px;
-    background-color: transparent;
+  background-color: transparent;
     top: 317px;
     left: 45px;
 }

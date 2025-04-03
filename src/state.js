@@ -85,6 +85,16 @@ export function hasPercentileDie() {
 }
 
 /**
+ * Check if a percentile die is active - used only for state restoration
+ * This function performs the same check as hasPercentileDie() but won't trigger animation chains
+ * @returns {boolean} - True if a percentile die is currently selected
+ */
+export function hasPercentileState() {
+  // Check if there's exactly one die and it's a percentile die (d00 ONLY)
+  return _state.selectedDice.length === 1 && _state.selectedDice[0] === 'd00';
+}
+
+/**
  * Check if a die is a standard die (d4, d6, d8, d10, d12, d20)
  * @param {string} die - Die notation (e.g. 'd6')
  * @returns {boolean} True if the die is a standard die

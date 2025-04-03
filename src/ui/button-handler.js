@@ -49,8 +49,34 @@ import {
 import { updateDisplay } from './display';
 import { prepareDisplayData } from '../core-functions';
 import { getCurrentNumberValue, clearNumberValue } from '../number-buttons';
-import { addDie, getSelectedDice, setFudgeMode } from '../state';
+import { addDie, getSelectedDice, setFudgeMode, hasPercentileDie } from '../state';
 import { hideHelpPopup } from '../help';
+
+/**
+ * Exit percentile mode by cleaning up visual states only
+ * State cleanup is handled by clearDicePool
+ * @param {HTMLElement} d10Button - The d10 button element
+ */
+function exitPercentileMode(d10Button) {
+    if (!d10Button) return;
+    
+    // Remove percentile-specific classes
+    d10Button.classList.remove('percentile-active');
+    d10Button.classList.remove('percentile-tens');
+    d10Button.classList.remove('percentile-ones');
+    
+    // Show the main d10 face again
+    const d10Face = d10Button.querySelector('.d10-face');
+    if (d10Face) {
+        d10Face.style.opacity = '1';
+    }
+    
+    // Reset colored dice opacity without affecting spin states
+    const coloredDice = d10Button.querySelectorAll('.colored-die');
+    coloredDice.forEach(die => {
+        die.style.opacity = '0';
+    });
+}
 
 /**
  * Main setup function called from index.js to initialize all UI event handlers
@@ -59,6 +85,19 @@ export function setupEventListeners() {
   // Set up input area event handlers
   const diceInput = document.getElementById('dice-input');
   diceInput.addEventListener('keydown', handleInputKeyDown);
+
+  // Add global ESC key handler
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      // If we're in percentile mode, clear it
+      if (hasPercentileDie()) {
+        const d10Button = document.querySelector('.die-button[data-die="d10"]');
+        clearDicePool();  // Handle state cleanup
+        exitPercentileMode(d10Button);  // Handle visual cleanup
+        e.preventDefault();
+      }
+    }
+  });
 
   // Set up button click handlers
   setupControlButtons();
@@ -194,66 +233,64 @@ export function setupDiceButtons() {
  * @param {HTMLElement} button - The clicked button element
  */
 function handleDieClick(button) {
-  const dieType = button.dataset.die;
-  console.log(`[DEBUG] ${dieType} button clicked - starting handleDieClick`);
-  
-  // Add visual feedback (temporary click effect)
-  button.classList.add('clicked');
-  setTimeout(() => {
-    button.classList.remove('clicked');
-  }, 150);
-  
-  // Check if there's a value in the number display
-  const numValue = getCurrentNumberValue();
-  console.log(`[DEBUG] Current number value: "${numValue}"`);
-  
-  let rollInfo;
-  
-  if (numValue && numValue.length > 0) {
-    // Use the number as a quantity for the die
-    const quantity = parseInt(numValue, 10);
+    const dieType = button.dataset.die;
+    console.log(`[DEBUG] ${dieType} button clicked - starting handleDieClick`);
     
-    if (!isNaN(quantity) && quantity > 0) {
-      console.log(`[DEBUG] Adding ${quantity} ${dieType} dice to pool`);
-      
-      // Add the specified number of dice to the EXISTING pool
-      // (no longer clearing the dice pool first)
-      for (let i = 0; i < quantity; i++) {
-        addDie(dieType);
-      }
-      
-      // Update display based on the new dice selection
-      const selectedDice = getSelectedDice();
-      updateDisplay({
-        selectedDice,
-        modifier: 0,
-        isPercentile: false
-      });
-      
-      // Roll all dice
-      rollInfo = rerollAllDice();
-    } else {
-      console.log(`[DEBUG] Invalid number value: ${numValue}, using default behavior`);
-      // Fall back to default behavior if number is invalid
-      rollInfo = rollSpecificDie(dieType);
+    // Check if we need to exit percentile mode
+    if (hasPercentileDie()) {
+        const d10Button = document.querySelector('.die-button[data-die="d10"]');
+        clearDicePool();  // Handle state cleanup
+        exitPercentileMode(d10Button);  // Handle visual cleanup
     }
-    
-    // Clear the number display after adding dice
-    clearNumberValue();
-  } else {
-    // No number value, use standard behavior
-    console.log(`[DEBUG] No number value, using default behavior`);
-    rollInfo = rollSpecificDie(dieType);
-  }
-  
-  // Make sure we pass the roll info to animateDiceRoll to properly coordinate animations
-  if (rollInfo) {
-    console.log(`[DEBUG] Calling animateDiceRoll with roll info`);
-    const durationMs = animateDiceRoll(rollInfo);
-    console.log(`[DEBUG] animateDiceRoll returned duration: ${durationMs}ms`);
-  } else {
-    console.warn(`[DEBUG] rollSpecificDie returned falsy value, not calling animateDiceRoll`);
-  }
+
+    // Add visual feedback (temporary click effect)
+    button.classList.add('clicked');
+    setTimeout(() => {
+        button.classList.remove('clicked');
+    }, 150);
+
+    // Check if there's a value in the number display
+    const numValue = getCurrentNumberValue();
+    console.log(`[DEBUG] Current number value: "${numValue}"`);
+
+    let rollInfo;
+
+    if (numValue && numValue.length > 0) {
+        // Use the number as a quantity for the die
+        const quantity = parseInt(numValue, 10);
+
+        if (!isNaN(quantity) && quantity > 0) {
+            console.log(`[DEBUG] Adding ${quantity} ${dieType} dice to pool`);
+
+            // Add the specified number of dice
+            for (let i = 0; i < quantity; i++) {
+                addDie(dieType);
+            }
+
+            // Roll all dice
+            rollInfo = rerollAllDice();
+        } else {
+            console.log(`[DEBUG] Invalid number value: ${numValue}, using default behavior`);
+            // Fall back to default behavior if number is invalid
+            rollInfo = rollSpecificDie(dieType);
+        }
+
+        // Clear the number display after adding dice
+        clearNumberValue();
+    } else {
+        // No number value, use standard behavior
+        console.log(`[DEBUG] No number value, using default behavior`);
+        rollInfo = rollSpecificDie(dieType);
+    }
+
+    // Make sure we pass the roll info to animateDiceRoll to properly coordinate animations
+    if (rollInfo) {
+        console.log(`[DEBUG] Calling animateDiceRoll with roll info`);
+        const durationMs = animateDiceRoll(rollInfo);
+        console.log(`[DEBUG] animateDiceRoll returned duration: ${durationMs}ms`);
+    } else {
+        console.warn(`[DEBUG] rollSpecificDie returned falsy value, not calling animateDiceRoll`);
+    }
 }
 
 // ============================================================
