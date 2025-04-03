@@ -150,14 +150,14 @@ export function animateDiceIcons(diceToAnimate) {
       if (window.diceAnimations[button.animationId]) {
         cancelAnimationFrame(window.diceAnimations[button.animationId]);
         window.diceAnimations[button.animationId] = null;
-      }
+  }
   
-      let startTime = null;
+  let startTime = null;
   
       // Animation step function
-      function animateStep(timestamp) {
-        if (!startTime) startTime = timestamp;
-        const elapsedTime = timestamp - startTime;
+  function animateStep(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const elapsedTime = timestamp - startTime;
     
         if (elapsedTime < durationMs) {
           // Calculate current angle using deceleration function
@@ -168,17 +168,17 @@ export function animateDiceIcons(diceToAnimate) {
           
           // Continue animation and store the frame ID
           window.diceAnimations[button.animationId] = requestAnimationFrame(animateStep);
-        } else {
+    } else {
           // Ensure we end at exactly the final angle
           button.style.transform = `rotate(${finalAngle}deg)`;
       
-          // Reset after a brief delay to avoid visual glitch
-          setTimeout(() => {
+      // Reset after a brief delay to avoid visual glitch
+      setTimeout(() => {
             button.style.transform = '';
             window.diceAnimations[button.animationId] = null;
-          }, 50);
-        }
-      }
+      }, 50);
+    }
+  }
   
       // Start the animation and store the frame ID
       window.diceAnimations[button.animationId] = requestAnimationFrame(animateStep);
@@ -250,7 +250,7 @@ function animateNumberResult(element, finalValue, dieType, durationMs) {
         // Chance of showing final value increases as we progress
         if (Math.random() < Math.pow(progress, 2)) {
           element.textContent = finalValue;
-        } else {
+      } else {
           element.textContent = getRandomValueForDie(dieType);
         }
         lastUpdateTime = Date.now();
@@ -260,7 +260,7 @@ function animateNumberResult(element, finalValue, dieType, durationMs) {
       requestAnimationFrame(updateNumber);
     } else {
       // Ensure we end with the final value
-      element.textContent = finalValue;
+        element.textContent = finalValue;
     }
   }
   
@@ -312,7 +312,7 @@ export function animateResults({ rolls, diceTypes, total }, durationMs) {
     totalValue.textContent = currentTotal;
     
     setTimeout(() => {
-      totalValue.textContent = total;
+          totalValue.textContent = total;
     }, durationMs);
   }
 }
