@@ -15,10 +15,15 @@
 * Last updated: March 2025
 */
 
+// Import state management functions
 import { 
-  getAnimationState, 
-  setAnimationState 
-} from '../setup';
+  getAnimationSubtotal, 
+  setAnimationSubtotal,
+  hasPercentileState
+} from '../state';
+
+// Global flags to track state restoration process
+window._isRestoringState = false;
 
 /**
  * Check if a die type is a standard die (d4, d6, d8, d10, d12, d20)
@@ -154,8 +159,22 @@ function animateTransform(element, options) {
  * @returns {number} - Animation duration in milliseconds
  */
 export function animateDiceIcons(diceToAnimate) {
+  // Skip animations completely if we're restoring state or animations are blocked
+  if (window._isRestoringState || window._animationsBlocked) {
+    console.log('[DEBUG] Skipping dice icon animations - restoration in progress or animations blocked');
+    return 0;
+  }
+
   const durationMs = 2000;
   const finalAngle = 360 * 3; // 3 full spins in degrees
+  
+  // If no dice specified, log warning and return
+  if (!diceToAnimate || diceToAnimate.length === 0) {
+    console.warn('No dice to animate specified in animateDiceIcons');
+    return durationMs;
+  }
+  
+  console.log('[DEBUG] Animating dice icons:', diceToAnimate);
   
   diceToAnimate.forEach(dieType => {
     // Special handling for d10/d00
@@ -184,6 +203,8 @@ export function animateDiceIcons(diceToAnimate) {
     } else {
       // Standard dice handling
       const dieButtonsEl = document.querySelectorAll(`.die-button[data-die="${dieType}"] img`);
+      console.log(`[DEBUG] Found ${dieButtonsEl.length} buttons for ${dieType}`);
+      
       dieButtonsEl.forEach(button => {
         animateTransform(button, {
           duration: durationMs,
@@ -735,7 +756,7 @@ export function animateNonStandardResult(container, data, dieType, durationMs) {
   
   // Get previous subtotal from state management - for DISPLAY PURPOSES ONLY
   // This value is never used in calculations, just shown during animation
-  let previousSubtotal = getAnimationState(dieType);
+  let previousSubtotal = getAnimationSubtotal(dieType);
   console.log('Previous subtotal from state:', previousSubtotal);
   
   // Clear existing content and prepare elements
@@ -820,7 +841,7 @@ export function animateNonStandardResult(container, data, dieType, durationMs) {
       
       // Store the new subtotal in state management - FOR DISPLAY PURPOSES ONLY
       // This is only used to show transitions between rolls in the UI
-      setAnimationState(dieType, data.subtotal);
+      setAnimationSubtotal(dieType, data.subtotal);
       console.log(`Stored new animation subtotal in state: ${data.subtotal}`);
     }
   }
