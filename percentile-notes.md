@@ -1373,3 +1373,51 @@ Test cases to verify the fix:
 5. **Doesn't fight the system**: Works with the existing architecture rather than against it
 
 This approach solves the issue by creating a parallel check path that bypasses animation triggers, while still properly restoring the visual state when maximizing.
+```
+
+## Fix: Ensure Roll/Enter Animates All Dice (2025-04-04)
+
+**Issue:**
+When using the "Roll" button or pressing "Enter", not all selected dice icons consistently animate. Only the most recently added dice might spin.
+
+**Analysis:**
+The expected animation flow is:
+1. User triggers Roll/Enter.
+2. `rerollAllDice()` (in `core-functions.js`) is called.
+3. `rerollAllDice()` gets all selected dice, rolls them, and prepares `rollInfo` containing a list of *all* dice to animate.
+4. `animateDiceRoll()` (in `core-functions.js`) receives `rollInfo` and calls `animateDiceIcons()`.
+5. `animateDiceIcons()` (in `animations/dice-animations.js`) receives the list and should animate each die icon.
+
+The system is designed to animate all dice in this scenario. Potential failure points identified:
+- The list of dice passed from `rerollAllDice` might be incorrect/incomplete.
+- Animation interference or cancellation issues in `animateDiceIcons`.
+- DOM query issues finding the icon elements.
+
+**Proposed Solution:**
+The primary fix focuses on ensuring the correct list of dice is passed down:
+1.  Modify `rerollAllDice()` in `src/core-functions.js`.
+2.  Capture the full list of selected dice using `getSelectedDice()` at the *very beginning* of the function.
+3.  When constructing the `rollInfo` object to be returned, explicitly use this *initially captured list* for the `diceToAnimate` property.
+
+**Example Snippet (Conceptual):**
+```javascript
+// Inside rerollAllDice() in src/core-functions.js
+
+export function rerollAllDice() {
+  const diceToRoll = getSelectedDice(); // Capture ALL dice first
+  // ... (check for empty, handle percentile)
+
+  // --- Standard dice reroll ---
+  // ... (clear results, roll dice)
+
+  // *** Ensure diceToAnimate explicitly uses the initially fetched list ***
+  const rollInfo = {
+    diceToAnimate: [...diceToRoll], // Use the captured list
+    results: results,
+    diceTypes: [...diceToRoll],
+    total: total
+  };
+  return rollInfo; // Pass this to animateDiceRoll
+}
+```
+This ensures that the animation system reliably receives the complete list of dice intended for animation when using the Roll button or Enter key.

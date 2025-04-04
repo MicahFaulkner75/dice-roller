@@ -65,22 +65,23 @@ function decelerate(t, p_f, A, tau) {
  * @param {number} options.transforms.translate.y.end - End Y position
  * @returns {string} - Animation ID for cancellation
  */
-function animateTransform(element, options) {
+function animateTransform(element, elementId, options) {
   const {
     duration = 2000,
     tau = 325,
     transforms = {}
   } = options;
 
-  const animationId = `transform_${Date.now()}`;
+  const animationId = elementId;
   
   // Store animation reference
   if (!window.diceAnimations) {
     window.diceAnimations = {};
   }
   
-  // Cancel existing animation if any
+  // Cancel existing animation for *this specific element*
   if (window.diceAnimations[animationId]) {
+    console.log(`[DEBUG] Cancelling existing animation frame for ID: ${animationId}`);
     cancelAnimationFrame(window.diceAnimations[animationId]);
     window.diceAnimations[animationId] = null;
   }
@@ -121,7 +122,7 @@ function animateTransform(element, options) {
       // Apply transforms
       element.style.transform = transform.join(' ');
       
-      // Continue animation
+      // Continue animation, storing frame ID under the element's unique ID
       window.diceAnimations[animationId] = requestAnimationFrame(animateStep);
     } else {
       // Ensure we end at exactly the final values
@@ -141,16 +142,20 @@ function animateTransform(element, options) {
       
       element.style.transform = finalTransform.join(' ');
       
-      // Reset after a brief delay to avoid visual glitch
+      // Reset after a brief delay
       setTimeout(() => {
-        window.diceAnimations[animationId] = null;
+        // Clear the animation frame ID for this element
+        if(window.diceAnimations && window.diceAnimations[animationId]) {
+            window.diceAnimations[animationId] = null;
+            console.log(`[DEBUG] Animation finished and cleared for ID: ${animationId}`);
+        } 
       }, 50);
     }
   }
   
   // Start animation
+  console.log(`[DEBUG] Starting animation for ID: ${animationId}`);
   window.diceAnimations[animationId] = requestAnimationFrame(animateStep);
-  return animationId;
 }
 
 /**
@@ -159,6 +164,8 @@ function animateTransform(element, options) {
  * @returns {number} - Animation duration in milliseconds
  */
 export function animateDiceIcons(diceToAnimate) {
+  console.log(`[DEBUG] animateDiceIcons received: [${diceToAnimate.join(', ')}]`);
+  
   // Skip animations completely if we're restoring state or animations are blocked
   if (window._isRestoringState || window._animationsBlocked) {
     console.log('[DEBUG] Skipping dice icon animations - restoration in progress or animations blocked');
@@ -168,26 +175,21 @@ export function animateDiceIcons(diceToAnimate) {
   const durationMs = 2000;
   const finalAngle = 360 * 3; // 3 full spins in degrees
   
-  // If no dice specified, log warning and return
-  if (!diceToAnimate || diceToAnimate.length === 0) {
-    console.warn('No dice to animate specified in animateDiceIcons');
-    return durationMs;
-  }
-  
-  console.log('[DEBUG] Animating dice icons:', diceToAnimate);
-  
-  // Make sure diceToAnimate is an array even if a single die type was passed
-  const diceArray = Array.isArray(diceToAnimate) ? diceToAnimate : [diceToAnimate];
-  
-  // Track if we're handling a roll-all action (Enter key or Roll button)
-  const isRollAllAction = diceArray.length > 1;
-  if (isRollAllAction) {
-    console.log('[DEBUG] Multiple dice detected - likely a roll-all action (Enter or Roll button)');
-  }
-  
-  diceArray.forEach((dieType, index) => {
-    console.log(`[DEBUG] Processing die ${index+1}/${diceArray.length}: ${dieType}`);
+  diceToAnimate.forEach(dieType => {
+    console.log(`[DEBUG] animateDiceIcons processing: ${dieType}`);
     
+    // --- Assign unique ID to button image elements --- 
+    const getElementUniqueId = (element) => {
+      if (element.dataset.animationId) return element.dataset.animationId;
+      // Create a unique ID based on die type and potentially index if needed
+      const baseId = `anim_${element.closest('.die-button')?.dataset.die || dieType}`;
+      // For now, assume one image per button, refine if needed later
+      const uniqueId = `${baseId}_img`; 
+      element.dataset.animationId = uniqueId;
+      return uniqueId;
+    };
+    // -------------------------------------------------
+
     // Special handling for d10/d00
     if (dieType === 'd10' || dieType === 'd00') {
       const d10ButtonEl = document.querySelector(`.die-button[data-die="d10"]`);
@@ -195,14 +197,15 @@ export function animateDiceIcons(diceToAnimate) {
         console.log(`[DEBUG] Found d10 button for ${dieType}`);
         if (dieType === 'd00') {
           // For percentile, use animateD10
-          console.log(`[DEBUG] Animating percentile d00 die`);
+          console.log(`[DEBUG] Calling animateD10 for d00`);
           animateD10(d10ButtonEl, true, !d10ButtonEl.classList.contains('percentile-active'));
         } else {
           // For standard d10, animate the main die
-          console.log(`[DEBUG] Animating standard d10 die`);
-          const mainDieEl = d10ButtonEl.querySelector('.main-die');
+          const mainDieEl = d10ButtonEl.querySelector('.main-die img');
           if (mainDieEl) {
-            animateTransform(mainDieEl, {
+            const elementId = getElementUniqueId(mainDieEl);
+            console.log(`[DEBUG] Calling animateTransform for standard d10 main die (ID: ${elementId})`);
+            animateTransform(mainDieEl, elementId, {
               duration: durationMs,
               transforms: {
                 rotation: {
@@ -211,25 +214,17 @@ export function animateDiceIcons(diceToAnimate) {
                 }
               }
             });
-          } else {
-            console.warn(`[DEBUG] Could not find main-die element for d10`);
           }
         }
-      } else {
-        console.warn(`[DEBUG] Could not find d10 button element`);
       }
     } else {
       // Standard dice handling
       const dieButtonsEl = document.querySelectorAll(`.die-button[data-die="${dieType}"] img`);
-      console.log(`[DEBUG] Found ${dieButtonsEl.length} buttons for ${dieType}`);
-      
-      if (dieButtonsEl.length === 0) {
-        console.warn(`[DEBUG] No buttons found for ${dieType}`);
-      }
-      
-      dieButtonsEl.forEach((button, buttonIndex) => {
-        console.log(`[DEBUG] Animating ${dieType} button ${buttonIndex+1}`);
-        animateTransform(button, {
+      console.log(`[DEBUG] Found ${dieButtonsEl.length} button(s) for ${dieType}`);
+      dieButtonsEl.forEach((button, index) => {
+        const elementId = getElementUniqueId(button);
+        console.log(`[DEBUG] Calling animateTransform for ${dieType} button #${index + 1} (ID: ${elementId})`);
+        animateTransform(button, elementId, {
           duration: durationMs,
           transforms: {
             rotation: {
@@ -242,7 +237,6 @@ export function animateDiceIcons(diceToAnimate) {
     }
   });
   
-  console.log(`[DEBUG] Animation sequence started for ${diceArray.length} dice, duration: ${durationMs}ms`);
   return durationMs;
 }
 
@@ -655,59 +649,67 @@ export function animateD10(button, isPercentile = false, isFirstActivation = fal
   } else {
     // Percentile mode
     const coloredDice = button.querySelectorAll('.colored-die');
+    const mainDieEl = button.querySelector('.main-die img'); // Target img
     
+    // --- Ensure elements have unique IDs ---
+    const getElementUniqueId = (element) => {
+      if (element.dataset.animationId) return element.dataset.animationId;
+      const baseId = `anim_${button.dataset.die || 'd10'}`;
+      const role = element.classList.contains('colored-die') ? 
+                   (element.classList.contains('blue') ? 'blue' : 'red') : 
+                   'main';
+      const uniqueId = `${baseId}_${role}_img`;
+      element.dataset.animationId = uniqueId;
+      return uniqueId;
+    };
+    // -------------------------------------
+
     if (isFirstActivation) {
       // Initial split animation
       coloredDice.forEach((die, index) => {
+        const dieImg = die.querySelector('img');
+        if (!dieImg) return;
+        const elementId = getElementUniqueId(dieImg);
         const isLeft = die.classList.contains('blue');
-        animateTransform(die, {
+        console.log(`[DEBUG] Animating first activation for colored die ID: ${elementId}`);
+        animateTransform(dieImg, elementId, {
           duration: durationMs,
           tau,
           transforms: {
-            rotation: {
-              start: 0,
-              end: finalAngle
-            },
-            translate: {
-              x: {
-                start: 0,
-                end: isLeft ? -15 : 15
-              }
-            }
+            rotation: { start: 0, end: finalAngle },
+            translate: { x: { start: 0, end: isLeft ? -15 : 15 } }
           }
         });
         
-        // Set opacity with a slight delay to ensure smooth transition
-        setTimeout(() => {
-          die.style.opacity = '1';
-        }, 50);
+        setTimeout(() => { die.style.opacity = '1'; }, 50);
       });
       
       // Hide main die
-      const mainDieEl = button.querySelector('.main-die');
       if (mainDieEl) {
-        mainDieEl.style.opacity = '0';
+          mainDieEl.style.opacity = '0';
+          // Optionally cancel any rotation animation on the main die img
+          const mainDieId = getElementUniqueId(mainDieEl);
+          if (window.diceAnimations && window.diceAnimations[mainDieId]) {
+              cancelAnimationFrame(window.diceAnimations[mainDieId]);
+              window.diceAnimations[mainDieId] = null;
+              console.log(`[DEBUG] Cancelled main die animation for percentile activation (ID: ${mainDieId})`);
+          }
       }
     } else {
       // Subsequent spins - dice are already split
       coloredDice.forEach(die => {
+        const dieImg = die.querySelector('img');
+        if (!dieImg) return;
+        const elementId = getElementUniqueId(dieImg);
         const isLeft = die.classList.contains('blue');
         const currentX = isLeft ? -15 : 15;
-        
-        animateTransform(die, {
+        console.log(`[DEBUG] Animating subsequent spin for colored die ID: ${elementId}`);
+        animateTransform(dieImg, elementId, {
           duration: durationMs,
           tau,
           transforms: {
-            rotation: {
-              start: 0,
-              end: finalAngle
-            },
-            translate: {
-              x: {
-                start: currentX,
-                end: currentX
-              }
-            }
+            rotation: { start: 0, end: finalAngle },
+            translate: { x: { start: currentX, end: currentX } }
           }
         });
       });
