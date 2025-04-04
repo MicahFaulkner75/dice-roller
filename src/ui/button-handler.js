@@ -43,11 +43,11 @@ import {
   minimizeApplet,
   
   // Animation
-  animateDiceRoll
+  animateDiceRoll,
+  prepareDisplayData
 } from '../core-functions';
 
 import { updateDisplay } from './display';
-import { prepareDisplayData } from '../core-functions';
 import { getCurrentNumberValue, clearNumberValue } from '../number-buttons';
 import { addDie, getSelectedDice, setFudgeMode, hasPercentileDie } from '../state';
 import { hideHelpPopup } from '../help';
@@ -269,6 +269,9 @@ function handleDieClick(button) {
 
             // Roll all dice
             rollInfo = rerollAllDice();
+            
+            // Force update display with the latest data to ensure dice are shown in input bar
+            updateDisplay(prepareDisplayData());
         } else {
             console.log(`[DEBUG] Invalid number value: ${numValue}, using default behavior`);
             // Fall back to default behavior if number is invalid
