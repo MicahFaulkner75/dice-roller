@@ -176,16 +176,30 @@ export function animateDiceIcons(diceToAnimate) {
   
   console.log('[DEBUG] Animating dice icons:', diceToAnimate);
   
-  diceToAnimate.forEach(dieType => {
+  // Make sure diceToAnimate is an array even if a single die type was passed
+  const diceArray = Array.isArray(diceToAnimate) ? diceToAnimate : [diceToAnimate];
+  
+  // Track if we're handling a roll-all action (Enter key or Roll button)
+  const isRollAllAction = diceArray.length > 1;
+  if (isRollAllAction) {
+    console.log('[DEBUG] Multiple dice detected - likely a roll-all action (Enter or Roll button)');
+  }
+  
+  diceArray.forEach((dieType, index) => {
+    console.log(`[DEBUG] Processing die ${index+1}/${diceArray.length}: ${dieType}`);
+    
     // Special handling for d10/d00
     if (dieType === 'd10' || dieType === 'd00') {
       const d10ButtonEl = document.querySelector(`.die-button[data-die="d10"]`);
       if (d10ButtonEl) {
+        console.log(`[DEBUG] Found d10 button for ${dieType}`);
         if (dieType === 'd00') {
           // For percentile, use animateD10
+          console.log(`[DEBUG] Animating percentile d00 die`);
           animateD10(d10ButtonEl, true, !d10ButtonEl.classList.contains('percentile-active'));
         } else {
           // For standard d10, animate the main die
+          console.log(`[DEBUG] Animating standard d10 die`);
           const mainDieEl = d10ButtonEl.querySelector('.main-die');
           if (mainDieEl) {
             animateTransform(mainDieEl, {
@@ -197,15 +211,24 @@ export function animateDiceIcons(diceToAnimate) {
                 }
               }
             });
+          } else {
+            console.warn(`[DEBUG] Could not find main-die element for d10`);
           }
         }
+      } else {
+        console.warn(`[DEBUG] Could not find d10 button element`);
       }
     } else {
       // Standard dice handling
       const dieButtonsEl = document.querySelectorAll(`.die-button[data-die="${dieType}"] img`);
       console.log(`[DEBUG] Found ${dieButtonsEl.length} buttons for ${dieType}`);
       
-      dieButtonsEl.forEach(button => {
+      if (dieButtonsEl.length === 0) {
+        console.warn(`[DEBUG] No buttons found for ${dieType}`);
+      }
+      
+      dieButtonsEl.forEach((button, buttonIndex) => {
+        console.log(`[DEBUG] Animating ${dieType} button ${buttonIndex+1}`);
         animateTransform(button, {
           duration: durationMs,
           transforms: {
@@ -219,6 +242,7 @@ export function animateDiceIcons(diceToAnimate) {
     }
   });
   
+  console.log(`[DEBUG] Animation sequence started for ${diceArray.length} dice, duration: ${durationMs}ms`);
   return durationMs;
 }
 
