@@ -83,8 +83,6 @@ export function rollDie(sides) {
 
 // Add this function for percentile rolls
 export function rollPercentile() {
-  console.log("Rolling percentile dice");
-  
   // Check for fudge mode
   const fudgeMode = getFudgeMode();
   
@@ -139,8 +137,6 @@ export function rollPercentile() {
   // Format tens as "00", "10", "20", etc.
   const tensDisplay = (tens * 10).toString().padStart(2, '0');
   
-  console.log(`Percentile roll: tens=${tensDisplay}, ones=${ones}, total=${total}`);
-  
   // Create the results in a fixed order first
   const results = [
     { value: tensDisplay, type: 'd10-tens' },
@@ -152,22 +148,18 @@ export function rollPercentile() {
     results.reverse();
   }
   
-  console.log("Results order:", results.map(r => r.type).join(', '));
   return { results, total };
 }
 
 // Refactored to use state API
 export function rollAllDice() {
   const selectedDice = getSelectedDice();
-  console.log("Rolling dice:", selectedDice);
   
   // Handle pure percentile roll
   if (hasPercentileDie()) {
-    console.log("Triggering single percentile roll");
     const { results, total } = rollPercentile();
     setRollResults(results);
     setLastTotal(total);
-    console.log("Percentile roll results:", results, "total:", total);
     return { results, total };
   }
 
@@ -233,15 +225,9 @@ export function computeNotation() {
 
 // Compute total of current rolls plus modifier
 export function computeTotal() {
-  console.log('=== DEBUG: computeTotal ===');
-  
   const currentRolls = getCurrentRolls();
   const modifier = getModifier();
   const lastTotal = getLastTotal();
-  
-  console.log('currentRolls:', currentRolls);
-  console.log('modifier:', modifier);
-  console.log('lastTotal:', lastTotal);
   
   let sum = 0;
   
@@ -255,7 +241,6 @@ export function computeTotal() {
       const tensValue = parseInt(tens.value, 10);
       const onesValue = parseInt(ones.value, 10);
       sum = (tensValue === 0 && onesValue === 0) ? 100 : tensValue + onesValue;
-      console.log('Percentile roll calculation:', { tensValue, onesValue, sum });
     }
   } else if (currentRolls.length > 0) {
     // Normal dice rolls
@@ -270,33 +255,25 @@ export function computeTotal() {
         rollValue = 0;
       }
       
-      console.log(`Adding roll ${JSON.stringify(roll)} = ${rollValue} to total ${total}`);
       return total + rollValue;
     }, 0);
-    
-    console.log('Sum after reduce:', sum);
   }
 
   // If we have a lastTotal (from percentile rolls), use that instead
   if (lastTotal !== undefined) {
-    console.log(`Using lastTotal (${lastTotal}) instead of calculated sum (${sum})`);
     clearLastTotal(); // Clear after use
     return lastTotal + modifier;
   }
   
   // Always add the modifier
   const finalTotal = sum + modifier;
-  console.log(`Final total: ${sum} + ${modifier} = ${finalTotal}`);
   return finalTotal;
 }
 
 // Improved parseDiceNotation with explicit sets for percentile and non-standard rolls
 export function parseDiceNotation(input) {
-  console.log("Parsing notation:", input);
-  
   // Clean up the input - remove spaces around + and -
   const cleanInput = input.replace(/\s*([+-])\s*/g, '$1');
-  console.log("Cleaned input:", cleanInput);
   
   // Define sets for percentile and non-standard notations
   const percentileSet = new Set(["d100", "d00", "00"]);
@@ -312,7 +289,6 @@ export function parseDiceNotation(input) {
   // Check if the input is a standalone modifier
   if (/^[+-]?\d+$/.test(cleanInput)) {
     const modValue = parseInt(cleanInput, 10);
-    console.log("Standalone modifier detected:", modValue);
     return {
       type: 'modifier',
       dice: [],
@@ -322,7 +298,6 @@ export function parseDiceNotation(input) {
 
   // Check if the input is in the percentile set
   if (percentileSet.has(cleanInput.toLowerCase())) {
-    console.log("Percentile notation detected");
     return { 
       type: 'percentile',
       dice: ['d00'],
@@ -332,7 +307,6 @@ export function parseDiceNotation(input) {
 
   // Check if the input is in the non-standard set
   if (nonStandardSet.has(cleanInput.toLowerCase())) {
-    console.log("Non-standard notation detected: 1d100 -> transforming to d100");
     return { 
       type: 'normal',
       dice: ['d100'], // Transform 1d100 to d100
@@ -349,12 +323,9 @@ export function parseDiceNotation(input) {
   const standardDice = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'];
   
   while ((match = diceRegex.exec(cleanInput)) !== null) {
-    console.log("Match found:", match);
-    
     // Check if this is a modifier (group 4)
     if (match[4] !== undefined) {
       const modValue = parseInt(match[4], 10);
-      console.log("Found modifier:", modValue);
       results.modifier += modValue;
       continue;
     }
@@ -367,7 +338,6 @@ export function parseDiceNotation(input) {
       
       // Special handling for 1d100
       if (match[0].toLowerCase() === '1d100') {
-        console.log("Found 1d100, treating as non-standard d100");
         results.dice.push('d100');
         hasOtherDice = true;
         continue;
@@ -402,7 +372,6 @@ export function parseDiceNotation(input) {
     results.type = 'normal';
   }
 
-  console.log("Final parsed result:", results);
   return results;
 }
 
@@ -431,29 +400,28 @@ export function testDiceParser() {
         ]
     };
 
-    console.log("%c=== DICE NOTATION PARSER TESTS ===", "color: blue; font-weight: bold; font-size: 14px;");
+    // Return results instead of logging them
+    const results = {};
     
     Object.entries(testCases).forEach(([category, cases]) => {
-        console.log(`%c${category}`, "color: green; font-weight: bold;");
+        results[category] = {};
         cases.forEach(input => {
             const result = parseDiceNotation(input);
-            console.log(`Input: "${input}"`);
-            console.log("Result:", result);
-            console.log("Type:", result.type);
-            if (result.type === 'percentile') {
-                console.log("%cPercentile roll detected ✓", "color: blue");
-            }
-            console.log("---");
+            results[category][input] = {
+                result,
+                type: result.type,
+                isPercentile: result.type === 'percentile'
+            };
         });
     });
+    
+    return results;
 }
 
 // Test function for percentile dice functionality
 export function testPercentileDice() {
-    console.log("%c=== PERCENTILE DICE TESTS ===", "color: blue; font-weight: bold; font-size: 14px;");
-    
     // Test 1: Parser Tests
-    console.log("%cParser Tests", "color: green; font-weight: bold;");
+    const parserResults = {};
     const parserTests = [
         "d00", "d100", "1d00", "1d100",  // Basic percentile notation
         "d00+1", "d100-2",               // With modifiers
@@ -463,24 +431,28 @@ export function testPercentileDice() {
     
     parserTests.forEach(input => {
         const result = parseDiceNotation(input);
-        console.log(`Input: "${input}"`);
-        console.log("Result:", result);
-        console.log("Is Percentile:", result.type === 'percentile');
-        console.log("---");
+        parserResults[input] = {
+            result,
+            isPercentile: result.type === 'percentile'
+        };
     });
     
     // Test 2: Roll Function Tests
-    console.log("%cRoll Function Tests", "color: green; font-weight: bold;");
-    console.log("Testing 10 percentile rolls:");
+    const rollResults = [];
     
     for (let i = 0; i < 10; i++) {
         const { results, total } = rollPercentile();
-        console.log(`Roll ${i + 1}:`);
-        console.log("Results:", results);
-        console.log("Total:", total);
-        console.log("Valid Roll:", validatePercentileRoll(results, total));
-        console.log("---");
+        rollResults.push({
+            results,
+            total,
+            validation: validatePercentileRoll(results, total)
+        });
     }
+    
+    return {
+        parserResults,
+        rollResults
+    };
 }
 
 // Helper function to validate percentile roll results
@@ -524,7 +496,6 @@ function validatePercentileRoll(results, total) {
 if (typeof window !== 'undefined') {
     window.testDiceParser = testDiceParser;
     window.testPercentileDice = testPercentileDice;
-    console.log("Test functions available. Run testDiceParser() or testPercentileDice() in console to test.");
 }
 
 

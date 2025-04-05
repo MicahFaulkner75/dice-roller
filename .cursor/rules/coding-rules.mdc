@@ -1,19 +1,74 @@
 ---
-description: How we should prefer to code
-globs: **/*
-alwaysApply: false
+description: 
+globs: 
+alwaysApply: true
 ---
 ---
 description: How we should prefer to code
 globs: **/*
 
+
 ---
+NEVER BEGIN SOLVING A NEW PROBLEM UNTIL THE USER HAS CONFIRMED THE ONE AT-HAND IS SOLVED
+
+## System Architecture
+
+### Initialization Flow
+
+The dice roller now uses a layered architecture with centralized initialization through `setup.js`. Components are initialized in a specific dependency order:
+
+1. **State Layer** - Foundation for all application state
+2. **Core Functions** - Business logic and dice operations 
+3. **DOM Elements** - Structure verification and manipulation
+4. **Event Handlers** - User interaction management
+5. **Display System** - Visual output and animations
+6. **Special Features** - Help system, GM tools, etc.
+7. **Debug Mode** - Development tools and monitoring
+
+Each layer is initialized through its own setup function:
+
+```javascript
+// In index.js
+setupState();         // 1. Foundation
+setupCoreFunctions(); // 2. Business logic
+setupDOMElements();   // 3. Structure
+setupEventHandlers(); // 4. Interaction
+setupDisplay();       // 5. Output
+setupSpecialFeatures(); // 6. Enhancements
+setupDebugMode();     // 7. Debug tools
+```
+
+Each setup function verifies its dependencies and returns a boolean indicating success or failure.
+
+### Error Handling
+
+The initialization system includes robust error handling:
+
+- Each setup function validates its requirements
+- Failed initialization halts the process with descriptive error messages
+- State validation ensures data integrity
+- DOM element verification prevents null reference errors
+- Recovery strategies for various failure scenarios
+
+### Extending the Application
+
+To add new functionality:
+
+1. Add state properties in the appropriate section of `setup.js`
+2. Implement core functions for the new feature
+3. Create UI elements and add them to the DOM validation
+4. Set up event handlers for new interactions
+5. Update the display system to visualize new features
+6. Add special features or debug support as needed
+
+Follow existing patterns for state management, error handling, and user feedback.
+
 # Coding Pattern Preferences
+
 
 ## General Coding Principles
 - Always prefer simple solutions
-- Always think about what other methods or areas of code may be affected by code changes (look again at our tree and code-base before making edits)
-- Keep the codebase very clean and organized. Never add new files without expressed permission from the user
+- Never add new files without expressed permission from the user
 - You are careful to only make changes that are requested or you are confident are well-understood and related to the change being requested
 - Avoid having files over 200-300 lines long. Suggest refactoring at that point, but be sure to get guidance from the user after proposing it
 

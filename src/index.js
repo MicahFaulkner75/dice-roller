@@ -42,15 +42,12 @@ function setupDebugMode() {
             e.preventDefault(); // Prevent browser's default bookmark action
             const applet = document.getElementById('dice-applet');
             applet.classList.toggle('debug-borders');
-            console.log('Debug borders:', applet.classList.contains('debug-borders') ? 'ON' : 'OFF');
         }
     });
 }
 
 // Initialize all UI components when the document is ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOMContentLoaded event fired");
-    
     // Initial setup
     setupEventListeners();
     setupDiceInput();
@@ -84,9 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize display module
     initDisplayModule(); // Initialize display module with scroll handler
-    
-    // Log that initialization is complete for testing
-    console.log("Dice roller initialized with new applet state management");
 });
 
 // Export UI functions from ui-updates.js
@@ -125,7 +119,4 @@ export {
     centerApplet,
     showApplet
 } from './core-functions';
-
-// Other utility exports
-export { formatModifier, formatDiceInput } from './utils/formatting';
 

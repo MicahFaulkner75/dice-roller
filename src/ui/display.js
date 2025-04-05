@@ -27,7 +27,6 @@ export function initDisplayModule() {
   if (diceInput) {
     // Add scroll event listener
     diceInput.addEventListener('scroll', handleInputScroll);
-    console.log('Initialized dice input scroll handler');
   }
 }
 
@@ -47,8 +46,6 @@ function handleInputScroll(event) {
   diceInput.classList.toggle('scroll-at-start', atStart);
   diceInput.classList.toggle('scroll-at-end', atEnd);
   diceInput.classList.toggle('scroll-middle', !atStart && !atEnd);
-  
-  console.log(`Input scroll position: ${atStart ? 'start' : (atEnd ? 'end' : 'middle')}`);
 }
 
 /**
@@ -143,8 +140,6 @@ function updateOverlayHeight(itemCount) {
   
   // Apply the height with CSS variable for easier maintenance
   document.documentElement.style.setProperty('--overlay-height', `${height}px`);
-  
-  console.log(`[DEBUG] Updated overlay height to ${height}px based on ${itemCount} non-standard dice`);
 }
 
 /**
@@ -156,10 +151,7 @@ function updateOverlayHeight(itemCount) {
  * @param {number} data.total - Total roll value
  */
 export function updateResults(data) {
-  console.log(`[DEBUG] updateResults called with:`, data);
-  
   if (!data) {
-    console.warn(`[DEBUG] No data provided to updateResults`);
     return;
   }
   
@@ -173,31 +165,25 @@ export function updateResults(data) {
   const extractedResultsModifier = document.getElementById('extracted-results-modifier');
   
   if (!resultsField || !resultsRolls || !resultsTotal || !nonStandardResults) {
-    console.warn(`[DEBUG] One or more results containers not found in DOM`);
     return;
   }
-  
-  console.log(`[DEBUG] Updating results display elements found in DOM`);
   
   // Update the extracted modifier display instead of the original
   if (extractedResultsModifier) {
     const modifier = data.modifier || 0;
     extractedResultsModifier.textContent = modifier > 0 ? `+${modifier}` : (modifier < 0 ? modifier.toString() : "+0");
-    console.log(`[DEBUG] Updated extracted modifier display: ${extractedResultsModifier.textContent}`);
   }
   
   // Clear and update non-standard dice results
   nonStandardResults.innerHTML = '';
   const nonStandardGroups = data.nonStandardGroups || {};
   
-  console.log(`[DEBUG] Updating non-standard groups:`, nonStandardGroups);
   Object.keys(nonStandardGroups).forEach(dieType => {
     const group = nonStandardGroups[dieType];
     const container = document.createElement('div');
     container.className = 'non-standard-result-item';
     
     // Call animation function from dice-animations.js
-    console.log(`[DEBUG] Calling animateNonStandardResult for ${dieType}`);
     animateNonStandardResult(container, group, dieType, 2000);
     
     nonStandardResults.appendChild(container);
@@ -210,7 +196,6 @@ export function updateResults(data) {
   resultsRolls.innerHTML = '';
   const standardResults = data.standardResults || [];
   
-  console.log(`[DEBUG] Updating standard results:`, standardResults);
   standardResults.forEach(result => {
     const rollBox = document.createElement('div');
     rollBox.className = 'roll-box';
@@ -227,15 +212,11 @@ export function updateResults(data) {
     }
     
     resultsRolls.appendChild(rollBox);
-    console.log(`[DEBUG] Added result: ${rollBox.dataset.die} = ${rollBox.textContent}`);
   });
   
   // Update total value
   const totalValue = resultsTotal.querySelector('.total-value');
   if (totalValue) {
     totalValue.textContent = data.total;
-    console.log(`[DEBUG] Updated total value: ${totalValue.textContent}`);
   }
-  
-  console.log(`[DEBUG] updateResults completed`);
 }

@@ -107,8 +107,6 @@ export function setupEventListeners() {
   
   // Set up fudge dice buttons
   setupFudgeButtons();
-  
-  console.log("UI button handlers have been set up");
 }
 
 // ============================================================
@@ -224,8 +222,6 @@ export function setupDiceButtons() {
     button.addEventListener('touchend', clearTimer);
     button.addEventListener('touchcancel', clearTimer);
   });
-  
-  console.log("Dice button handlers initialized");
 }
 
 /**
@@ -234,7 +230,6 @@ export function setupDiceButtons() {
  */
 function handleDieClick(button) {
     const dieType = button.dataset.die;
-    console.log(`[DEBUG] ${dieType} button clicked - starting handleDieClick`);
     
     // Check if we need to exit percentile mode
     if (hasPercentileDie()) {
@@ -248,51 +243,46 @@ function handleDieClick(button) {
     setTimeout(() => {
         button.classList.remove('clicked');
     }, 150);
-
-    // Check if there's a value in the number display
+    
+    // Get the current number value for multi-dice input
     const numValue = getCurrentNumberValue();
-    console.log(`[DEBUG] Current number value: "${numValue}"`);
-
-    let rollInfo;
-
-    if (numValue && numValue.length > 0) {
-        // Use the number as a quantity for the die
+    
+    // If we have a number selected, add that many dice
+    if (numValue) {
+        // Parse the number (valid range: 1-99)
         const quantity = parseInt(numValue, 10);
-
-        if (!isNaN(quantity) && quantity > 0) {
-            console.log(`[DEBUG] Adding ${quantity} ${dieType} dice to pool`);
-
+        
+        if (!isNaN(quantity) && quantity > 0 && quantity <= 99) {
             // Add the specified number of dice
             for (let i = 0; i < quantity; i++) {
                 addDie(dieType);
             }
-
-            // Roll all dice
-            rollInfo = rerollAllDice();
             
-            // Force update display with the latest data to ensure dice are shown in input bar
-            updateDisplay(prepareDisplayData());
+            // Roll all dice in the pool
+            const rollInfo = rerollAllDice();
+            
+            // Update the display with animation
+            if (rollInfo) {
+                const durationMs = animateDiceRoll(rollInfo);
+            }
+            
+            // Clear the number input
+            clearNumberValue();
         } else {
-            console.log(`[DEBUG] Invalid number value: ${numValue}, using default behavior`);
-            // Fall back to default behavior if number is invalid
-            rollInfo = rollSpecificDie(dieType);
+            // Handle invalid number (fallback to default behavior)
+            const rollInfo = rollSpecificDie(dieType, true);
+            if (rollInfo) {
+                const durationMs = animateDiceRoll(rollInfo);
+            }
         }
-
-        // Clear the number display after adding dice
-        clearNumberValue();
     } else {
-        // No number value, use standard behavior
-        console.log(`[DEBUG] No number value, using default behavior`);
-        rollInfo = rollSpecificDie(dieType);
-    }
-
-    // Make sure we pass the roll info to animateDiceRoll to properly coordinate animations
-    if (rollInfo) {
-        console.log(`[DEBUG] Calling animateDiceRoll with roll info`);
-        const durationMs = animateDiceRoll(rollInfo);
-        console.log(`[DEBUG] animateDiceRoll returned duration: ${durationMs}ms`);
-    } else {
-        console.warn(`[DEBUG] rollSpecificDie returned falsy value, not calling animateDiceRoll`);
+        // Default behavior: roll a single die
+        const rollInfo = rollSpecificDie(dieType, true);
+        
+        // Start animation if rollInfo is returned
+        if (rollInfo) {
+            const durationMs = animateDiceRoll(rollInfo);
+        }
     }
 }
 
@@ -348,8 +338,6 @@ function setupControlButtons() {
       hideHelpPopup();
     });
   }
-  
-  console.log("Control button handlers initialized");
 }
 
 // ============================================================
@@ -397,8 +385,6 @@ function setupClickOutsideBehavior() {
       }
     }
   });
-  
-  console.log("Click-outside behavior initialized");
 }
 
 /**
@@ -432,7 +418,6 @@ function setupFudgeButtons() {
   // Red (critical) -> critical success
   if (criticalButton) {
     criticalButton.addEventListener('click', () => {
-      console.log('Fudge mode: critical success');
       setFudgeMode('critical');
     });
   }
@@ -440,7 +425,6 @@ function setupFudgeButtons() {
   // Green (minimum) -> high roll
   if (minimumButton) {
     minimumButton.addEventListener('click', () => {
-      console.log('Fudge mode: high roll');
       setFudgeMode('high');
     });
   }
@@ -448,7 +432,6 @@ function setupFudgeButtons() {
   // Orange (high) -> low roll
   if (highButton) {
     highButton.addEventListener('click', () => {
-      console.log('Fudge mode: low roll');
       setFudgeMode('low');
     });
   }
@@ -456,7 +439,6 @@ function setupFudgeButtons() {
   // Blue (low) -> critical failure
   if (lowButton) {
     lowButton.addEventListener('click', () => {
-      console.log('Fudge mode: critical failure');
       setFudgeMode('minimum');
     });
   }
@@ -466,12 +448,9 @@ function setupFudgeButtons() {
     if (e.ctrlKey && e.shiftKey && e.key === 'F') {
       const applet = document.getElementById('dice-applet');
       applet.classList.toggle('debug-fudge');
-      console.log('Fudge debug mode:', applet.classList.contains('debug-fudge') ? 'ON' : 'OFF');
       e.preventDefault();
     }
   });
-  
-  console.log("Fudge button handlers initialized");
 }
 
 

@@ -132,7 +132,6 @@ export function getFudgeMode() {
  */
 export function setModifier(value) {
   if (isNaN(value)) {
-    console.warn(`Invalid modifier value: ${value}`);
     return;
   }
   _state.modifier = parseInt(value, 10);
@@ -144,7 +143,6 @@ export function setModifier(value) {
  */
 export function setLastTotal(value) {
   if (isNaN(value)) {
-    console.warn(`Invalid last total value: ${value}`);
     return;
   }
   _state.lastTotal = parseInt(value, 10);
@@ -183,7 +181,6 @@ export function setFudgeMode(mode) {
   // Validate the mode
   const validModes = [null, 'critical', 'high', 'low', 'minimum'];
   if (!validModes.includes(mode)) {
-    console.warn(`Invalid fudge mode: ${mode}`);
     return false;
   }
   
@@ -209,7 +206,6 @@ export function clearFudgeMode() {
  */
 export function addDie(die) {
   if (!die || typeof die !== 'string' || !die.startsWith('d')) {
-    console.warn(`Invalid die type: ${die}`);
     return;
   }
   _state.selectedDice.push(die);
@@ -229,7 +225,6 @@ export function addRollResult(result) {
  */
 export function setRollResults(results) {
   if (!Array.isArray(results)) {
-    console.warn('Roll results must be an array');
     return;
   }
   _state.currentRolls = [...results];
@@ -241,7 +236,6 @@ export function setRollResults(results) {
  */
 export function setSelectedDice(dice) {
   if (!Array.isArray(dice)) {
-    console.warn('Selected dice must be an array');
     return;
   }
   _state.selectedDice = [...dice];

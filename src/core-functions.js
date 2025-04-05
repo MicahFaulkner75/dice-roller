@@ -65,20 +65,12 @@ export function prepareDisplayData() {
  * @returns {Object} Formatted results data
  */
 export function prepareResultsData(results, diceTypes, modifier) {
-  console.log('=== DEBUG: prepareResultsData ===');
-  console.log('Input results:', results);
-  console.log('Input diceTypes:', diceTypes);
-  console.log('Input modifier:', modifier);
-  
   const standardResults = [];
   const nonStandardGroups = {};
   let total = modifier || 0;
   
-  console.log('Starting total (modifier):', total);
-  
   results.forEach((result, index) => {
     const dieType = diceTypes[index];
-    console.log(`Processing die ${index}: ${dieType}`);
     
     // Handle percentile results (which come as objects with type and value)
     if (result && typeof result === 'object' && 'type' in result) {
@@ -96,7 +88,6 @@ export function prepareResultsData(results, diceTypes, modifier) {
           dieType
         });
         total += result;
-        console.log(`Added standard die ${dieType} = ${result}`);
       } else {
         if (!nonStandardGroups[dieType]) {
           nonStandardGroups[dieType] = {
@@ -104,12 +95,10 @@ export function prepareResultsData(results, diceTypes, modifier) {
             results: [result],
             subtotal: result
           };
-          console.log(`Created new non-standard group for ${dieType}, subtotal = ${result}`);
         } else {
           nonStandardGroups[dieType].count++;
           nonStandardGroups[dieType].results.push(result);
           nonStandardGroups[dieType].subtotal += result;
-          console.log(`Updated non-standard group for ${dieType}, new subtotal = ${nonStandardGroups[dieType].subtotal}`);
         }
         total += result;
       }
@@ -120,9 +109,6 @@ export function prepareResultsData(results, diceTypes, modifier) {
   if (diceTypes.includes('d00')) {
     total = computeTotal();
   }
-  
-  console.log('Final nonStandardGroups:', JSON.stringify(nonStandardGroups, null, 2));
-  console.log('Final total:', total);
   
   return {
     standardResults,
@@ -168,42 +154,31 @@ function prepareAnimationData(results, diceTypes) {
  * @returns {object} - Information about the roll for animation
  */
 export function rollSpecificDie(dieType, autoRoll = true) {
-  console.log(`[DEBUG] rollSpecificDie(${dieType}, ${autoRoll}) - start`);
-  
   // Don't allow non-standard dice to be added via this function
   if (!['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].includes(dieType)) {
-    console.warn(`Invalid standard die type: ${dieType}`);
     return false;
   }
   
   // Check if we have a percentile roll and clear it first
   if (hasPercentileDie()) {
-    console.log(`[DEBUG] Percentile die detected, clearing pool`);
     clearDicePool();
   }
   
   // Add die to pool
-  console.log(`[DEBUG] Adding ${dieType} to pool`);
   addDie(dieType);
   
   if (autoRoll) {
     // Roll just this die (don't re-roll all dice)
     const result = rollDie(parseInt(dieType.slice(1), 10));
-    console.log(`[DEBUG] Rolled ${dieType}: ${result}`);
     addRollResult(result);
     
     // Update the input display
-    console.log(`[DEBUG] Updating input display`);
     updateDisplay(prepareDisplayData());
     
     // Get all current dice types and results
     const allDiceTypes = getSelectedDice();
     const allResults = getCurrentRolls();
     const total = computeTotal();
-    
-    console.log(`[DEBUG] All dice: ${allDiceTypes.join(', ')}`);
-    console.log(`[DEBUG] All results: ${allResults.join(', ')}`);
-    console.log(`[DEBUG] Total: ${total}`);
     
     // Return info about all dice, not just the latest one
     const rollInfo = {
@@ -212,11 +187,9 @@ export function rollSpecificDie(dieType, autoRoll = true) {
       diceTypes: allDiceTypes,  // Include all dice types
       total: total
     };
-    console.log(`[DEBUG] Returning rollInfo:`, rollInfo);
     return rollInfo;
   } else {
     // Just add to pool without rolling (for double-click quick add)
-    console.log(`[DEBUG] autoRoll is false, just updating display`);
     updateDisplay(prepareDisplayData());
     return null;
   }
@@ -224,26 +197,30 @@ export function rollSpecificDie(dieType, autoRoll = true) {
 
 /**
  * Roll a percentile die (d100/d00)
+ * @param {'initial' | 'reroll'} context - Indicates if this is the first roll or a subsequent one.
  * @returns {object} - Information about the roll for animation
  */
-export function rollPercentileDie() {
-  // Clear existing dice and set percentile mode
-  clearDicePool();
-  
-  // Add percentile die to the pool
-  addDie('d00');
-  updateDisplay(prepareDisplayData());
+export function rollPercentileDie(context = 'initial') {
+  // No need to clearDicePool or addDie('d00') here if it's a reroll,
+  // assume state is already set by activatePercentileMode or previous reroll.
+  if (context === 'initial') {
+      // Ensure pool is set up correctly for the very first roll
+      clearDicePool(); 
+      addDie('d00');
+      updateDisplay(prepareDisplayData());
+  }
   
   // Roll the percentile die using existing logic
-  const { results, total } = rollAllDice();
+  const { results, total } = rollAllDice(); // rollAllDice handles the d00 case
   
-  // Return the properly structured roll info
-  return {
-    diceToAnimate: ['d00'],  // Always animate the d00 for percentile
-    results,
-    diceTypes: ['d00'],      // Specify the dice type
-    total
+  // Return roll info, adding the context
+  const rollInfo = {
+    diceToAnimate: ['d00'], 
+    results: results, 
+    total: total,
+    animationType: context // Add the context for animateD10
   };
+  return rollInfo;
 }
 
 /**
@@ -253,7 +230,6 @@ export function rollPercentileDie() {
  */
 export function rollNonStandardDie(sides) {
   if (isNaN(sides) || sides < 1) {
-    console.warn(`Invalid number of sides: ${sides}`);
     return false;
   }
   
@@ -283,47 +259,44 @@ export function rollNonStandardDie(sides) {
 }
 
 /**
- * Reroll all dice currently in the pool
- * @returns {object} - Information about the roll for animation
+ * Rerolls all dice currently in the pool
+ * @returns {object | null} - Information about the roll for animation, or null if no dice
  */
 export function rerollAllDice() {
-  const diceToRoll = getSelectedDice();
+  const diceToRoll = getSelectedDice(); 
   if (diceToRoll.length === 0) {
-    console.warn("No dice in pool to reroll");
-    return false;
+    return null; 
   }
-  
-  // Clear current rolls but maintain selected dice
-  clearResults();
-  
-  // Check for percentile dice
+
+  // If percentile is active, handle it separately
   if (hasPercentileDie()) {
-    // Use the existing percentile roll function
-    const { results } = rollAllDice();
-    
-    const durationMs = animateDiceIcons(diceToRoll);
-    animateResults(prepareAnimationData(results, diceToRoll), durationMs);
-    updateResults(prepareResultsData(results, diceToRoll, getModifier()));
-    
-    return {
-      diceToAnimate: ['d00'],
-      results: results,
-      total: computeTotal()
-    };
-  } else {
-    // Roll each die individually to maintain order
-    const { results } = rollAllDice();
-    
-    const durationMs = animateDiceIcons(diceToRoll);
-    animateResults(prepareAnimationData(results, diceToRoll), durationMs);
-    updateResults(prepareResultsData(results, diceToRoll, getModifier()));
-    
-    return {
-      diceToAnimate: diceToRoll,
-      results: results,
-      total: computeTotal()
-    };
+     // Call rollPercentileDie with 'reroll' context
+     const rollInfo = rollPercentileDie('reroll'); 
+     return rollInfo; 
   }
+
+  // --- Standard dice reroll ---
+  clearResults();
+
+  const results = [];
+  diceToRoll.forEach(die => {
+    const result = rollDie(parseInt(die.slice(1), 10));
+    results.push(result);
+    addRollResult(result);
+  });
+
+  const total = computeTotal();
+  updateDisplay(prepareDisplayData());
+
+  const rollInfo = {
+    diceToAnimate: [...diceToRoll],
+    results: results,
+    diceTypes: [...diceToRoll],
+    total: total
+    // No specific animationType needed for standard rerollAllDice
+  };
+
+  return rollInfo;
 }
 
 /**
@@ -486,7 +459,6 @@ export function resetApplet(clearAll = true, centerPosition = true, hideApplet =
  */
 export function adjustModifier(amount) {
   if (isNaN(amount)) {
-    console.warn(`Invalid modifier adjustment: ${amount}`);
     return;
   }
   
@@ -500,7 +472,6 @@ export function adjustModifier(amount) {
  */
 export function setModifierValue(value) {
   if (isNaN(value)) {
-    console.warn(`Invalid modifier value: ${value}`);
     return;
   }
   
@@ -515,7 +486,6 @@ export function setModifierValue(value) {
  */
 export function processNotation(notation) {
   if (!notation || typeof notation !== 'string') {
-    console.warn('Invalid notation:', notation);
     return null;
   }
   
@@ -525,14 +495,11 @@ export function processNotation(notation) {
 
   // Special handling for exact standalone "d100" to ensure it still works as percentile
   if (percentileSet.has(notation.trim().toLowerCase())) {
-    console.log('Exact percentile pattern detected, treating as percentile');
     return triggerPercentileRoll('notation');
   }
   
   // Check for non-standard dice patterns
   if (nonStandardSet.has(notation.trim().toLowerCase())) {
-    console.log('Non-standard dice pattern detected: 1d100 -> treating as d100');
-    
     // Clear the current dice pool
     clearDice();
     clearResults();
@@ -562,11 +529,8 @@ export function processNotation(notation) {
   // If it's not a special case, continue with normal parsing
   const parsed = parseDiceNotation(notation);
   if (!parsed) {
-    console.warn('Could not parse notation:', notation);
     return null;
   }
-  
-  console.log('Parsed notation:', parsed);
   
   // Handle pure modifier input when dice are already in the pool
   if (parsed.type === 'modifier') {
@@ -678,41 +642,27 @@ export function processNotation(notation) {
  * @returns {number} - The animation duration in milliseconds
  */
 export function animateDiceRoll(rollInfo) {
-  console.log(`[DEBUG] animateDiceRoll() - start`, rollInfo);
-  
   // Check if we're currently restoring state - if so, skip animations
   if (window._isRestoringState) {
-    console.log(`[DEBUG] State restoration in progress, skipping animations`);
     return 0;
   }
   
   if (!rollInfo) {
-    console.warn(`[DEBUG] No roll info provided to animateDiceRoll`);
     return 0;
   }
   
-  const { diceToAnimate, results, diceTypes, total } = rollInfo;
-  
-  console.log(`[DEBUG] Extracted from rollInfo:`);
-  console.log(`[DEBUG] diceToAnimate:`, diceToAnimate);
-  console.log(`[DEBUG] results:`, results);
-  console.log(`[DEBUG] diceTypes (if provided):`, diceTypes);
-  console.log(`[DEBUG] total:`, total);
+  // Extract animationType if it exists from rollInfo
+  const { diceToAnimate, results, diceTypes, total, animationType } = rollInfo;
   
   // Get current selected dice and modifier for proper display
   const selectedDice = diceTypes || getSelectedDice();
   const modifier = getModifier();
   
-  console.log(`[DEBUG] Current state from API:`)
-  console.log(`[DEBUG] selectedDice:`, selectedDice);
-  console.log(`[DEBUG] modifier:`, modifier);
-  
   // Start animation sequence
-  console.log(`[DEBUG] Starting dice icon animations`);
-  const durationMs = animateDiceIcons(diceToAnimate);
+  // Pass animationType to animateDiceIcons
+  const durationMs = animateDiceIcons(diceToAnimate, animationType);
   
   // Update the animations
-  console.log(`[DEBUG] Starting result animations`);
   animateResults({
     rolls: results,
     diceTypes: diceToAnimate,
@@ -720,12 +670,9 @@ export function animateDiceRoll(rollInfo) {
   }, durationMs);
   
   // Prepare and update the results display
-  console.log(`[DEBUG] Preparing results data`);
   const resultsData = prepareResultsData(results, selectedDice, modifier);
-  console.log(`[DEBUG] Updating results display with:`, resultsData);
   updateResults(resultsData);
   
-  console.log(`[DEBUG] animateDiceRoll completed, returning duration: ${durationMs}ms`);
   return durationMs;
 }
 
@@ -735,44 +682,28 @@ export function animateDiceRoll(rollInfo) {
  * @returns {Object} Roll information for animation
  */
 export function triggerPercentileRoll(triggerType) {
-    console.log(`[DEBUG] Percentile roll triggered by: ${triggerType}`);
     return activatePercentileMode(triggerType);
 }
 
 /**
  * Activates percentile mode on the d10 die
  * @param {string} triggerType - How the percentile was triggered
- * @returns {Object} Roll information for animation
+ * @returns {Object | boolean} Roll information for animation or false if failed
  */
 export function activatePercentileMode(triggerType) {
-    console.log(`[DEBUG] Activating percentile mode via ${triggerType}`);
-    
     // Skip animations if we're restoring state or animations are blocked
     if (window._isRestoringState || window._animationsBlocked) {
-        console.log(`[DEBUG] State restoration or animations blocked, skipping percentile mode activation`);
         return null;
     }
     
     const d10Button = document.querySelector('.die-button[data-die="d10"]');
     if (!d10Button) {
-        console.warn('[DEBUG] d10 button not found');
         return false;
     }
     
-    // Clear existing dice and set up percentile roll
-    clearDicePool();
-    addDie('d00');
-    
-    // Update display with percentile mode
-    updateDisplay({
-        selectedDice: getSelectedDice(),
-        modifier: getModifier(),
-        isPercentile: true
-    });
-    
     // Handle UI feedback
-    const isFirstActivation = !d10Button.classList.contains('percentile-active');
-    if (isFirstActivation) {
+    const isFirstTimeVisually = !d10Button.classList.contains('percentile-active');
+    if (isFirstTimeVisually) {
         d10Button.classList.remove('percentile-active');
         void d10Button.offsetWidth; // Force reflow
         d10Button.classList.add('percentile-active', 'first-animation');
@@ -782,8 +713,8 @@ export function activatePercentileMode(triggerType) {
         }
     }
     
-    // Roll and return animation info
-    return rollPercentileDie();
+    // Roll and return animation info, specifying 'initial' context
+    return rollPercentileDie('initial');
 }
 
 /**
@@ -797,11 +728,8 @@ export function rollCustomDie(numberValue) {
     
     // Validate the input
     if (isNaN(sides) || sides <= 0) {
-        console.error(`Invalid number of sides: ${sides}`);
         return null;
     }
-    
-    console.log(`Rolling custom die with ${sides} sides`);
     
     // Use the existing non-standard die rolling function
     return rollNonStandardDie(sides);

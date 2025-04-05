@@ -32,15 +32,12 @@ let helpShown = false;
  * Initialize the help popup functionality
  */
 export function setupHelpPopup() {
-    console.log('Initializing help popup handler');
-    
     // Get references to DOM elements
     helpButton = document.querySelector('.help-button');
     helpPopup = document.querySelector('.help-popup');
     applet = document.getElementById('dice-applet');
     
     if (!helpButton || !helpPopup) {
-        console.error('Help elements not found in the DOM');
         return;
     }
     
@@ -141,7 +138,6 @@ export function toggleHelpPopup() {
  * Show the help popup
  */
 export function showHelpPopup() {
-    console.log('Showing help popup');
     helpPopup.classList.add('show');
     helpShown = true;
     updatePopupPosition();
@@ -151,7 +147,6 @@ export function showHelpPopup() {
  * Hide the help popup
  */
 export function hideHelpPopup() {
-    console.log('Hiding help popup');
     if (helpPopup) {
         helpPopup.classList.remove('show');
         helpShown = false;

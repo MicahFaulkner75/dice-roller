@@ -56,8 +56,6 @@ export function setupDiceInput() {
 
   // Set up global keyboard handlers
   setupGlobalKeyboardHandlers(diceInput);
-  
-  console.log("Input handler setup with centralized keyboard handling");
 }
 
 /**
@@ -124,8 +122,6 @@ function setupGlobalKeyboardHandlers(diceInput) {
         // This might conflict with native scrolling or other website functionality
     }
   });
-  
-  console.log("Global keyboard handlers have been set up");
 }
 
 /**
@@ -170,6 +166,5 @@ export function setupRollButton() {
         animateDiceRoll(rollInfo);
       }
     });
-    console.log("Roll button handler set up");
   }
 }

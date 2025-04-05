@@ -67,7 +67,7 @@ export const percentileAnimations = {
             if (mainDie) mainDie.style.opacity = '0';
             coloredDice.forEach(die => {
                 die.style.opacity = '1';
-                die.style.transition = 'opacity ${TIMING.MODE_TRANSITION}ms';
+                die.style.transition = `opacity ${TIMING.MODE_TRANSITION}ms`;
             });
 
             return new Promise(resolve => 
