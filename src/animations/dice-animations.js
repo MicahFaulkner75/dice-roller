@@ -69,7 +69,8 @@ function animateTransform(element, elementId, options) {
   const {
     duration = 2000,
     tau = 325,
-    transforms = {}
+    transforms = {},
+    callback
   } = options;
 
   const animationId = elementId;
@@ -90,7 +91,7 @@ function animateTransform(element, elementId, options) {
   const originalPriority = element.style.getPropertyPriority('transition'); // Get !important status
   element.style.setProperty('transition', 'none', 'important'); // Force disable
   // ----------------------------------------------- 
-
+  
   let startTime = null;
   
   function animateStep(timestamp) {
@@ -155,13 +156,18 @@ function animateTransform(element, elementId, options) {
       setTimeout(() => {
         // Clear the animation frame ID for this element
         if(window.diceAnimations && window.diceAnimations[animationId]) {
-            window.diceAnimations[animationId] = null;
+        window.diceAnimations[animationId] = null;
         }
         // --- Restore CSS Transitions --- 
         // Restore original value and priority
         element.style.setProperty('transition', originalTransition, originalPriority);
         // -----------------------------
       }, 50);
+      
+      // Execute callback if provided
+      if (callback) {
+        callback();
+      }
     }
   }
   
@@ -552,6 +558,13 @@ export function animateResults({ rolls, diceTypes, total }, durationMs) {
  * @returns {number} - Animation duration in milliseconds
  */
 export function animateD10(button, isPercentile = false, animationType) {
+  console.log('ANIMATION DEBUG: animateD10 called', {
+    isPercentile,
+    animationType,
+    button: button?.id || 'unknown',
+    stack: new Error().stack
+  });
+
   const durationMs = 2000;
   const finalAngle = 360 * 3; // 3 full spins
   const tau = 325; // Match the tau value from animateTransform
@@ -574,63 +587,149 @@ export function animateD10(button, isPercentile = false, animationType) {
     };
     // -------------------------------------
 
-    // Use animationType to determine which block to run
-    if (animationType === 'initial') {
-      coloredDice.forEach((die, index) => {
-        const dieImg = die;
-        if (!dieImg) return;
-        const elementId = getElementUniqueId(dieImg);
-        const isLeft = die.classList.contains('blue');
-        animateTransform(dieImg, elementId, {
-          duration: durationMs,
-          tau,
-          transforms: {
-            rotation: { start: 0, end: finalAngle },
-            translate: { x: { start: 0, end: isLeft ? -15 : 15 } }
-          }
-        });
-        
-        setTimeout(() => { die.style.opacity = '1'; }, 50);
-      });
-      
-      // Hide main die
-      if (mainDieEl) {
-          mainDieEl.style.opacity = '0';
-          // Optionally cancel any rotation animation on the main die img
-          const mainDieId = getElementUniqueId(mainDieEl);
-          if (window.diceAnimations && window.diceAnimations[mainDieId]) {
-              cancelAnimationFrame(window.diceAnimations[mainDieId]);
-              window.diceAnimations[mainDieId] = null;
-          }
-      }
-    } else {
-      // Assumed to be 'reroll' or undefined (treat as reroll)
-      const getTranslateX = (el) => {
-        const transform = el.style.transform || '';
-        const match = transform.match(/translateX\(([-\d.]+)px\)/);
-        return match ? parseFloat(match[1]) : 0;
-      };
+    // First, hide the main die immediately
+    if (mainDieEl) {
+      mainDieEl.style.opacity = '0';
+    }
 
-      coloredDice.forEach(die => {
-        const dieImg = die; // die is the img element
-        if (!dieImg) {
-           return; 
+    // Make the colored dice visible immediately 
+    coloredDice.forEach(die => {
+      die.style.opacity = '1';
+    });
+    
+    // Apply the percentile-active class to the button
+    if (!button.classList.contains('percentile-active')) {
+      button.classList.add('percentile-active');
+    }
+
+    // Now animate each colored die
+    coloredDice.forEach((die) => {
+      const isLeft = die.classList.contains('blue');
+      const endX = isLeft ? -15 : 15;
+      const dieId = getElementUniqueId(die);
+      
+      // Start the animation
+      let startTime = null;
+      
+      // Cancel any existing animation
+      if (window.diceAnimations && window.diceAnimations[dieId]) {
+        cancelAnimationFrame(window.diceAnimations[dieId]);
+      }
+      
+      // Custom animation step function
+      function animateStep(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsedTime = timestamp - startTime;
+        
+        if (elapsedTime < durationMs) {
+          // Calculate current position and rotation using deceleration
+          const xAmplitude = endX; // From 0 to endX
+          const rotAmplitude = finalAngle; // 3 full rotations
+          
+          // Calculate current values
+          let currentX, startX;
+          
+          // Different animation based on whether this is initial or reroll
+          if (animationType === 'initial') {
+            // Initial activation - animate from center (split animation)
+            startX = 0;
+            currentX = decelerate(elapsedTime, endX, endX, tau);
+          } else {
+            // Reroll - keep dice in their existing positions
+            startX = endX;
+            currentX = endX; // Stay in position
+          }
+          
+          // Always animate rotation regardless of type
+          const currentAngle = decelerate(elapsedTime, finalAngle, finalAngle, tau);
+          
+          // Apply the combined transform
+          die.style.transform = `translateX(${currentX}px) rotate(${currentAngle}deg)`;
+          
+          // Continue animation
+          window.diceAnimations = window.diceAnimations || {};
+          window.diceAnimations[dieId] = requestAnimationFrame(animateStep);
+        } else {
+          // Animation complete - set final position
+          die.style.transform = `translateX(${endX}px) rotate(${finalAngle % 360}deg)`;
+          
+          // Clean up
+          if (window.diceAnimations) {
+            window.diceAnimations[dieId] = null;
+          }
+        }
+      }
+      
+      // Set initial position based on animation type
+      if (animationType === 'initial') {
+        // Start from center for initial activation
+        die.style.transform = 'translateX(0px) rotate(0deg)';
+      } else {
+        // For rerolls, start from current position
+        // Get current X position if it exists
+        let currentTransform = die.style.transform || '';
+        let currentX = endX; // Default to end position
+        
+        // Extract current X if possible
+        const match = currentTransform.match(/translateX\(([^)]+)px\)/);
+        if (match) {
+          currentX = parseFloat(match[1]);
         }
         
-        const elementId = getElementUniqueId(dieImg);
-        const currentX = getTranslateX(dieImg); // Get the current horizontal position
-
-        // --- Animate Rotation Only, Preserve Translation ---
-        animateTransform(dieImg, elementId, {
-          duration: durationMs,
-          tau,
-          transforms: {
-            rotation: { start: finalAngle, end: finalAngle * 2 }, // Spin from previous end angle
-            translate: { x: { start: currentX, end: currentX } } // Keep X translation fixed
+        // Set initial position to current X with 0 rotation
+        die.style.transform = `translateX(${currentX}px) rotate(0deg)`;
+      }
+      
+      // Start animation
+      window.diceAnimations = window.diceAnimations || {};
+      window.diceAnimations[dieId] = requestAnimationFrame(animateStep);
+    });
+  } else {
+    // Standard d10 animation - just spin the main die
+    const mainDie = button.querySelector('.main-die img');
+    if (mainDie) {
+      mainDie.style.opacity = '1';
+      
+      // Get unique ID for the main die
+      const mainDieId = `anim_d10_main_img`;
+      mainDie.dataset.animationId = mainDieId;
+      
+      // Cancel any existing animation
+      if (window.diceAnimations && window.diceAnimations[mainDieId]) {
+        cancelAnimationFrame(window.diceAnimations[mainDieId]);
+      }
+      
+      // Standard rotation animation 
+      let startTime = null;
+      
+      function animateMainDie(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsedTime = timestamp - startTime;
+        
+        if (elapsedTime < durationMs) {
+          // Calculate rotation using deceleration
+          const currentAngle = decelerate(elapsedTime, finalAngle, finalAngle, tau);
+          
+          // Apply transform
+          mainDie.style.transform = `rotate(${currentAngle}deg)`;
+          
+          // Continue animation
+          window.diceAnimations = window.diceAnimations || {};
+          window.diceAnimations[mainDieId] = requestAnimationFrame(animateMainDie);
+        } else {
+          // Final position
+          mainDie.style.transform = `rotate(${finalAngle % 360}deg)`;
+          
+          // Clean up
+          if (window.diceAnimations) {
+            window.diceAnimations[mainDieId] = null;
           }
-        });
-        // ---------------------------------------------------
-      });
+        }
+      }
+      
+      // Start animation 
+      window.diceAnimations = window.diceAnimations || {};  
+      window.diceAnimations[mainDieId] = requestAnimationFrame(animateMainDie);
     }
   }
   
@@ -676,30 +775,62 @@ function getRandomValuesArray(count, sides) {
  * @param {HTMLElement} button - The d10 button element
  */
 export function applyPercentileFinalState(button) {
+  console.log('ANIMATION DEBUG: applyPercentileFinalState called', {
+    timestamp: new Date().toISOString(),
+    buttonElement: button?.id || 'unknown',
+    hasPercentileState: typeof hasPercentileState === 'function' ? hasPercentileState() : 'unknown',
+    percentileClassExists: button?.classList?.contains('percentile-active'),
+    stack: new Error().stack
+  });
+  
   if (!button) return;
+  
+  // No need to remove first-animation class as it no longer exists in CSS
+  
+  // Create a custom event to track any listeners that might be reacting to this visual change
+  const percentileStateChange = new CustomEvent('percentileStateChanged', { 
+    bubbles: true,
+    detail: { 
+      isMaximizing: window._isRestoringState,
+      timestamp: Date.now()
+    }
+  });
   
   // Add percentile class
   button.classList.add('percentile-active');
+  console.log('ANIMATION DEBUG: Added percentile-active class');
+  
+  // Dispatch the event to see if anything is listening
+  button.dispatchEvent(percentileStateChange);
   
   // Hide main die
   const mainDie = button.querySelector('.main-die');
   if (mainDie) {
     mainDie.style.opacity = '0';
+    console.log('ANIMATION DEBUG: Set main die opacity to 0');
   }
   
-  // Position and show colored dice
+  // Position and show colored dice - using direct style manipulation
   const redDie = button.querySelector('.red-die');
   const blueDie = button.querySelector('.blue-die');
   
   if (redDie) {
+    // Prevent any CSS transitions
+    redDie.style.transition = 'none';
     redDie.style.transform = 'translateX(15px)';
     redDie.style.opacity = '1';
+    console.log('ANIMATION DEBUG: Positioned red die');
   }
   
   if (blueDie) {
+    // Prevent any CSS transitions
+    blueDie.style.transition = 'none';
     blueDie.style.transform = 'translateX(-15px)';
     blueDie.style.opacity = '1';
+    console.log('ANIMATION DEBUG: Positioned blue die');
   }
+  
+  console.log('ANIMATION DEBUG: applyPercentileFinalState completed');
 }
 
 /**
@@ -707,25 +838,78 @@ export function applyPercentileFinalState(button) {
  * This is used to skip animations when the app window is restored
  */
 export function restoreAnimationState() {
-  window._isRestoringState = true;
+  console.log('ANIMATION DEBUG: restoreAnimationState called', {
+    timestamp: new Date().toISOString(),
+    isRestoringStateFlag: window._isRestoringState,
+    stack: new Error().stack
+  });
+  
+  // NOTE: We no longer set _isRestoringState flag here
+  // Using toggleApplet's flag as the single source of truth instead
   
   // Check if we need to restore percentile mode
   if (hasPercentileState()) {
+    console.log('ANIMATION DEBUG: restoring percentile state');
     const d10ButtonEl = document.querySelector('.die-button[data-die="d10"]');
     if (d10ButtonEl) {
+      console.log('ANIMATION DEBUG: Found d10 button, applying percentile state');
+      
+      // Set up a mutation observer to watch for DOM changes that might trigger animations
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          console.log('ANIMATION DEBUG: DOM mutation detected', {
+            type: mutation.type,
+            target: mutation.target.tagName + (mutation.target.id ? '#' + mutation.target.id : ''),
+            attributeName: mutation.attributeName,
+            timestamp: new Date().toISOString()
+          });
+        });
+      });
+      
+      // Start observing before making changes
+      observer.observe(d10ButtonEl, { 
+        attributes: true, 
+        childList: true, 
+        subtree: true,
+        attributeFilter: ['class', 'style']
+      });
+      
+      // Apply the visual state
       applyPercentileFinalState(d10ButtonEl);
+      
+      // Stop observing after a short delay
+      setTimeout(() => {
+        observer.disconnect();
+        console.log('ANIMATION DEBUG: Stopped mutation observer');
+      }, 1000);
     }
   }
   
-  // After a short delay, restore the ability to animate
-  setTimeout(() => {
-    window._isRestoringState = false;
-  }, 500);
+  // NOTE: We no longer clear _isRestoringState flag here
+  // Let toggleApplet handle the flag as the single source of truth
 }
 
 // Add a global handler for window focus to restore animation state if needed
-window.addEventListener('focus', () => {
+window.addEventListener('focus', (e) => {
+  console.log('ANIMATION DEBUG: window focus event fired', {
+    timestamp: new Date().toISOString(),
+    activeElement: document.activeElement?.tagName,
+    visibilityState: document.visibilityState,
+    target: e.target.tagName,
+    eventPhase: e.eventPhase,
+    timeFromPageLoad: performance.now(),
+    eventChain: 'focus → restoreAnimationState → applyPercentileFinalState',
+    stack: new Error().stack
+  });
+  
+  // Track if we are triggered by toggleApplet
+  const fromToggleApplet = window._isRestoringState;
+  console.log('ANIMATION DEBUG: Focus event - _isRestoringState is already:', fromToggleApplet);
+  
   restoreAnimationState();
+  
+  // Log after restoreAnimationState finishes
+  console.log('ANIMATION DEBUG: Focus event processing complete');
 });
 
 // Exposes utility function for testing if needed

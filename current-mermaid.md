@@ -101,13 +101,24 @@ graph TD
     %% ========== MINIMIZE/MAXIMIZE FLOW (HIGHLIGHTED) ==========
     subgraph Minimize/Maximize Flow
         SpaceKey[Space Key Press] --> |Triggers| ToggleApplet[toggleApplet()]
-        ToggleApplet --> |Updates| DisplayProperty[container.style.display]
-        DisplayProperty --> |Triggers| VisibilityChange[visibilitychange event]
-        VisibilityChange --> |Calls| HandleVisibility[handleVisibilityChange()]
-        HandleVisibility --> |If Minimize| PreserveState[preserveAnimationState()]
-        HandleVisibility --> |If Maximize| RestoreState[restoreAnimationState()]
-        RestoreState --> |May Trigger| AnimationRetrigger[Animation Retrigger]
-        style AnimationRetrigger fill:red,stroke:red,stroke-width:2px
+        ToggleApplet --> |Sets Flag<br>_isRestoringState = true<br>1000ms timeout| AnimationFlag1[Animation Prevention Flag]
+        ToggleApplet --> |Updates| DisplayProperty[container.style.display = 'flex']
+        DisplayProperty --> |Triggers| FocusEvent[window focus event]
+        FocusEvent --> |Calls| RestoreState[restoreAnimationState()]
+        RestoreState --> |Sets Flag<br>_isRestoringState = true<br>500ms timeout| AnimationFlag2[Animation Prevention Flag]
+        RestoreState --> |If hasPercentileState()| ApplyPercentileState[applyPercentileFinalState()]
+        ApplyPercentileState --> |DOM Updates| DOMChange[DOM State Change]
+        
+        %% The race condition - this is the root cause
+        AnimationFlag2 --> |Timeout fires first<br>after 500ms| FlagCleared[_isRestoringState = false]
+        FlagCleared --> |Animation<br>no longer blocked| AnimationWindow[Window where animations can run]
+        DOMChange --> |May trigger| AnimationCall[animateDiceRoll() called]
+        AnimationCall --> AnimationWindow
+        AnimationWindow --> |If roll triggered| UnwantedAnimation[Unwanted Animation<br>During Maximize]
+        
+        style UnwantedAnimation fill:red,stroke:red,stroke-width:2px
+        style AnimationWindow fill:orange,stroke:orange,stroke-width:2px
+        style FlagCleared fill:orange,stroke:orange,stroke-width:2px
     end
 
     %% ========== PERCENTILE DICE FLOW (HIGHLIGHTED) ==========
@@ -170,4 +181,31 @@ graph TD
 
 ## Known Issues
 
-The chart highlights the potential animation retriggering issue during maximize operations (marked in red), specifically in the pathway from `restoreAnimationState()` which may unintentionally trigger animations that should be skipped during maximize. 
+The chart highlights the animation retriggering issue during maximize operations (marked in red). The root cause is a race condition between multiple timeout functions that control the animation blocking flag (`_isRestoringState`).
+
+## Potential Solutions
+
+1. **Timeout Synchronization**
+   - Increase `restoreAnimationState()`'s timeout to be longer than `toggleApplet()`'s
+   - Pros: Simple change, minimal code impact
+   - Cons: Only masks the issue, doesn't address the root cause
+
+2. **Shared Flag Management**
+   - Implement a shared mechanism for managing the `_isRestoringState` flag
+   - Use a counter or reference counting approach instead of boolean
+   - Pros: More robust solution, prevents race conditions
+   - Cons: Requires refactoring multiple functions
+
+3. **Targeted Event Prevention**
+   - Identify and block the specific event that's triggering `animateDiceRoll()`
+   - Add explicit checks in suspected event handlers during maximize
+   - Pros: Direct solution to the problem, minimal changes needed
+   - Cons: May be difficult to identify the exact trigger
+
+4. **Animation Guard System**
+   - Implement a more comprehensive animation guard system
+   - Add timestamps or operation IDs to track restoration context
+   - Pros: Most robust long-term solution
+   - Cons: Most complex to implement
+
+The most promising approach is #3 (Targeted Event Prevention), as it directly addresses the root cause without overengineering the solution. The added debugging code should help identify the specific event triggering the animation. 

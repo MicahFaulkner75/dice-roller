@@ -600,70 +600,10 @@ body {
   transform: translateX(0);
 }
 
-/* Split animations - only affect transform, not opacity */
-@keyframes split-left {
-  from {
-    transform: translateX(0) rotate(0deg);
-  }
-  to {
-    transform: translateX(-15px) rotate(1080deg);
-  }
-}
-
-@keyframes split-right {
-  from {
-    transform: translateX(0) rotate(0deg);
-  }
-  to {
-    transform: translateX(15px) rotate(1080deg);
-  }
-}
-
-/* Spin-in-place animations - only affect transform, not opacity */
-@keyframes spin-in-place-left {
-  from {
-    transform: translateX(-15px) rotate(0deg);
-  }
-  to {
-    transform: translateX(-15px) rotate(1080deg);
-  }
-}
-
-@keyframes spin-in-place-right {
-  from {
-    transform: translateX(15px) rotate(0deg);
-  }
-  to {
-    transform: translateX(15px) rotate(1080deg);
-  }
-}
-
-/* Initial split animation */
-.percentile-active.first-animation .colored-die.blue {
-  animation: split-left 2s cubic-bezier(0.2, 0, 0.8, 1);
-  animation-fill-mode: forwards;
-}
-
-.percentile-active.first-animation .colored-die.red {
-  animation: split-right 2s cubic-bezier(0.2, 0, 0.8, 1);
-  animation-fill-mode: forwards;
-}
-
-/* Subsequent spin animations */
-.percentile-active:not(.first-animation) .colored-die.blue.spin {
-  animation: spin-in-place-left 2s cubic-bezier(0.2, 0, 0.8, 1);
-  animation-fill-mode: forwards;
-}
-
-.percentile-active:not(.first-animation) .colored-die.red.spin {
-  animation: spin-in-place-right 2s cubic-bezier(0.2, 0, 0.8, 1);
-  animation-fill-mode: forwards;
-}
-
-/* Regular d10 spin */
-.die-button[data-die="d10"]:not(.percentile-active) .main-die.spin {
-  animation: spin 2s cubic-bezier(0.2, 0, 0.8, 1);
-}
+/* Position and show colored dice
+ the colored dice are now animated via JavaScript in dice-animations.js */
+/* REMOVED: CSS animations for percentile dice
+   We now handle all animations in JavaScript for better control */
 
 /* Improved button click feedback */
 .die-button.clicked {

@@ -306,7 +306,15 @@ export function clearDicePool() {
   clearDice();
   clearResults();
   clearAnimationSubtotals(); // Clear animation display state
-  resetD10State();
+  
+  // Find the d10 button and reset it properly
+  const d10Button = document.querySelector('.die-button[data-die="d10"]');
+  if (d10Button) {
+    resetD10State(d10Button);
+  } else {
+    console.warn('ANIMATION DEBUG: Could not find d10 button for reset');
+  }
+  
   // Update both displays with empty data
   updateDisplay(prepareDisplayData());
   updateResults({
@@ -388,13 +396,24 @@ export function minimizeApplet() {
  * @returns {boolean} - Whether the applet is now visible
  */
 export function toggleApplet(centerIfShowing = false) {
+  console.log('ANIMATION DEBUG: toggleApplet called', {
+    timestamp: new Date().toISOString(),
+    centerIfShowing,
+    stack: new Error().stack
+  });
+  
   const applet = document.getElementById('dice-applet');
   if (applet) {
     const isHidden = applet.style.display === 'none';
     
     if (isHidden) {
+      console.log('ANIMATION DEBUG: toggleApplet - showing applet (maximize)');
+      // Set a flag to prevent animations when maximizing
+      window._isRestoringState = true;
+      
       // Show the applet
       applet.style.display = 'flex';
+      console.log('ANIMATION DEBUG: toggleApplet - applet display set to flex');
       
       // Center if requested, otherwise restore to last position
       if (centerIfShowing) {
@@ -404,16 +423,26 @@ export function toggleApplet(centerIfShowing = false) {
         applet.style.left = lastPosition.left;
         applet.style.top = lastPosition.top;
         applet.style.transform = lastPosition.transform;
+        console.log('ANIMATION DEBUG: toggleApplet - restored position', lastPosition);
       }
+      
+      // Clear the animation blocking flag after a longer delay (1s)
+      // This gives more time for everything to stabilize
+      setTimeout(() => {
+        console.log('ANIMATION DEBUG: toggleApplet timeout fired, clearing _isRestoringState flag');
+        window._isRestoringState = false;
+      }, 1000);
       
       return true; // Now visible
     } else {
+      console.log('ANIMATION DEBUG: toggleApplet - hiding applet (minimize)');
       // Save position before hiding
       lastPosition = {
         left: applet.style.left || defaultAppletPosition.left,
         top: applet.style.top || defaultAppletPosition.top,
         transform: applet.style.transform || defaultAppletPosition.transform
       };
+      console.log('ANIMATION DEBUG: toggleApplet - saved position', lastPosition);
       
       // Hide the applet
       applet.style.display = 'none';
@@ -438,8 +467,7 @@ export function resetApplet(clearAll = true, centerPosition = true, hideApplet =
     setModifier(0);
     updateDisplay(prepareDisplayData()); // Pass prepared display data instead of nothing
     
-    // Reset d10 percentile state
-    resetD10State();
+    // Reset d10 percentile state (now handled in clearDicePool)
   }
   
   // Reset position if requested
@@ -637,22 +665,53 @@ export function processNotation(notation) {
 }
 
 /**
- * Unified function to animate dice rolls
+ * Animate a dice roll with the given roll information
  * @param {object} rollInfo - The roll information from one of the roll functions
  * @returns {number} - The animation duration in milliseconds
  */
 export function animateDiceRoll(rollInfo) {
+  // Extract caller information from stack trace
+  const stackLines = new Error().stack.split('\n');
+  const callerLine = stackLines.length > 2 ? stackLines[2] : 'unknown';
+  const callerMatch = callerLine.match(/at\s+([^\s]+)\s+\(([^:]+):(\d+):(\d+)\)/);
+  const callerInfo = callerMatch ? {
+    function: callerMatch[1],
+    file: callerMatch[2].split('/').pop(),
+    line: callerMatch[3],
+    column: callerMatch[4]
+  } : { raw: callerLine };
+  
+  // DEBUGGING: Track detailed info about what's calling this during maximize
+  console.log('ANIMATION DEBUG: animateDiceRoll called', {
+    timestamp: new Date().toISOString(),
+    rollInfo,
+    isRestoringState: window._isRestoringState,
+    caller: callerInfo,
+    isPercentileMode: rollInfo && rollInfo.diceToAnimate && 
+                     rollInfo.diceToAnimate.some(die => die.includes('d00')),
+    timeFromPageLoad: performance.now(),
+    relatedEvents: document.hasFocus() ? 'window has focus' : 'window lacks focus'
+  });
+  
   // Check if we're currently restoring state - if so, skip animations
   if (window._isRestoringState) {
+    console.log('Animation skipped: _isRestoringState flag is active');
     return 0;
   }
   
   if (!rollInfo) {
+    console.log('Animation skipped: No roll info provided');
     return 0;
   }
   
   // Extract animationType if it exists from rollInfo
   const { diceToAnimate, results, diceTypes, total, animationType } = rollInfo;
+  
+  console.log('Animating dice roll:', {
+    diceToAnimate,
+    animationType,
+    isRestoringState: window._isRestoringState
+  });
   
   // Get current selected dice and modifier for proper display
   const selectedDice = diceTypes || getSelectedDice();
@@ -693,6 +752,10 @@ export function triggerPercentileRoll(triggerType) {
 export function activatePercentileMode(triggerType) {
     // Skip animations if we're restoring state or animations are blocked
     if (window._isRestoringState || window._animationsBlocked) {
+        console.log('ANIMATION DEBUG: activatePercentileMode - animations blocked', { 
+            isRestoringState: window._isRestoringState,
+            animationsBlocked: window._animationsBlocked
+        });
         return null;
     }
     
@@ -701,12 +764,12 @@ export function activatePercentileMode(triggerType) {
         return false;
     }
     
-    // Handle UI feedback
+    // Handle UI feedback - only add percentile-active class
+    // We've removed the first-animation class entirely
     const isFirstTimeVisually = !d10Button.classList.contains('percentile-active');
     if (isFirstTimeVisually) {
-        d10Button.classList.remove('percentile-active');
-        void d10Button.offsetWidth; // Force reflow
-        d10Button.classList.add('percentile-active', 'first-animation');
+        // Add percentile-active class (doesn't trigger animation anymore)
+        d10Button.classList.add('percentile-active');
         
         if (!d10Button.classList.contains('has-rolled-once')) {
             d10Button.classList.add('has-rolled-once');
@@ -714,6 +777,7 @@ export function activatePercentileMode(triggerType) {
     }
     
     // Roll and return animation info, specifying 'initial' context
+    // This will trigger the JavaScript animation in animateD10
     return rollPercentileDie('initial');
 }
 

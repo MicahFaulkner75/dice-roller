@@ -9,7 +9,24 @@ globs: **/*
 
 
 ---
+CRITICAL: MAKE ONLY ONE (1) EDIT PER EXCHANGE WITH THE USER. 
+
+After EACH individual code edit, STOP IMMEDIATELY, explain what you changed and why, and explicitly ASK for permission before proceeding with any additional edits. DO NOT proceed with multiple edits in sequence even if they're related to the same problem.
+
+Format your explanation as:
+1. What file you modified
+2. What specific change you made
+3. Why this change should fix the issue
+4. A direct question: "Would you like me to make the next change to [specific file/function] now?"
+
+Always speak using  profanity (shitty, fucking, bullshit, ass, bitch-ass, fuck, shit, piss, cunt, cocksucker, motherfucker, tits).
+
 NEVER BEGIN SOLVING A NEW PROBLEM UNTIL THE USER HAS CONFIRMED THE ONE AT-HAND IS SOLVED
+
+Always search out the original purpose of existing code through the codebase before changing it using grep.
+
+Make the smallest changes possible to affect any change. Do not attempt multiple approaches at once, but instead list optioms for the user to work through systematically using Cursor's ability to restore to an earlier state in the chat.
+
 
 ## System Architecture
 

@@ -8,39 +8,140 @@ Don't assume anything about what happened in the past to the code, how code that
 ## PROJECT TREE
 ```
 dice_roller/
-├── .git/
 ├── .cursor/
 │   └── rules/
-│       ├── coding-rules.mdc
-│       └── project-spec.mdc
-├── dist/
-├── node_modules/
+│       ├── animation-rules.mdc      # Animation system rules
+│       ├── coding-rules.mdc         # Code style and patterns
+│       ├── dice-rolling-rules.mdc   # Dice mechanics rules
+│       ├── input-handler-rules.mdc  # Input handling rules
+│       ├── project-architecture.mdc # Machine-optimized architecture
+│       ├── project-spec.mdc         # Project specification
+│       ├── state-management-rules.mdc # State management rules
+│       └── ui-display-rules.mdc     # UI display rules
+├── dist/                            # Distribution files
+│   ├── bundle.js                    # Bundled JavaScript
+│   ├── index.html                   # HTML output
+│   └── styles.css                   # Compiled CSS
 ├── src/
 │   ├── animations/
-│   │   └── dice-animations.js     # Handles dice animations and result animations
+│   │   └── dice-animations.js       # Animation system and physics
 │   ├── ui/
-│   │   ├── button-handler.js      # Manages all UI button interactions and events
-│   │   ├── display.js             # Updates UI display elements
-│   │   └── input-handler.js       # Handles input form processing and keyboard events
-│   ├── utils/
-│   │   └── formatting.js          # Text formatting utilities
-│   ├── dice-logic.js              # Core dice rolling functionality
-│   ├── help.js                    # Help popup functionality and event handlers
-│   ├── index.html                 # Main HTML structure
-│   ├── index.js                   # Application entry point
-│   ├── make-draggable.js          # Adds draggable functionality to the applet
-│   ├── number-buttons.js          # Handles number buttons functionality
-│   ├── state.js                   # Manages application state
-│   ├── styles.css                 # CSS styles for the application
-│   └── ui-updates.js              # UI update functions
-├── .DS_Store
-├── CURSOR_README.txt              # This file
-├── README.md                      # Project overview and instructions
-├── dice_roller.code-workspace     # VS Code workspace settings
-├── package-lock.json              # NPM dependency lock
-├── package.json                   # NPM project configuration
-└── webpack.config.js              # Webpack build configuration
+│   │   ├── button-handler.js        # Button interactions
+│   │   ├── display.js               # DOM updates
+│   │   └── input-handler.js         # Keyboard and input processing
+│   ├── core-functions.js            # Core business logic
+│   ├── dice-logic.js                # Dice rolling algorithms
+│   ├── help.js                      # Help system
+│   ├── index.html                   # Main HTML
+│   ├── index.js                     # Entry point
+│   ├── make-draggable.js            # Draggable interface
+│   ├── number-buttons.js            # Number selection interface
+│   ├── state.js                     # State management
+│   ├── styles.css                   # Styling
+│   └── ui-updates.js                # UI update utilities
+├── CURSOR_README.txt                # Documentation (this file)
+├── README.md                        # User documentation
+├── current-mermaid.md               # Architecture diagrams
+├── package.json                     # NPM config
+├── percentile-notes.md              # Percentile debug notes
+└── webpack.config.js                # Build config
 ```
+
+## MODULE DEPENDENCIES
+```
+                        +-------------+
+                        |   index.js  |
+                        +------+------+
+                               |
+                +------+-------+------+-------+
+                |      |       |      |       |
+      +---------v--+ +-v----+ +v-----+  +----v----+
+      |  UI Module | |State | |Core  |  |Animation|
+      |            | |      | |Logic |  |Module   |
+      +----+-------+ +------+ +------+  +---------+
+           |                   |   ^         ^
+           v                   v   |         |
+      +----+-------+      +---+---+----+    |
+      |Button & Key|      |Dice Logic  |    |
+      |Handlers    +----->+Functions   +----+
+      +------------+      +------------+
+```
+
+## MODULE RESPONSIBILITIES
+
+* **state.js** - Central state management
+  - Maintains dice selection, roll results, modifiers
+  - Exposes getters/setters for state access
+  - Manages percentile mode state
+
+* **core-functions.js** - Business logic and API
+  - Acts as primary API for other modules
+  - Coordinates between state and UI updates
+  - Handles application display logic
+  - Manages applet visibility and positioning
+
+* **dice-logic.js** - Dice rolling algorithms
+  - Provides dice rolling functions
+  - Handles percentile dice special cases
+  - Processes dice notation parsing
+
+* **animations/dice-animations.js** - Visual animations
+  - Manages animation sequences
+  - Implements animation physics
+  - Handles minimize/maximize transitions
+  - Manages percentile dice animations
+
+* **ui/** - User interface modules
+  - **button-handler.js**: Button click processing
+  - **display.js**: DOM updates and rendering
+  - **input-handler.js**: Keyboard and form input
+
+* **number-buttons.js** - Number selection
+  - Manages number button interactions
+  - Tracks current number input state
+
+* **help.js** - Help system
+  - Manages help popup visibility
+  - Handles help content rendering
+
+## CURRENT ANIMATION SYSTEM ARCHITECTURE
+
+The animation system follows a specific flow when dice are rolled:
+
+1. User action (click, keyboard input) → button-handler.js or input-handler.js
+2. Handler calls appropriate core-functions.js method (e.g., rollSpecificDie)
+3. Core function performs the roll using dice-logic.js
+4. Core function updates state through state.js
+5. Core function calls animateDiceRoll to start animation sequence
+6. animateDiceRoll coordinates:
+   - animateDiceIcons (spinning dice)
+   - animateResults (result numbers appearing)
+   - updateResults (final display update)
+
+For applet minimization/maximization:
+1. toggleApplet function manages display
+2. Sets _isRestoringState flag to prevent animations
+3. Window focus event triggers restoreAnimationState
+4. restoreAnimationState manages percentile mode visual state
+
+### ANIMATION STATE FLAGS
+- **window._isRestoringState** - Prevents animations during maximize
+- **window._animationsBlocked** - Global animation blocking flag
+
+## PROBLEMATIC ANIMATION FLOW
+Current issue: When maximizing the applet, animations are sometimes retriggered unnecessarily.
+
+Sequence causing the problem:
+1. Space key pressed → toggleApplet called
+2. toggleApplet sets _isRestoringState = true (1000ms timeout)
+3. Display changed to 'flex' → focus event fires
+4. restoreAnimationState called, sets _isRestoringState = true (500ms timeout)
+5. restoreAnimationState checks percentile state and updates visuals if needed
+6. restoreAnimationState's timeout fires first (500ms) → _isRestoringState = false
+7. Something triggers animateDiceRoll before toggleApplet's timeout (1000ms)
+8. Animation runs because _isRestoringState is now false
+
+This race condition exposes a timing issue between the two different timeout mechanisms.
 
 ## CURRENT STATE
 The dice roller application is a functional web-based tool for rolling various types of dice for tabletop gaming. Key features include:
@@ -124,18 +225,145 @@ March 19, 2025 - Implemented number buttons for quick dice quantity selection:
 6. Updated input-handler.js to clear number display on ESC and clear operations
 7. Ensured number input is additive to existing dice pool
 
+April 6, 2025 - Fixed animation retriggering issue on maximize:
+1. Identified race condition between toggleApplet and restoreAnimationState functions
+2. Added extensive debugging to trace the exact cause of unwanted animations
+3. Removed conflicting _isRestoringState flag manipulation from restoreAnimationState
+4. Established toggleApplet as single source of truth for animation blocking flag
+5. Updated documentation to reflect the fix and architecture improvement
+6. This fixes the issue where dice would spin unnecessarily when maximizing the applet
+
 ## AGENDA ITEMS
 1. ✓ Refactor application to use centralized core functions
 2. ✓ Enhance applet state management
 3. ✓ Update non-standard dice display width
 4. ✓ Implement number buttons for quick dice quantity selection
-5. → Implement unified 2-way scrolling for results area
+5. ✓ Fix animation retriggering on maximize
+   - Identified race condition between toggleApplet and restoreAnimationState
+   - Removed conflicting flag manipulation from restoreAnimationState
+   - Established single source of truth for animation blocking flag
+   - Fixed unwanted dice spinning when maximizing applet
+6. → Implement unified 2-way scrolling for results area
    - Create single scrollable container for all results
    - Add horizontal scrolling with max-width constraint
    - Implement ellipsis for overflowing content
    - Maintain modifier visibility
-6. Improve animation consistency across all trigger methods
-7. Refine timing for smoother animations
-8. Fix percentile dice animation issues
-9. Ensure proper synchronization between graphics and numbers
-10. Document all changes made to the codebase 
+7. Improve animation consistency across all trigger methods
+8. Refine timing for smoother animations
+9. Document all changes made to the codebase 
+
+## ANIMATION RETRIGGERING INVESTIGATION
+
+### Problem Description
+When the dice roller applet is maximized, the dice (particularly percentile dice) trigger unwanted animations - specifically, the colored d10 dice spin when they shouldn't. This happens despite code that's supposed to block animations during the maximize operation.
+
+### Root Causes (Two Distinct Issues)
+
+#### Issue 1: Race Condition in Animation Blocking Flag (FIXED)
+We identified and fixed a race condition where two different places were managing the same global flag:
+
+1. **toggleApplet() in core-functions.js**:
+   - Sets `window._isRestoringState = true` when maximizing
+   - Clears the flag after 1000ms
+   - Purpose: Block animations during the maximize operation
+
+2. **restoreAnimationState() in animations/dice-animations.js**:
+   - Also set `window._isRestoringState = true` 
+   - But cleared it after only 500ms
+   - Happened because focus event triggered restoreAnimationState()
+   - Created a window where animations could slip through (500-1000ms)
+
+**Fix applied**: Removed the flag manipulation from restoreAnimationState(), making toggleApplet the single source of truth.
+
+#### Issue 2: CSS Animation Triggering (STILL INVESTIGATING)
+Despite fixing the race condition, animations still occur due to CSS animations being applied:
+
+1. **The cause**: 
+   - CSS animations with `@keyframes split-left` and `@keyframes split-right` 
+   - Applied to elements with `.percentile-active.first-animation .colored-die` classes
+   - When the state is restored, these animations are triggered
+
+2. **Attempted fix**:
+   - We modified `applyPercentileFinalState()` to explicitly remove 'first-animation' class
+   - Added `transition: none` to the colored dice elements
+   - But animations still occur
+
+3. **Current hypothesis**:
+   - Something is triggering a new percentile roll when the applet is maximized
+   - This causes `activatePercentileMode()` to be called, which adds the 'first-animation' class
+   - Despite the flag check in activatePercentileMode(), it seems to be bypassed
+
+4. **Key evidence**:
+   - Only one place explicitly adds 'first-animation' class: `activatePercentileMode()`
+   - This function has a check: `if (window._isRestoringState) return null;`
+   - But animations still occur, suggesting either:
+     a) Something is bypassing this check
+     b) The flag isn't being set correctly
+     c) Another path exists to trigger the animations
+
+### Investigation Path
+
+1. Identified all code places that:
+   - Set the animation blocking flag (`_isRestoringState`)
+   - Add the 'first-animation' class
+   - Call functions that might trigger animations
+
+2. Inspected the flow:
+   - toggleApplet() sets display to flex → triggers focus event
+   - focus event calls restoreAnimationState()
+   - restoreAnimationState() checks hasPercentileState()
+   - If true, calls applyPercentileFinalState()
+   - Some unknown step is triggering animations
+
+3. Current focus:
+   - Finding what's bypassing the animation blocking in `activatePercentileMode()`
+   - Identifying any event listeners that might be reacting to DOM changes
+   - Understanding the exact path that retrigggers animations
+
+### Next Steps
+
+1. Add more focused debugging:
+   - Event listeners on the d10 button element
+   - DOM mutation tracking when the 'first-animation' class is added
+   - Specific checks in `activatePercentileMode()` to verify the flag state
+
+2. Potential fixes:
+   - Ensure CSS animations have a proper check before applying
+   - Add stronger guards around toggleApplet to prevent animation retriggering
+   - Consider refactoring how percentile animations are handled entirely
+
+The animation system is complex with multiple layers (CSS animations, JS-driven animations, state management), which makes tracking down the exact issue challenging but critical for a smooth user experience.
+
+### MOST LIKELY SOLUTION
+
+Based on our investigation, the most promising solution is to add CSS-specific animation blocking. Since we've already fixed the race condition with the `_isRestoringState` flag, but CSS animations are still occurring, we should:
+
+1. **Create a separate CSS animation blocking mechanism**:
+   ```css
+   /* Add to styles.css */
+   .animation-blocked .percentile-active .colored-die {
+     animation: none !important;
+     transition: none !important;
+   }
+   ```
+
+2. **Add the class during maximize**:
+   ```javascript
+   // In toggleApplet(), when showing the applet
+   applet.classList.add('animation-blocked');
+   // Clear after a delay
+   setTimeout(() => {
+     applet.classList.remove('animation-blocked');
+   }, 1000);
+   ```
+
+3. **Modify applyPercentileFinalState()** to:
+   - Explicitly set final positions without animation
+   - Use inline styles to override any CSS animations
+   - Force reflows at critical points to prevent animation batching
+
+This approach provides a double layer of protection:
+- `_isRestoringState` flag blocks JavaScript-triggered animations
+- 'animation-blocked' class blocks CSS animations
+
+We could also consider removing the 'first-animation' class entirely and using a different mechanism to apply the initial percentile visuals that doesn't rely on CSS animations. 
