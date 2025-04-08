@@ -56,6 +56,42 @@ export function setupDiceInput() {
 
   // Set up global keyboard handlers
   setupGlobalKeyboardHandlers(diceInput);
+  
+  // BETTER FIX: For the Enter key not working after maximize issue
+  // Instead of focusing the applet, we'll modify toggleApplet's behavior
+  // by adding an event listener directly to document for visibility changes
+  document.addEventListener('visibilitychange', () => {
+    // When page becomes visible again after being hidden/minimized
+    if (!document.hidden) {
+      console.log('KEYBOARD DEBUG: Document visible again, resetting keyboard handlers');
+      
+      // Force document to be the active element by removing focus from anywhere else
+      if (document.activeElement) {
+        document.activeElement.blur();
+      }
+      
+      // Add a redundant keydown handler specifically for Enter that will work 
+      // after the first press even if other handlers don't catch it
+      const onFirstEnter = (e) => {
+        if (e.key === 'Enter' && document.activeElement !== diceInput) {
+          console.log('KEYBOARD DEBUG: First Enter after maximize caught by backup handler');
+          e.preventDefault();
+          
+          // Use core function to reroll dice and animate
+          const rollInfo = rerollAllDice();
+          if (rollInfo) {
+            animateDiceRoll(rollInfo);
+          }
+          
+          // Remove this one-time handler after it fires
+          document.removeEventListener('keydown', onFirstEnter);
+        }
+      };
+      
+      // Add the one-time handler
+      document.addEventListener('keydown', onFirstEnter);
+    }
+  });
 }
 
 /**

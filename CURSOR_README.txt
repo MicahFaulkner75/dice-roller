@@ -239,10 +239,13 @@ April 6, 2025 - Fixed animation retriggering issue on maximize:
 3. ✓ Update non-standard dice display width
 4. ✓ Implement number buttons for quick dice quantity selection
 5. ✓ Fix animation retriggering on maximize
-   - Identified race condition between toggleApplet and restoreAnimationState
-   - Removed conflicting flag manipulation from restoreAnimationState
-   - Established single source of truth for animation blocking flag
-   - Fixed unwanted dice spinning when maximizing applet
+   - ✓ Identified race condition between toggleApplet and restoreAnimationState
+   - ✓ Removed conflicting flag manipulation from restoreAnimationState
+   - ✓ Established single source of truth for animation blocking flag
+   - ✓ Fixed unwanted dice spinning when maximizing applet
+   - ✓ Completely replaced CSS animations with pure JavaScript animations
+   - ✓ Implemented separate initial vs. reroll animation behaviors
+   - ✓ Fixed Clear button and Backspace key to properly reset dice state
 6. → Implement unified 2-way scrolling for results area
    - Create single scrollable container for all results
    - Add horizontal scrolling with max-width constraint
@@ -250,7 +253,7 @@ April 6, 2025 - Fixed animation retriggering issue on maximize:
    - Maintain modifier visibility
 7. Improve animation consistency across all trigger methods
 8. Refine timing for smoother animations
-9. Document all changes made to the codebase 
+9. Document all changes made to the codebase
 
 ## ANIMATION RETRIGGERING INVESTIGATION
 
@@ -367,3 +370,39 @@ This approach provides a double layer of protection:
 - 'animation-blocked' class blocks CSS animations
 
 We could also consider removing the 'first-animation' class entirely and using a different mechanism to apply the initial percentile visuals that doesn't rely on CSS animations. 
+
+### IMPLEMENTATION NOTES (APRIL 2025)
+
+After evaluating the options, we implemented a complete solution that eliminates all CSS animations and uses pure JavaScript for more direct control:
+
+1. **Removed CSS Animation Entirely**:
+   - Deleted all CSS keyframes (`@keyframes split-left`, `@keyframes split-right`)
+   - Removed all animation-related CSS classes (`.percentile-active.first-animation`)
+   - Eliminated external animation triggers that were causing race conditions
+
+2. **Implemented Pure JavaScript Animation**:
+   - Created direct requestAnimationFrame-based animation loops
+   - Used the `decelerate(t, p_f, A, tau)` physics function for natural motion
+   - Split the animation into two distinct behaviors:
+     * Initial activation - dice move from center outward while spinning
+     * Reroll - dice stay in position and only spin in place
+
+3. **Fixed Clear Button and Backspace**:
+   - Updated resetD10State to properly find and pass the d10 button
+   - Ensured all state clearing functions properly restore dice to their default state
+
+4. **Enhanced Animation Debugging**:
+   - Added detailed console logging at key animation points
+   - Implemented tracking of animation frame IDs to prevent animation conflicts
+
+This approach provides several benefits:
+- Complete control over animation timing and behavior
+- No CSS/JS animation conflicts or race conditions
+- Clear separation between initial and reroll animations
+- Better cleanup of animation resources
+
+The result is a more robust animation system that properly handles all state transitions including:
+- Initial percentile mode activation
+- Rerolling percentile dice
+- Maximize/minimize transitions
+- Clearing the dice pool 

@@ -6,9 +6,9 @@ alwaysApply: true
 ---
 description: How we should prefer to code
 globs: **/*
-
-
+alwaysApply: true
 ---
+
 CRITICAL: MAKE ONLY ONE (1) EDIT PER EXCHANGE WITH THE USER. 
 
 After EACH individual code edit, STOP IMMEDIATELY, explain what you changed and why, and explicitly ASK for permission before proceeding with any additional edits. DO NOT proceed with multiple edits in sequence even if they're related to the same problem.

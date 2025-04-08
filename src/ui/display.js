@@ -15,7 +15,8 @@
 * 7. Updates dynamic overlay height based on non-standard dice count (Added 2023-05-29)
 */
 
-import { animateNonStandardResult } from '../animations/dice-animations';
+// Bring back the animation function - we need this for nonstandard dice
+import { animateNonStandardResult, animateNumberResult } from '../animations/dice-animations';
 
 /**
  * Initialize the display module
@@ -143,10 +144,10 @@ function updateOverlayHeight(itemCount) {
 }
 
 /**
- * Update the results area with roll results
- * @param {Object} data - Results data
- * @param {Array} data.standardResults - Standard dice results
- * @param {Object} data.nonStandardGroups - Non-standard dice grouped results
+ * Update the results display with new roll data
+ * @param {Object} data - Roll data object
+ * @param {Array} data.standardResults - Array of standard die results
+ * @param {Object} data.nonStandardGroups - Object with nonstandard dice results
  * @param {number} data.modifier - Modifier value
  * @param {number} data.total - Total roll value
  */
@@ -178,12 +179,17 @@ export function updateResults(data) {
   nonStandardResults.innerHTML = '';
   const nonStandardGroups = data.nonStandardGroups || {};
   
+  // Use consistent animation durations based on the specification
+  const numberAnimDuration = 1000; // Match the 1000ms number animation in animateNonStandardResult
+  
+  // Process non-standard dice WITH animation
   Object.keys(nonStandardGroups).forEach(dieType => {
     const group = nonStandardGroups[dieType];
     const container = document.createElement('div');
     container.className = 'non-standard-result-item';
     
-    // Call animation function from dice-animations.js
+    // Use the animateNonStandardResult function with default 1000ms internal animation
+    // The durationMs parameter is not actually used for the number animation
     animateNonStandardResult(container, group, dieType, 2000);
     
     nonStandardResults.appendChild(container);
@@ -196,27 +202,40 @@ export function updateResults(data) {
   resultsRolls.innerHTML = '';
   const standardResults = data.standardResults || [];
   
+  // Process all standard results WITH animations
   standardResults.forEach(result => {
     const rollBox = document.createElement('div');
     rollBox.className = 'roll-box';
     
-    // Special handling for percentile results
-    if (typeof result.value === 'object' && result.value.type) {
-      // This is a percentile component
-      rollBox.dataset.die = result.value.type;  // d10-tens or d10-ones
-      rollBox.textContent = result.value.value;
-    } else {
-      // Standard die result
-      rollBox.dataset.die = result.dieType;
-      rollBox.textContent = result.value;
-    }
+    // Create number display element for the die result
+    const numberDisplay = document.createElement('span');
+    numberDisplay.className = 'roll-value';
     
+    rollBox.appendChild(numberDisplay);
     resultsRolls.appendChild(rollBox);
+    
+    // Add animation for the number value
+    if (typeof result.value === 'object' && result.value.type) {
+      // Percentile dice component
+      rollBox.dataset.die = result.value.type;
+      const displayValue = result.value.value;
+      
+      // Match 1000ms animation duration from nonstandard dice
+      animateNumberResult(numberDisplay, displayValue, result.value.type, numberAnimDuration);
+    } else {
+      // Standard dice
+      rollBox.dataset.die = result.dieType;
+      
+      // Match 1000ms animation duration from nonstandard dice
+      animateNumberResult(numberDisplay, result.value, result.dieType, numberAnimDuration);
+    }
   });
   
-  // Update total value
-  const totalValue = resultsTotal.querySelector('.total-value');
-  if (totalValue) {
-    totalValue.textContent = data.total;
-  }
+  // Update total value after a delay to match animations
+  setTimeout(() => {
+    const totalValue = resultsTotal.querySelector('.total-value');
+    if (totalValue) {
+      totalValue.textContent = data.total;
+    }
+  }, numberAnimDuration); // Match the number animation duration
 }

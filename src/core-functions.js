@@ -125,26 +125,43 @@ export function prepareResultsData(results, diceTypes, modifier) {
  * @returns {Object} Data needed for roll animations
  */
 function prepareAnimationData(results, diceTypes) {
+  console.log('DEBUG prepareAnimationData INPUT:', { results, diceTypes });
+  
   const standardRolls = [];
   let total = 0;
 
-  results.forEach((result, index) => {
-    const dieType = diceTypes[index];
-    total += result;
-
+  // Filter out non-standard dice first - don't even process them
+  const standardDiceIndexes = [];
+  diceTypes.forEach((dieType, index) => {
     if (isStandardDie(dieType)) {
-      standardRolls.push({
-        value: result,
-        dieType
-      });
+      standardDiceIndexes.push(index);
     }
   });
 
-  return {
+  console.log('DEBUG standardDiceIndexes:', standardDiceIndexes);
+
+  // Only process standard dice
+  standardDiceIndexes.forEach(index => {
+    const dieType = diceTypes[index];
+    const result = results[index];
+    total += result;
+
+    standardRolls.push({
+      value: result,
+      dieType
+    });
+  });
+
+  const output = {
     rolls: standardRolls,
     diceTypes: diceTypes.filter(isStandardDie),
     total
   };
+  
+  console.log('DEBUG prepareAnimationData OUTPUT:', output);
+  
+  // Only return standard dice for animation 
+  return output;
 }
 
 /**
@@ -247,9 +264,27 @@ export function rollNonStandardDie(sides) {
   const result = rollDie(sides);
   addRollResult(result);
   
+  console.log('DEBUG rollNonStandardDie - About to animate:', { result, dieType });
+  
   const durationMs = animateDiceIcons([dieType]);
-  animateResults(prepareAnimationData([result], [dieType]), durationMs);
-  updateResults(prepareResultsData([result], [dieType], getModifier()));
+  
+  // Log data right before passing to animateResults
+  const animData = prepareAnimationData([result], [dieType]);
+  console.log('DEBUG rollNonStandardDie - Data for animateResults:', animData);
+  
+  // CRITICAL FIX: Only call animateResults if there are standard dice to animate
+  // For non-standard dice, this should never happen, but we check just to be safe
+  if (animData.rolls.length > 0) {
+    animateResults(animData, durationMs);
+  } else {
+    console.log('DEBUG: Skipping animateResults for non-standard die - no standard dice to animate');
+  }
+  
+  // Log data right before passing to updateResults
+  const resultsData = prepareResultsData([result], [dieType], getModifier());
+  console.log('DEBUG rollNonStandardDie - Data for updateResults:', resultsData);
+  
+  updateResults(resultsData);
   
   return {
     diceToAnimate: [dieType],
@@ -665,36 +700,18 @@ export function processNotation(notation) {
 }
 
 /**
- * Animate a dice roll with the given roll information
- * @param {object} rollInfo - The roll information from one of the roll functions
- * @returns {number} - The animation duration in milliseconds
+ * Animate a dice roll with all associated effects
+ * @param {Object} rollInfo - Information about the roll
+ * @param {Array} rollInfo.diceToAnimate - Array of dice types to animate
+ * @param {Array} rollInfo.results - Array of roll results
+ * @param {Array} rollInfo.diceTypes - Array of corresponding dice types
+ * @param {number} rollInfo.total - Total roll value
+ * @param {string} rollInfo.animationType - Type of animation
+ * @returns {number} Animation duration in milliseconds
  */
 export function animateDiceRoll(rollInfo) {
-  // Extract caller information from stack trace
-  const stackLines = new Error().stack.split('\n');
-  const callerLine = stackLines.length > 2 ? stackLines[2] : 'unknown';
-  const callerMatch = callerLine.match(/at\s+([^\s]+)\s+\(([^:]+):(\d+):(\d+)\)/);
-  const callerInfo = callerMatch ? {
-    function: callerMatch[1],
-    file: callerMatch[2].split('/').pop(),
-    line: callerMatch[3],
-    column: callerMatch[4]
-  } : { raw: callerLine };
-  
-  // DEBUGGING: Track detailed info about what's calling this during maximize
-  console.log('ANIMATION DEBUG: animateDiceRoll called', {
-    timestamp: new Date().toISOString(),
-    rollInfo,
-    isRestoringState: window._isRestoringState,
-    caller: callerInfo,
-    isPercentileMode: rollInfo && rollInfo.diceToAnimate && 
-                     rollInfo.diceToAnimate.some(die => die.includes('d00')),
-    timeFromPageLoad: performance.now(),
-    relatedEvents: document.hasFocus() ? 'window has focus' : 'window lacks focus'
-  });
-  
-  // Check if we're currently restoring state - if so, skip animations
-  if (window._isRestoringState) {
+  // Skip animations if we're restoring state or animations are blocked
+  if (window._isRestoringState || window._animationsBlocked) {
     console.log('Animation skipped: _isRestoringState flag is active');
     return 0;
   }
@@ -721,15 +738,27 @@ export function animateDiceRoll(rollInfo) {
   // Pass animationType to animateDiceIcons
   const durationMs = animateDiceIcons(diceToAnimate, animationType);
   
-  // Update the animations
-  animateResults({
-    rolls: results,
-    diceTypes: diceToAnimate,
-    total
-  }, durationMs);
+  // Number animations run for 3 seconds
+  const numberAnimDuration = 3000;
   
-  // Prepare and update the results display
+  // CRITICAL FIX: Use prepareAnimationData to filter out nonstandard dice
+  // This ensures only standard dice are passed to animateResults
+  const animData = prepareAnimationData(results, selectedDice);
+  
+  console.log('DEBUG animateDiceRoll - Data for animateResults:', animData);
+  
+  // Only call animateResults if there are standard dice to animate
+  if (animData.rolls.length > 0) {
+    // IMPORTANT: animateResults will handle animations for standard dice
+    animateResults(animData, durationMs, numberAnimDuration);
+  } else {
+    console.log('DEBUG: Skipping animateResults in animateDiceRoll - no standard dice to animate');
+  }
+  
+  // CRITICAL FIX: Always call updateResults with ALL dice data for proper display
+  // This ensures nonstandard dice are properly displayed
   const resultsData = prepareResultsData(results, selectedDice, modifier);
+  console.log('DEBUG animateDiceRoll - Data for updateResults:', resultsData);
   updateResults(resultsData);
   
   return durationMs;

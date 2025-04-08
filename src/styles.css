@@ -1270,3 +1270,9 @@ body {
 .results-field {
    position: relative; /* Make sure position is relative for absolute overlay */
 }
+
+/* CRITICAL: Make non-standard dice values gray but keep them bold */
+.dice-values {
+  color: #666666;  /* Gray color for the individual dice values */
+  font-weight: bold;
+}

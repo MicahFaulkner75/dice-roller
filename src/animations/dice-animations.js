@@ -181,14 +181,17 @@ function animateTransform(element, elementId, options) {
  * @param {'initial' | 'reroll' | undefined} animationType - Specific type for percentile
  * @returns {number} - Animation duration in milliseconds
  */
-export function animateDiceIcons(diceToAnimate, animationType) {
+function animateDiceIcons(diceToAnimate, animationType) {
   // Skip animations completely if we're restoring state or animations are blocked
   if (window._isRestoringState || window._animationsBlocked) {
     return 0;
   }
 
-  const durationMs = 2000;
-  const finalAngle = 360 * 3; // 3 full spins in degrees
+  // Standardized duration for all dice animations
+  const durationMs = 6000;  // Changed from 2000 to 6000
+
+  // After d10 is found, we need to call animateD10
+  let hasD10 = false;
   
   diceToAnimate.forEach(dieType => {
     // --- Assign unique ID to button image elements --- 
@@ -212,7 +215,8 @@ export function animateDiceIcons(diceToAnimate, animationType) {
           animateD10(d10ButtonEl, true, animationType); // Pass animationType directly
         } else {
           // For standard d10, animate the main die
-          const mainDieEl = d10ButtonEl.querySelector('.main-die img');
+          // Using direct .main-die selector (img is directly classed as main-die)
+          const mainDieEl = d10ButtonEl.querySelector('.main-die');
           if (mainDieEl) {
             const elementId = getElementUniqueId(mainDieEl);
             animateTransform(mainDieEl, elementId, {
@@ -220,7 +224,7 @@ export function animateDiceIcons(diceToAnimate, animationType) {
               transforms: {
                 rotation: {
                   start: 0,
-                  end: finalAngle
+                  end: 360 * 3
                 }
               }
             });
@@ -237,7 +241,7 @@ export function animateDiceIcons(diceToAnimate, animationType) {
           transforms: {
             rotation: {
               start: 0,
-              end: finalAngle
+              end: 360 * 3
             }
           }
         });
@@ -295,40 +299,31 @@ function animateNumberResult(element, finalValue, dieType, durationMs) {
   element.style.visibility = 'visible';
   element.dataset.die = dieType;
   
-  // Animation parameters based on rules
-  const numberAnimDuration = 1000; // Numbers settle after 1000ms
-  const tau = 325; // Time constant for deceleration
+  // Use the passed durationMs parameter
+  const numberAnimDuration = durationMs || 3000; // Changed from 500 to 3000
+  const throttleFactor = 4; // Update every 4th frame (~15fps)
   
   // Animation state tracking
   let startTime = null;
   let lastValue = getRandomValueForDie(dieType);
   let animationFrameId = null;
+  let frameCount = 0; // Frame counter
   
   // Set initial random value
   element.textContent = lastValue;
   
-  // Capture initial style state
-  const initialState = captureStyleState(element);
-  
   function updateNumber(timestamp) {
-    if (!startTime) startTime = timestamp;
+    if (!startTime) {
+      startTime = timestamp;
+    }
+    
     const elapsed = timestamp - startTime;
+    frameCount++; // Increment frame count
     
     if (elapsed < numberAnimDuration) {
-      // Calculate deceleration progress (0 to 1)
-      const progress = decelerate(elapsed, 1, 1, tau);
-      
-      // Probability of showing final value increases with decelerated progress
-      const showFinal = Math.random() < Math.pow(progress, 3);
-      
-      if (showFinal) {
-        if (dieType === 'd10-tens' && typeof finalValue === 'number') {
-          element.textContent = finalValue.toString().padStart(2, '0');
-        } else {
-          element.textContent = finalValue;
-        }
-      } else {
-        // Generate new random value
+      // Only update on throttled frames
+      if (frameCount % throttleFactor === 0) { 
+        // Always show a new random number every throttled frame
         let newValue = getRandomValueForDie(dieType);
         
         // Ensure we don't show the same number twice
@@ -345,23 +340,15 @@ function animateNumberResult(element, finalValue, dieType, durationMs) {
         lastValue = newValue;
       }
       
-      // Capture style state after update
-      const currentState = captureStyleState(element);
-      compareStyleStates(initialState, currentState, 'During Animation');
-      
       // Continue animation
       animationFrameId = requestAnimationFrame(updateNumber);
     } else {
-      // Ensure we end with the final value
+      // Animation duration complete - set the final value
       if (dieType === 'd10-tens' && typeof finalValue === 'number') {
         element.textContent = finalValue.toString().padStart(2, '0');
       } else {
         element.textContent = finalValue;
       }
-      
-      // Final style check
-      const finalState = captureStyleState(element);
-      compareStyleStates(initialState, finalState, 'Animation Complete');
       
       // Clean up
       animationFrameId = null;
@@ -457,9 +444,10 @@ function compareStyleStates(before, after, context) {
  * @param {Array} animationData.rolls - Array of roll results
  * @param {Array} animationData.diceTypes - Array of corresponding dice types
  * @param {number} animationData.total - Final total to display
- * @param {number} durationMs - Animation duration
+ * @param {number} durationMs - Full dice animation duration
+ * @param {number} [numberAnimDuration] - Optional duration for number animations (defaults to 50% of durationMs)
  */
-export function animateResults({ rolls, diceTypes, total }, durationMs) {
+function animateResults({ rolls, diceTypes, total }, durationMs, numberAnimDuration) {
   const resultsRollsEl = document.getElementById('results-rolls');
   const resultsTotalEl = document.getElementById('results-total');
   
@@ -468,11 +456,16 @@ export function animateResults({ rolls, diceTypes, total }, durationMs) {
   }
   
   // Clear existing results
+  if (resultsRollsEl) {
   resultsRollsEl.innerHTML = '';
+  }
   
   // Animation sequence timing
-  const numberAnimDuration = 1000; // Numbers animate for 1s
-  const totalUpdateDelay = durationMs - 1000;
+  // Use the explicit numberAnimDuration if provided, otherwise calculate 50% of durationMs
+  const numberAnimTime = numberAnimDuration || Math.floor(durationMs * 0.5);
+  
+  // Update total at the same time number animations finish
+  const totalUpdateDelay = numberAnimTime;
   
   // Create and animate result boxes
   rolls.forEach((roll, index) => {
@@ -512,6 +505,7 @@ export function animateResults({ rolls, diceTypes, total }, durationMs) {
       
       // Start animation in next frame to ensure styles are applied
       requestAnimationFrame(() => {
+        // Animate the number value with the specified duration
         if (typeof roll === 'object' && roll.type) {
           // Percentile roll handling
           const isPercentile = roll.type.startsWith('d10-');
@@ -521,12 +515,15 @@ export function animateResults({ rolls, diceTypes, total }, durationMs) {
             if (roll.type === 'd10-tens') {
               displayValue = roll.value.toString().padStart(2, '0');
             }
-            animateNumberResult(numberDisplay, displayValue, roll.type, durationMs);
+            // Call animateNumberResult with the numberAnimTime duration
+            animateNumberResult(numberDisplay, displayValue, roll.type, numberAnimTime);
           } else {
-            animateNumberResult(numberDisplay, roll.value, roll.type, durationMs);
+            // Call animateNumberResult with the numberAnimTime duration
+            animateNumberResult(numberDisplay, roll.value, roll.type, numberAnimTime);
           }
         } else {
-          animateNumberResult(numberDisplay, roll, dieType, durationMs);
+          // Call animateNumberResult with the numberAnimTime duration
+          animateNumberResult(numberDisplay, roll, dieType, numberAnimTime);
         }
       });
     });
@@ -535,18 +532,12 @@ export function animateResults({ rolls, diceTypes, total }, durationMs) {
   // Update total with proper timing
   if (resultsTotalEl) {
     setTimeout(() => {
-      resultsTotalEl.style.transition = 'opacity 200ms ease-out';
-      resultsTotalEl.style.opacity = '0';
-      
-      setTimeout(() => {
+      // Directly update the total value without fading
         const totalValue = resultsTotalEl.querySelector('.total-value');
         if (totalValue) {
           totalValue.textContent = total;
         }
-        resultsTotalEl.style.transition = 'opacity 200ms ease-in';
-        resultsTotalEl.style.opacity = '1';
-      }, 250);
-    }, totalUpdateDelay);
+    }, totalUpdateDelay); // Wait until numbers finish animating
   }
 }
 
@@ -557,7 +548,7 @@ export function animateResults({ rolls, diceTypes, total }, durationMs) {
  * @param {'initial' | 'reroll' | undefined} animationType - Explicitly defines the animation required
  * @returns {number} - Animation duration in milliseconds
  */
-export function animateD10(button, isPercentile = false, animationType) {
+function animateD10(button, isPercentile = false, animationType) {
   console.log('ANIMATION DEBUG: animateD10 called', {
     isPercentile,
     animationType,
@@ -565,7 +556,7 @@ export function animateD10(button, isPercentile = false, animationType) {
     stack: new Error().stack
   });
 
-  const durationMs = 2000;
+  const durationMs = 6000; // Changed from 2000 to 6000
   const finalAngle = 360 * 3; // 3 full spins
   const tau = 325; // Match the tau value from animateTransform
   
@@ -604,7 +595,7 @@ export function animateD10(button, isPercentile = false, animationType) {
 
     // Now animate each colored die
     coloredDice.forEach((die) => {
-      const isLeft = die.classList.contains('blue');
+        const isLeft = die.classList.contains('blue');
       const endX = isLeft ? -15 : 15;
       const dieId = getElementUniqueId(die);
       
@@ -686,7 +677,7 @@ export function animateD10(button, isPercentile = false, animationType) {
     });
   } else {
     // Standard d10 animation - just spin the main die
-    const mainDie = button.querySelector('.main-die img');
+    const mainDie = button.querySelector('.main-die');
     if (mainDie) {
       mainDie.style.opacity = '1';
       
@@ -716,7 +707,7 @@ export function animateD10(button, isPercentile = false, animationType) {
           // Continue animation
           window.diceAnimations = window.diceAnimations || {};
           window.diceAnimations[mainDieId] = requestAnimationFrame(animateMainDie);
-        } else {
+    } else {
           // Final position
           mainDie.style.transform = `rotate(${finalAngle % 360}deg)`;
           
@@ -740,7 +731,7 @@ export function animateD10(button, isPercentile = false, animationType) {
  * Reset the d10 button back to its original state
  * @param {HTMLElement} button - The d10 button element to reset
  */
-export function resetD10State(button) {
+function resetD10State(button) {
   if (!button) return;
   
   // Remove percentile classes
@@ -774,7 +765,7 @@ function getRandomValuesArray(count, sides) {
  * Apply final percentile visual state without animations
  * @param {HTMLElement} button - The d10 button element
  */
-export function applyPercentileFinalState(button) {
+function applyPercentileFinalState(button) {
   console.log('ANIMATION DEBUG: applyPercentileFinalState called', {
     timestamp: new Date().toISOString(),
     buttonElement: button?.id || 'unknown',
@@ -837,7 +828,7 @@ export function applyPercentileFinalState(button) {
  * A function to restore animation state after app is maximized
  * This is used to skip animations when the app window is restored
  */
-export function restoreAnimationState() {
+function restoreAnimationState() {
   console.log('ANIMATION DEBUG: restoreAnimationState called', {
     timestamp: new Date().toISOString(),
     isRestoringStateFlag: window._isRestoringState,
@@ -915,8 +906,11 @@ window.addEventListener('focus', (e) => {
 // Exposes utility function for testing if needed
 window._testDecelerateFunction = decelerate;
 
-// Block or unblock animations globally
-export function setAnimationsBlocked(blocked) {
+/**
+ * Block or unblock animations globally
+ * @param {boolean} blocked - Whether animations should be blocked
+ */
+function setAnimationsBlocked(blocked) {
   window._animationsBlocked = blocked;
 }
 
@@ -927,7 +921,7 @@ export function setAnimationsBlocked(blocked) {
  * @param {string} dieType - Type of die (e.g., 'd30')
  * @param {number} durationMs - Animation duration
  */
-export function animateNonStandardResult(container, data, dieType, durationMs) {
+function animateNonStandardResult(container, data, dieType, durationMs) {
   // Animation parameters
   const numberAnimDuration = 1000; // Numbers settle after 1000ms
   const initialInterval = 50; // Start updating every 50ms (20fps)
@@ -1017,3 +1011,17 @@ export function animateNonStandardResult(container, data, dieType, durationMs) {
   // Start animation
   requestAnimationFrame(updateDiceValues);
 }
+
+// Export all animation functions
+export {
+  animateNonStandardResult,
+  animateResults,
+  animateD10,
+  animateTransform,
+  animateNumberResult,
+  animateDiceIcons,
+  resetD10State,
+  applyPercentileFinalState,
+  restoreAnimationState,
+  setAnimationsBlocked
+};
