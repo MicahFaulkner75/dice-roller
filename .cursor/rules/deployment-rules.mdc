@@ -1,0 +1,97 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Rules for deploying and maintaining the dice roller
+globs: 
+  - "**/deployment.md"
+  - "**/wp-content/uploads/dice-roller/**"
+keywords:
+  - deploy
+  - upload
+  - wordpress
+  - bluehost
+  - production
+alwaysApply: true
+---
+
+# Deployment Philosophy
+
+## Core Principles
+1. PRESERVE WORKING STATE
+   - Never modify working code unless absolutely necessary and approved by the user
+   - Keep all files in their original structure
+   - Maintain all dependencies exactly as they are
+   - If it works in development, keep it working that way
+
+2. MINIMAL INTERVENTION
+   - Make the smallest possible changes to get from development to production
+   - Don't optimize unless there's a proven need
+   - Don't bundle unless performance issues arise
+   - Don't modify paths unless absolutely necessary for web serving
+
+3. REVERSIBILITY
+   - Every change must be easily reversible
+   - Keep original files backed up
+   - Document every modification
+   - Maintain clear path back to working development state
+
+4. TESTING REQUIREMENTS
+   - Test every file after upload
+   - Test every feature after any change
+   - Test in exact production environment
+   - Never assume similarity between dev and prod
+
+## Forbidden Actions
+1. DO NOT:
+   - Bundle files without performance evidence
+   - Modify working JavaScript
+   - Change file structure
+   - Add build steps
+   - Minify code
+   - Add WordPress plugins
+   - Modify Astra theme
+   - Change animation timing
+
+2. ALWAYS:
+   - Keep exact file copies
+   - Test after each file upload
+   - Verify all imports work
+   - Check console for errors
+   - Test minimize/maximize
+   - Test all dice types
+   - Document any issues
+
+## Change Process
+1. Propose change
+2. Document current state
+3. Make single change
+4. Test thoroughly
+5. Document results
+6. Wait for verification
+7. Proceed only when verified
+
+## File Management
+1. Keep files in src/ directory
+2. Maintain original names
+3. Use absolute paths when needed
+4. Keep permissions correct
+5. Backup before changes
+
+## Error Response
+1. Revert to known good state
+2. Check file permissions
+3. Verify file paths
+4. Test imports
+5. Check console
+6. Document issue
+7. Try again
+
+## Questions to Ask
+1. "Is this change necessary?"
+2. "Can we preserve current structure?"
+3. "What's the simplest solution?"
+4. "How can we revert this?"
+5. "Have we tested everything?"

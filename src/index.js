@@ -47,41 +47,49 @@ function setupDebugMode() {
 }
 
 // Initialize all UI components when the document is ready
-document.addEventListener('DOMContentLoaded', () => {
-    // Initial setup
+// document.addEventListener('DOMContentLoaded', () => {
+// Initial setup
+// setupEventListeners();
+// setupDiceInput();
+// setupDiceButtons();
+// setupDebugMode();
+// Initialize number buttons
+// setupNumberButtons();
+// Initialize help popup
+// setupHelpPopup();
+
+// Get the launch button and applet
+const launchButton = document.getElementById('dice-roller-button');
+
+// Initialize applet state - hide and center it using core functions
+minimizeApplet();
+centerApplet(); // Only center during initial setup
+
+// Add click handler for launch button
+launchButton.addEventListener('click', () => {
+    // Initialize the applet when the widget button is clicked
     setupEventListeners();
     setupDiceInput();
     setupDiceButtons();
     setupDebugMode();
-    // Initialize number buttons
     setupNumberButtons();
-    // Initialize help popup
     setupHelpPopup();
     
-    // Get the launch button and applet
-    const launchButton = document.getElementById('dice-roller-button');
-    
-    // Initialize applet state - hide and center it using core functions
-    minimizeApplet();
-    centerApplet(); // Only center during initial setup
-    
-    // Add click handler for launch button
-    launchButton.addEventListener('click', () => {
-        // Use core function to toggle applet visibility
-        // Don't center when toggling to preserve position
-        toggleApplet(false);
-    });
-
-    // Make the applet draggable
-    const applet = document.getElementById('dice-applet');
-    makeDraggable(applet);
-    
-    // Reset applet to initial state
-    resetApplet();
-    
-    // Initialize display module
-    initDisplayModule(); // Initialize display module with scroll handler
+    // Use core function to toggle applet visibility
+    // Don't center when toggling to preserve position
+    toggleApplet(false);
 });
+
+// Make the applet draggable
+const applet = document.getElementById('dice-applet');
+makeDraggable(applet);
+
+// Reset applet to initial state
+resetApplet();
+
+// Initialize display module
+initDisplayModule(); // Initialize display module with scroll handler
+// });
 
 // Export UI functions from ui-updates.js
 export { setupDiceInput, setupDiceButtons } from './ui-updates';

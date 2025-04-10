@@ -146,7 +146,7 @@ function setupGlobalKeyboardHandlers(diceInput) {
         resetApplet();
         break;
         
-      // Add space key to toggle the applet visibility
+      // Space key to toggle the applet visibility
       case ' ':
         // Only if not in input field
         if (isInputFocused) return;
@@ -154,8 +154,7 @@ function setupGlobalKeyboardHandlers(diceInput) {
         e.preventDefault();
         toggleApplet(false); // Don't center when toggling to preserve position
         break;
-        // TODO: REMINDER - Consider removing the space key shortcut before website deployment
-        // This might conflict with native scrolling or other website functionality
+        // Space key toggle is a useful feature and will be kept for deployment
     }
   });
 }
