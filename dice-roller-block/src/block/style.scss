@@ -1,0 +1,86 @@
+/* Frontend styles for the dice roller */
+#dice-roller-mount {
+    /* Remove any constraining properties */
+    position: static !important; /* Override any theme positioning */
+    overflow: visible !important;
+    width: auto !important;
+    height: auto !important;
+    
+    /* Ensure it doesn't create a positioning context that would constrain children */
+    transform: none !important;
+}
+
+/* The actual container that holds the draggable applet */
+#dice-roller-container {
+    /* Position in viewport space, not relative to any container */
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    
+    /* Ensure it spans the full viewport */
+    width: 100vw !important;
+    height: 100vh !important;
+    
+    /* Critical: Allow content to overflow */
+    overflow: visible !important;
+    
+    /* Ensure it's above other content but below modals/popups */
+    z-index: 9999;
+    
+    /* Make container non-interactive except for the applet itself */
+    pointer-events: none;
+}
+
+/* The actual draggable applet */
+#dice-applet {
+    position: fixed;  /* Position relative to viewport */
+    pointer-events: auto;  /* Make the applet interactive */
+    /* Initial position will be set by JavaScript */
+}
+
+/* Position classes now only affect the launch button */
+.dice-roller-bottom-right #dice-roller-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10000;
+}
+
+/* (Similar classes for other positions) */
+
+/* Ensure proper stacking in WordPress admin */
+.wp-admin #dice-roller-container {
+    z-index: 99999;  /* Higher z-index to appear above admin UI */
+}
+
+/* Remove any theme-specific constraints */
+.ast-footer-widget #dice-roller-mount,
+.ast-mobile-header-wrap #dice-roller-mount {
+    transform: none !important;
+    position: static !important;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    #dice-roller-container {
+        max-width: 90vw;
+        max-height: 80vh;
+        overflow: auto;
+    }
+    
+    /* Ensure buttons are touch-friendly */
+    #dice-applet .die-button,
+    #dice-applet .number-button,
+    #dice-applet button {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 8px;
+    }
+    
+    /* Improved scrolling */
+    .results-area {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Astra-specific overrides handled via PHP */ 

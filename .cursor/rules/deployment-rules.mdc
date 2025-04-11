@@ -1,9 +1,4 @@
 ---
-description: 
-globs: 
-alwaysApply: true
----
----
 description: Rules for deploying and maintaining the dice roller
 globs: 
   - "**/deployment.md"
@@ -21,7 +16,7 @@ alwaysApply: true
 
 ## Core Principles
 1. PRESERVE WORKING STATE
-   - Never modify working code unless absolutely necessary and approved by the user
+   - Never modify working code unless absolutely necessary
    - Keep all files in their original structure
    - Maintain all dependencies exactly as they are
    - If it works in development, keep it working that way
@@ -94,4 +89,4 @@ alwaysApply: true
 2. "Can we preserve current structure?"
 3. "What's the simplest solution?"
 4. "How can we revert this?"
-5. "Have we tested everything?"
+5. "Have we tested everything?" 

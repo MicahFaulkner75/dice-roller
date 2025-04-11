@@ -1,0 +1,32 @@
+{
+  "apiVersion": 2,
+  "name": "dice-roller-block/dice-roller",
+  "title": "Dice Roller",
+  "category": "widgets",
+  "icon": "games",
+  "description": "Interactive dice roller for tabletop gaming",
+  "keywords": ["dice", "roller", "game", "rpg", "d20"],
+  "version": "1.0.0",
+  "textdomain": "dice-roller-block",
+  "attributes": {
+    "position": {
+      "type": "string",
+      "default": "bottom-right"
+    },
+    "initiallyOpen": {
+      "type": "boolean",
+      "default": false
+    },
+    "mobileScale": {
+      "type": "number",
+      "default": 1.0
+    }
+  },
+  "supports": {
+    "html": false,
+    "align": ["wide", "full"]
+  },
+  "editorScript": "file:./build/block.js",
+  "editorStyle": "file:./build/editor.css",
+  "style": "file:./build/style.css"
+} 
